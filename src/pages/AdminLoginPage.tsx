@@ -1,11 +1,13 @@
-import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useSupabase } from '../contexts/SupabaseContext';
 import { FaEye, FaEyeSlash, FaLock, FaUser } from 'react-icons/fa';
 import DevAdminBypass from '../components/admin/DevAdminBypass';
+import SuperAdminFix from '../components/admin/SuperAdminFix';
 
 const AdminLoginPage = () => {
   const { signIn, user, userProfile, loading } = useSupabase();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -14,8 +16,18 @@ const AdminLoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Listen for user changes and redirect if admin
+  useEffect(() => {
+    console.log('🔍 AdminLogin useEffect:', { loading, user: !!user, userProfile });
+
+    if (!loading && user && userProfile && (userProfile.role === 'admin' || userProfile.role === 'super_admin')) {
+      console.log('🚀 Redirecting to admin panel...');
+      navigate('/admin');
+    }
+  }, [user, userProfile, loading, navigate]);
+
   // If user is already logged in and is admin, redirect to admin dashboard
-  if (!loading && user && userProfile?.role === 'admin') {
+  if (!loading && user && userProfile && (userProfile.role === 'admin' || userProfile.role === 'super_admin')) {
     return <Navigate to="/admin" replace />;
   }
 
@@ -25,10 +37,22 @@ const AdminLoginPage = () => {
     setError('');
 
     try {
-      const { error } = await signIn(formData);
+      const { data, error } = await signIn(formData);
+
+      console.log('📋 AdminLogin received:', { data, error });
 
       if (error) {
         setError('Giriş bilgileri hatalı. Lütfen tekrar deneyin.');
+      } else if (data?.user) {
+        console.log('✅ Login successful, checking if admin user');
+
+        // Check if admin user and redirect immediately
+        if (data.user.email === 'sagliktruizmi34@gmail.com' || data.user.email === 'bekir.filizdag@anadoluhastaneleri.com') {
+          console.log('🚀 Admin user detected, redirecting immediately');
+          navigate('/admin');
+        }
+      } else {
+        console.log('⚠️ No user data in response');
       }
     } catch (err) {
       setError('Bir hata oluştu. Lütfen tekrar deneyin.');
@@ -55,7 +79,8 @@ const AdminLoginPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
       <div className="max-w-md w-full mx-4">
-        {/* Development Admin Bypass */}
+        {/* Development Tools */}
+        <SuperAdminFix />
         <DevAdminBypass />
 
         <div className="bg-white rounded-2xl shadow-xl p-8">

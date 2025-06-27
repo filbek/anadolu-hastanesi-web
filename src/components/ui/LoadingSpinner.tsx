@@ -1,24 +1,16 @@
-import { motion } from 'framer-motion'
+import React from 'react';
 
-const LoadingSpinner = () => {
+const LoadingSpinner: React.FC = () => {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
-      <div className="flex flex-col items-center">
-        <motion.div
-          animate={{
-            rotate: 360,
-          }}
-          transition={{
-            duration: 1,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-          className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full"
-        />
-        <p className="mt-4 text-primary font-medium">Yükleniyor...</p>
+    <div className="flex justify-center items-center">
+      <div
+        className="w-12 h-12 border-4 border-t-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"
+        role="status"
+      >
+        <span className="sr-only">Loading...</span>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default LoadingSpinner
+export default LoadingSpinner;

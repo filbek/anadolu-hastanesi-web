@@ -83,7 +83,7 @@ const ProfilePage = () => {
                   <i className="bi bi-calendar-check mr-2"></i> Randevularım
                 </button>
                 <a
-                  href="https://randevu.anadoluhastaneleri.com"
+                  href="https://anadoluhastaneleri.kendineiyibak.app/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full py-3 px-6 text-left font-medium transition-colors hover:bg-neutral flex items-center"

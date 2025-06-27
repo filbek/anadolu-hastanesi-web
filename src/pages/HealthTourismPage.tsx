@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async'
+import DynamicPageRenderer from '../components/common/DynamicPageRenderer'
 import { motion } from 'framer-motion'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination, Autoplay } from 'swiper/modules'
@@ -8,7 +8,8 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 
-const HealthTourismPage = () => {
+// Original health tourism page as fallback
+const OriginalHealthTourismPage = () => {
   const services = [
     {
       icon: <FaGlobe />,
@@ -712,6 +713,15 @@ const HealthTourismPage = () => {
         </section>
       </div>
     </>
+  );
+};
+
+const HealthTourismPage = () => {
+  return (
+    <DynamicPageRenderer
+      slug="saglik-turizmi"
+      fallbackComponent={OriginalHealthTourismPage}
+    />
   );
 };
 

@@ -300,7 +300,7 @@ const DoctorsPage = () => {
                     Profili Görüntüle
                   </Link>
                   <a
-                    href="https://randevu.anadoluhastaneleri.com"
+                    href="https://anadoluhastaneleri.kendineiyibak.app/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm font-medium text-accent hover:text-accent-dark transition-colors"

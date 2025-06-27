@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase, UserCredentials, NewUser, UserProfile } from '../lib/supabase';
+import { supabaseNew as supabase, UserCredentials, NewUser, UserProfile } from '../lib/supabase-new';
 
 type SupabaseContextType = {
   session: Session | null;
@@ -35,12 +35,35 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔄 Auth state change:', event, session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchUserProfile(session.user.id);
+        console.log('👤 User found, fetching profile...');
+
+        // Temporary fix: Set admin profile directly for known admin emails
+        if (session.user.email === 'sagliktruizmi34@gmail.com') {
+          console.log('🔧 Setting super admin profile directly');
+          setUserProfile({
+            id: session.user.id,
+            email: session.user.email,
+            full_name: 'Super Admin',
+            role: 'super_admin'
+          });
+        } else if (session.user.email === 'bekir.filizdag@anadoluhastaneleri.com') {
+          console.log('🔧 Setting admin profile directly');
+          setUserProfile({
+            id: session.user.id,
+            email: session.user.email,
+            full_name: 'Bekir Filizdag',
+            role: 'admin'
+          });
+        } else {
+          await fetchUserProfile(session.user.id);
+        }
       } else {
+        console.log('❌ No user, clearing profile');
         setUserProfile(null);
       }
       setLoading(false);
@@ -52,18 +75,85 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    try {
+      console.log('🔍 Fetching profile for user:', userId);
 
-    if (error) {
-      console.error('Error fetching user profile:', error);
-      return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('❌ Profile fetch error:', error);
+
+        // If profile doesn't exist, create one for admin users
+        const userEmail = await getUserEmail(userId);
+        if (userEmail && (userEmail === 'sagliktruizmi34@gmail.com' || userEmail === 'bekir.filizdag@anadoluhastaneleri.com')) {
+          console.log('🔧 Creating missing admin profile...');
+          await createAdminProfile(userId, userEmail);
+          return;
+        }
+        return;
+      }
+
+      if (data) {
+        console.log('✅ Profile fetched:', data);
+        setUserProfile(data as UserProfile);
+      } else {
+        console.log('⚠️ No profile found, checking if admin user...');
+        const userEmail = await getUserEmail(userId);
+        if (userEmail && (userEmail === 'sagliktruizmi34@gmail.com' || userEmail === 'bekir.filizdag@anadoluhastaneleri.com')) {
+          console.log('🔧 Creating admin profile...');
+          await createAdminProfile(userId, userEmail);
+        }
+      }
+    } catch (error) {
+      console.error('💥 Error fetching user profile:', error);
     }
+  };
 
-    setUserProfile(data as UserProfile);
+  const getUserEmail = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.auth.admin.getUserById(userId);
+      if (error) {
+        // Fallback: get from current session
+        const { data: { session } } = await supabase.auth.getSession();
+        return session?.user?.email;
+      }
+      return data.user?.email;
+    } catch {
+      const { data: { session } } = await supabase.auth.getSession();
+      return session?.user?.email;
+    }
+  };
+
+  const createAdminProfile = async (userId: string, email: string) => {
+    try {
+      const role = email === 'sagliktruizmi34@gmail.com' ? 'super_admin' : 'admin';
+      const fullName = email === 'sagliktruizmi34@gmail.com' ? 'Super Admin' : 'Bekir Filizdag';
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert([{
+          id: userId,
+          email,
+          full_name: fullName,
+          role
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Error creating admin profile:', error);
+        return;
+      }
+
+      console.log('✅ Admin profile created:', data);
+      setUserProfile(data as UserProfile);
+    } catch (error) {
+      console.error('💥 Error creating admin profile:', error);
+    }
   };
 
   const signUp = async ({ email, password, full_name, phone }: NewUser) => {
@@ -116,13 +206,59 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
 
   const signIn = async ({ email, password }: UserCredentials) => {
     try {
+      console.log('🔐 SignIn attempt with:', email);
+      console.log('🔗 Supabase client URL:', (supabase as any).supabaseUrl);
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
+      if (error) {
+        console.error('❌ SignIn error:', error);
+      } else {
+        console.log('✅ SignIn successful, full data:', data);
+        console.log('🔍 User object:', data.user);
+        console.log('🔍 Session object:', data.session);
+
+        if (data.user) {
+          console.log('✅ User found:', data.user.email);
+        console.log('🔍 User email check:', data.user.email, typeof data.user.email);
+        console.log('🔍 Email comparison:', data.user.email === 'sagliktruizmi34@gmail.com');
+
+        // Always set user and session first
+        setUser(data.user);
+        setSession(data.session);
+
+        // Immediately set profile for admin users
+        if (data.user.email === 'sagliktruizmi34@gmail.com') {
+          console.log('🔧 Setting super admin profile after login');
+          setUserProfile({
+            id: data.user.id,
+            email: data.user.email,
+            full_name: 'Super Admin',
+            role: 'super_admin'
+          });
+        } else if (data.user.email === 'bekir.filizdag@anadoluhastaneleri.com') {
+          console.log('🔧 Setting admin profile after login');
+          setUserProfile({
+            id: data.user.id,
+            email: data.user.email,
+            full_name: 'Bekir Filizdag',
+            role: 'admin'
+          });
+        } else {
+          console.log('⚠️ Not an admin email, fetching profile from database');
+          await fetchUserProfile(data.user.id);
+        }
+        } else {
+          console.log('❌ No user in response data');
+        }
+      }
+
       return { data, error };
     } catch (error) {
+      console.error('💥 SignIn exception:', error);
       return { error, data: null };
     }
   };

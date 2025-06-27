@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async'
+import DynamicPageRenderer from '../components/common/DynamicPageRenderer'
 import { motion } from 'framer-motion'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination, Autoplay } from 'swiper/modules'
@@ -8,7 +8,8 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 
-const AboutPage = () => {
+// Original about page as fallback
+const OriginalAboutPage = () => {
   const milestones = [
     {
       year: '2005',
@@ -582,7 +583,7 @@ const AboutPage = () => {
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
                   <a
-                    href="https://randevu.anadoluhastaneleri.com"
+                    href="https://anadoluhastaneleri.kendineiyibak.app/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn bg-accent hover:bg-accent-dark transition-colors"
@@ -602,6 +603,15 @@ const AboutPage = () => {
         </section>
       </div>
     </>
+  );
+};
+
+const AboutPage = () => {
+  return (
+    <DynamicPageRenderer
+      slug="hakkimizda"
+      fallbackComponent={OriginalAboutPage}
+    />
   );
 };
 

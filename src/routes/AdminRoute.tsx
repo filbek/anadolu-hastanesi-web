@@ -3,18 +3,25 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useSupabase } from '../contexts/SupabaseContext'; // Supabase context'ini import edin
 
 const AdminRoute = () => {
-  const { session, userProfile, loading } = useSupabase(); // userProfile ve loading eklendi
+  const { user, userProfile, loading } = useSupabase();
+
+  console.log('🔒 AdminRoute check:', { user: !!user, userProfile, loading });
 
   if (loading) {
-    return <div>Yükleniyor...</div>; // veya bir LoadingSpinner componenti
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
-  // Oturum yoksa veya kullanıcı profili yüklenmemişse veya kullanıcı admin/super_admin değilse admin login sayfasına yönlendir
-  if (!session || !userProfile || (userProfile.role !== 'admin' && userProfile.role !== 'super_admin')) {
+  // Kullanıcı yoksa veya profil yüklenmemişse veya admin değilse login'e yönlendir
+  if (!user || !userProfile || (userProfile.role !== 'admin' && userProfile.role !== 'super_admin')) {
+    console.log('❌ Admin access denied, redirecting to login');
     return <Navigate to="/admin/login" replace />;
   }
 
-  // Kullanıcı admin ise alt route'ları render edin
+  console.log('✅ Admin access granted');
   return <Outlet />;
 };
 

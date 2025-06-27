@@ -13,7 +13,7 @@ const slides = [
     title: 'Sağlığınız İçin En İyi Hizmet',
     subtitle: 'Anadolu Hastaneleri Grubu olarak, sağlığınız için en iyi hizmeti sunmak amacıyla çalışıyoruz.',
     cta: 'Randevu Al',
-    ctaLink: 'https://randevu.anadoluhastaneleri.com',
+    ctaLink: 'https://anadoluhastaneleri.kendineiyibak.app/',
     hospital: 'Anadolu Merkez Hastanesi',
   },
   {

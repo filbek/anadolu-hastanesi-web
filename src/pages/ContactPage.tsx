@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async'
+import DynamicPageRenderer from '../components/common/DynamicPageRenderer'
 import { motion } from 'framer-motion'
 import SectionTitle from '../components/ui/SectionTitle'
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from 'react-icons/fa'
@@ -33,15 +33,10 @@ const hospitals = [
   },
 ];
 
-const ContactPage = () => {
+// Original contact page as fallback
+const OriginalContactPage = () => {
   return (
-    <>
-      <Helmet>
-        <title>İletişim | Anadolu Hastaneleri Grubu</title>
-        <meta name="description" content="Anadolu Hastaneleri Grubu ile iletişime geçin. Hastanelerimizin adres, telefon ve e-posta bilgilerine ulaşın." />
-      </Helmet>
-
-      <div className="pt-24 pb-12">
+    <div className="pt-24 pb-12">
         <div className="container-custom">
           <SectionTitle
             title="İletişim"
@@ -334,7 +329,15 @@ const ContactPage = () => {
           </div>
         </div>
       </div>
-    </>
+  );
+};
+
+const ContactPage = () => {
+  return (
+    <DynamicPageRenderer
+      slug="iletisim"
+      fallbackComponent={OriginalContactPage}
+    />
   );
 };
 

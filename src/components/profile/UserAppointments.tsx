@@ -99,7 +99,7 @@ const UserAppointments = () => {
           <i className="bi bi-calendar-x text-4xl text-text-light mb-4"></i>
           <p className="text-text-light">Henüz randevunuz bulunmamaktadır.</p>
           <a
-            href="https://randevu.anadoluhastaneleri.com"
+            href="https://anadoluhastaneleri.kendineiyibak.app/"
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-primary mt-4"

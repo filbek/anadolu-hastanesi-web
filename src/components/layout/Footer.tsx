@@ -105,7 +105,7 @@ const Footer = () => {
             </ul>
             <div className="mt-6">
               <a
-                href="https://randevu.anadoluhastaneleri.com"
+                href="https://anadoluhastaneleri.kendineiyibak.app/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-accent"

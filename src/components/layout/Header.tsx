@@ -90,7 +90,7 @@ const Header = () => {
       <div className="container-custom flex justify-between items-center">
         {/* Logo */}
         <Link to="/" className="z-50">
-          <Logo />
+          <Logo clickable={false} />
         </Link>
 
         {/* Desktop Navigation */}
@@ -212,7 +212,7 @@ const Header = () => {
           )}
           
           <a
-            href="https://randevu.anadoluhastaneleri.com"
+            href="https://anadoluhastaneleri.kendineiyibak.app/"
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-accent"
@@ -349,7 +349,7 @@ const Header = () => {
                   )}
                   
                   <a
-                    href="https://randevu.anadoluhastaneleri.com"
+                    href="https://anadoluhastaneleri.kendineiyibak.app/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-accent w-full text-center"

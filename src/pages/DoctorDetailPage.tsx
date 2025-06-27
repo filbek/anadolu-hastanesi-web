@@ -131,7 +131,7 @@ const DoctorDetailPage = () => {
                   </div>
                   <div className="flex flex-wrap justify-center md:justify-start gap-4">
                     <a
-                      href="https://randevu.anadoluhastaneleri.com"
+                      href="https://anadoluhastaneleri.kendineiyibak.app/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn bg-accent hover:bg-accent-dark transition-colors"
@@ -265,7 +265,7 @@ const DoctorDetailPage = () => {
                       </ul>
                       <div className="mt-6">
                         <a
-                          href="https://randevu.anadoluhastaneleri.com"
+                          href="https://anadoluhastaneleri.kendineiyibak.app/"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="btn btn-accent w-full"
@@ -437,7 +437,7 @@ const DoctorDetailPage = () => {
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
                 <a
-                  href="https://randevu.anadoluhastaneleri.com"
+                  href="https://anadoluhastaneleri.kendineiyibak.app/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn bg-accent hover:bg-accent-dark transition-colors"

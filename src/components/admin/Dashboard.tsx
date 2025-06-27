@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaHospital, FaStethoscope, FaUserMd, FaNewspaper, FaUsers, FaEye, FaCalendarCheck } from 'react-icons/fa';
-import { supabase } from '../../lib/supabase';
+import { supabaseNew as supabase } from '../../lib/supabase-new';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -95,12 +95,7 @@ const Dashboard = () => {
       icon: <FaUsers className="text-2xl text-primary" />,
       link: '/admin/users',
     },
-    {
-      title: 'Randevular',
-      value: stats.appointments,
-      icon: <FaCalendarCheck className="text-2xl text-primary" />,
-      link: '/admin/appointments',
-    },
+
   ];
 
   return (
