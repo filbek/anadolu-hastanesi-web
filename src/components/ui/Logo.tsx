@@ -21,7 +21,7 @@ const Logo = ({ variant = 'default', clickable = true }: LogoProps) => {
     <img
       src={customLogo}
       alt="Anadolu Hastaneleri"
-      className="h-12 w-auto object-contain"
+      className="h-full w-auto object-contain max-h-14"
       onError={() => setCustomLogo('')} // Fallback to default if image fails
     />
   ) : (

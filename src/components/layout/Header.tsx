@@ -89,7 +89,7 @@ const Header = () => {
     >
       <div className="container-custom flex justify-between items-center">
         {/* Logo */}
-        <Link to="/" className="z-50">
+        <Link to="/" className="z-50 flex items-center h-16 py-1">
           <Logo clickable={false} />
         </Link>
 
