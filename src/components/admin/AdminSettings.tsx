@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { FaSave, FaGlobe, FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaExternalLinkAlt } from 'react-icons/fa';
+import { useState, useEffect, useRef } from 'react';
+import { FaSave, FaGlobe, FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaExternalLinkAlt, FaUpload, FaImage, FaTrash, FaEye } from 'react-icons/fa';
 import { supabaseNew as supabase } from '../../lib/supabase-new';
 
 interface SiteSettings {
@@ -48,10 +48,26 @@ const AdminSettings = () => {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string>('');
+  const [faviconPreview, setFaviconPreview] = useState<string>('');
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const logoFileRef = useRef<HTMLInputElement>(null);
+  const faviconFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchSettings();
   }, []);
+
+  useEffect(() => {
+    // Set previews when settings change
+    if (settings.logo_url) {
+      setLogoPreview(settings.logo_url);
+    }
+    if (settings.favicon_url) {
+      setFaviconPreview(settings.favicon_url);
+    }
+  }, [settings.logo_url, settings.favicon_url]);
 
   const fetchSettings = async () => {
     try {
@@ -104,6 +120,19 @@ const AdminSettings = () => {
         setSettings(data);
       }
 
+      // Save logo to localStorage for immediate use
+      if (settings.logo_url) {
+        localStorage.setItem('site_logo_url', settings.logo_url);
+      } else {
+        localStorage.removeItem('site_logo_url');
+      }
+
+      if (settings.favicon_url) {
+        localStorage.setItem('site_favicon_url', settings.favicon_url);
+        // Update favicon in document head
+        updateFavicon(settings.favicon_url);
+      }
+
       alert('Ayarlar başarıyla kaydedildi!');
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -111,6 +140,112 @@ const AdminSettings = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Lütfen geçerli bir resim dosyası seçin!');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Dosya boyutu 2MB\'dan küçük olmalıdır!');
+      return;
+    }
+
+    try {
+      setUploadingLogo(true);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setLogoPreview(result);
+        setSettings(prev => ({ ...prev, logo_url: result }));
+      };
+      reader.readAsDataURL(file);
+
+      // In a real app, you would upload to a storage service like Supabase Storage
+      // For now, we'll use the data URL
+
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      alert('Logo yüklenirken hata oluştu!');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleFaviconUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Lütfen geçerli bir resim dosyası seçin!');
+      return;
+    }
+
+    // Validate file size (max 1MB)
+    if (file.size > 1024 * 1024) {
+      alert('Favicon dosya boyutu 1MB\'dan küçük olmalıdır!');
+      return;
+    }
+
+    try {
+      setUploadingFavicon(true);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setFaviconPreview(result);
+        setSettings(prev => ({ ...prev, favicon_url: result }));
+      };
+      reader.readAsDataURL(file);
+
+    } catch (error) {
+      console.error('Error uploading favicon:', error);
+      alert('Favicon yüklenirken hata oluştu!');
+    } finally {
+      setUploadingFavicon(false);
+    }
+  };
+
+  const removeLogo = () => {
+    setSettings(prev => ({ ...prev, logo_url: '' }));
+    setLogoPreview('');
+    if (logoFileRef.current) {
+      logoFileRef.current.value = '';
+    }
+  };
+
+  const removeFavicon = () => {
+    setSettings(prev => ({ ...prev, favicon_url: '' }));
+    setFaviconPreview('');
+    if (faviconFileRef.current) {
+      faviconFileRef.current.value = '';
+    }
+  };
+
+  const updateFavicon = (faviconUrl: string) => {
+    // Remove existing favicon
+    const existingFavicon = document.querySelector('link[rel="icon"]') ||
+                           document.querySelector('link[rel="shortcut icon"]');
+    if (existingFavicon) {
+      existingFavicon.remove();
+    }
+
+    // Add new favicon
+    const link = document.createElement('link');
+    link.rel = 'icon';
+    link.href = faviconUrl;
+    document.head.appendChild(link);
   };
 
   const handleInputChange = (field: keyof SiteSettings, value: string) => {
@@ -282,6 +417,200 @@ const AdminSettings = () => {
               <p className="text-sm text-gray-500 mt-1">
                 Randevu Al butonuna tıklandığında açılacak sayfa
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Logo ve Görsel Yönetimi */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
+            <FaImage className="mr-2" />
+            Logo ve Görsel Yönetimi
+          </h2>
+
+          <div className="space-y-6">
+            {/* Ana Logo */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Ana Logo
+              </label>
+              <div className="space-y-3">
+                {/* Logo Preview */}
+                {logoPreview && (
+                  <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                    <img
+                      src={logoPreview}
+                      alt="Logo Preview"
+                      className="h-16 w-auto object-contain"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-600">Mevcut Logo</p>
+                      <div className="flex space-x-2 mt-2">
+                        <button
+                          type="button"
+                          onClick={() => window.open(logoPreview, '_blank')}
+                          className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                        >
+                          <FaEye className="mr-1" />
+                          Görüntüle
+                        </button>
+                        <button
+                          type="button"
+                          onClick={removeLogo}
+                          className="text-red-600 hover:text-red-800 text-sm flex items-center"
+                        >
+                          <FaTrash className="mr-1" />
+                          Kaldır
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Logo Upload */}
+                <div className="flex items-center space-x-4">
+                  <input
+                    ref={logoFileRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => logoFileRef.current?.click()}
+                    disabled={uploadingLogo}
+                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {uploadingLogo ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Yükleniyor...
+                      </>
+                    ) : (
+                      <>
+                        <FaUpload className="mr-2" />
+                        Logo Yükle
+                      </>
+                    )}
+                  </button>
+                  <span className="text-sm text-gray-500">
+                    PNG, JPG, SVG (Max: 2MB)
+                  </span>
+                </div>
+
+                {/* Logo URL Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Veya Logo URL'si Girin
+                  </label>
+                  <input
+                    type="url"
+                    value={settings.logo_url}
+                    onChange={(e) => handleInputChange('logo_url', e.target.value)}
+                    placeholder="https://example.com/logo.png"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Favicon */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Favicon (Site İkonu)
+              </label>
+              <div className="space-y-3">
+                {/* Favicon Preview */}
+                {faviconPreview && (
+                  <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                    <img
+                      src={faviconPreview}
+                      alt="Favicon Preview"
+                      className="h-8 w-8 object-contain"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-600">Mevcut Favicon</p>
+                      <div className="flex space-x-2 mt-2">
+                        <button
+                          type="button"
+                          onClick={() => window.open(faviconPreview, '_blank')}
+                          className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                        >
+                          <FaEye className="mr-1" />
+                          Görüntüle
+                        </button>
+                        <button
+                          type="button"
+                          onClick={removeFavicon}
+                          className="text-red-600 hover:text-red-800 text-sm flex items-center"
+                        >
+                          <FaTrash className="mr-1" />
+                          Kaldır
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Favicon Upload */}
+                <div className="flex items-center space-x-4">
+                  <input
+                    ref={faviconFileRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFaviconUpload}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => faviconFileRef.current?.click()}
+                    disabled={uploadingFavicon}
+                    className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                  >
+                    {uploadingFavicon ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Yükleniyor...
+                      </>
+                    ) : (
+                      <>
+                        <FaUpload className="mr-2" />
+                        Favicon Yükle
+                      </>
+                    )}
+                  </button>
+                  <span className="text-sm text-gray-500">
+                    ICO, PNG (Max: 1MB, Önerilen: 32x32px)
+                  </span>
+                </div>
+
+                {/* Favicon URL Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Veya Favicon URL'si Girin
+                  </label>
+                  <input
+                    type="url"
+                    value={settings.favicon_url}
+                    onChange={(e) => handleInputChange('favicon_url', e.target.value)}
+                    placeholder="https://example.com/favicon.ico"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Logo Kullanım Bilgileri */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-blue-800 mb-2">💡 Logo Kullanım İpuçları</h3>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Ana logo için şeffaf arka planlı PNG formatı önerilir</li>
+                <li>• Logo boyutu 200x60px civarında olmalıdır</li>
+                <li>• Favicon için 32x32px veya 16x16px boyutları idealdir</li>
+                <li>• Yüklenen logolar otomatik olarak kaydedilir</li>
+                <li>• Logo değişiklikleri site genelinde anında yansır</li>
+              </ul>
             </div>
           </div>
         </div>

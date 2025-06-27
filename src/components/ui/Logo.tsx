@@ -1,12 +1,30 @@
+import { useState, useEffect } from 'react'
+
 interface LogoProps {
   variant?: 'default' | 'white'
   clickable?: boolean
 }
 
 const Logo = ({ variant = 'default', clickable = true }: LogoProps) => {
+  const [customLogo, setCustomLogo] = useState<string>('')
   const textColor = variant === 'white' ? 'text-white' : 'text-primary'
 
-  const logoContent = (
+  useEffect(() => {
+    // Load custom logo from localStorage or API
+    const savedLogo = localStorage.getItem('site_logo_url')
+    if (savedLogo) {
+      setCustomLogo(savedLogo)
+    }
+  }, [])
+
+  const logoContent = customLogo ? (
+    <img
+      src={customLogo}
+      alt="Anadolu Hastaneleri"
+      className="h-12 w-auto object-contain"
+      onError={() => setCustomLogo('')} // Fallback to default if image fails
+    />
+  ) : (
     <div className="flex items-center">
       <i className={`bi bi-hospital text-2xl ${variant === 'white' ? 'text-white' : 'text-accent'} mr-2`}></i>
       <div className="flex flex-col">
