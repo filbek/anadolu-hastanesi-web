@@ -1,727 +1,461 @@
-import DynamicPageRenderer from '../components/common/DynamicPageRenderer'
 import { motion } from 'framer-motion'
-import { Swiper, SwiperSlide } from 'swiper/react'
-import { Navigation, Pagination, Autoplay } from 'swiper/modules'
-import SectionTitle from '../components/ui/SectionTitle'
-import { FaGlobe, FaHotel, FaPlane, FaUserMd, FaHeartbeat, FaWheelchair, FaCheck, FaEnvelope, FaWhatsapp } from 'react-icons/fa'
-import 'swiper/css'
-import 'swiper/css/navigation'
-import 'swiper/css/pagination'
+import { Helmet } from 'react-helmet-async'
+import {
+  FaCheck, FaGlobeAmericas, FaHotel, FaAmbulance, FaUserMd, FaMicrochip, FaUserFriends,
+  FaHeartbeat, FaBone, FaEye, FaUserEdit, FaTooth, FaCut,
+  FaPhone, FaEnvelope, FaWhatsapp, FaFacebookF, FaTwitter, FaInstagram, FaYoutube
+} from 'react-icons/fa'
 
-// Original health tourism page as fallback
-const OriginalHealthTourismPage = () => {
+const HealthTourismPage = () => {
+  const whyUs = [
+    { title: 'JCI Akreditasyonu', desc: 'Uluslararası standartlarda sağlık hizmeti sunduğumuzu belgeleyen JCI akreditasyonuna sahibiz.' },
+    { title: 'Uzman Doktor Kadrosu', desc: 'Alanında uzman ve uluslararası deneyime sahip doktorlarımızla hizmet veriyoruz.' },
+    { title: 'Modern Teknoloji', desc: 'En son teknoloji tıbbi cihazlar ve tedavi yöntemleri kullanıyoruz.' },
+    { title: 'Çok Dilli Hizmet', desc: 'İngilizce, Almanca, Arapça, Rusça ve daha birçok dilde hizmet sunuyoruz.' },
+    { title: 'Uygun Fiyatlar', desc: 'Avrupa ve Amerika\'daki fiyatlara göre %40-70 daha ekonomik fiyatlarla hizmet veriyoruz.' },
+  ];
+
   const services = [
-    {
-      icon: <FaGlobe />,
-      title: 'Çok Dilli Hizmet',
-      description: 'İngilizce, Almanca, Arapça, Rusça ve daha birçok dilde hizmet sunuyoruz.',
-    },
-    {
-      icon: <FaHotel />,
-      title: 'Konaklama Desteği',
-      description: 'Tedavi süreciniz boyunca konaklama ihtiyaçlarınız için destek sağlıyoruz.',
-    },
-    {
-      icon: <FaPlane />,
-      title: 'Transfer Hizmetleri',
-      description: 'Havalimanı-hastane-otel arasında özel transfer hizmetleri sunuyoruz.',
-    },
-    {
-      icon: <FaUserMd />,
-      title: 'Uzman Doktorlar',
-      description: 'Alanında uzman ve uluslararası deneyime sahip doktorlarımızla hizmetinizdeyiz.',
-    },
-    {
-      icon: <FaHeartbeat />,
-      title: 'Modern Teknoloji',
-      description: 'En son teknoloji tıbbi cihazlar ve tedavi yöntemleri kullanıyoruz.',
-    },
-    {
-      icon: <FaWheelchair />,
-      title: 'Hasta Refakatçi Desteği',
-      description: 'Tedavi sürecinizde size ve refakatçinize özel destek sağlıyoruz.',
-    },
+    { icon: <FaGlobeAmericas />, title: 'Çok Dilli Hizmet', desc: 'İngilizce, Almanca, Arapça, Rusça ve daha birçok dilde hizmet sunuyoruz.' },
+    { icon: <FaHotel />, title: 'Konaklama Desteği', desc: 'Tedavi süreciniz boyunca konaklama ihtiyaçlarınız için destek sağlıyoruz.' },
+    { icon: <FaAmbulance />, title: 'Transfer Hizmetleri', desc: 'Havalimanı-hastane-otel arasında özel transfer hizmetleri sunuyoruz.' },
+    { icon: <FaUserMd />, title: 'Uzman Doktorlar', desc: 'Alanında uzman ve uluslararası deneyime sahip doktorlarımızla hizmetinizdeyiz.' },
+    { icon: <FaMicrochip />, title: 'Modern Teknoloji', desc: 'En son teknoloji tıbbi cihazlar ve tedavi yöntemleri kullanıyoruz.' },
+    { icon: <FaUserFriends />, title: 'Hasta Refakatçi Desteği', desc: 'Tedavi sürecinizde size ve refakatçinize özel destek sağlıyoruz.' },
   ];
 
   const treatments = [
-    {
-      title: 'Kardiyoloji',
-      icon: 'bi-heart-pulse-fill',
-      procedures: ['Koroner Anjiyografi', 'Stent Uygulaması', 'Kalp Pili Takılması', 'Kalp Kapak Ameliyatları'],
-    },
-    {
-      title: 'Ortopedi',
-      icon: 'bi-person-standing',
-      procedures: ['Diz Protezi', 'Kalça Protezi', 'Omurga Cerrahisi', 'Spor Yaralanmaları'],
-    },
-    {
-      title: 'Göz Hastalıkları',
-      icon: 'bi-eye-fill',
-      procedures: ['LASIK Ameliyatı', 'Katarakt Ameliyatı', 'Retina Tedavileri', 'Göz Kapağı Estetiği'],
-    },
-    {
-      title: 'Plastik Cerrahi',
-      icon: 'bi-scissors',
-      procedures: ['Yüz Germe', 'Burun Estetiği', 'Meme Estetiği', 'Liposuction'],
-    },
-    {
-      title: 'Diş Tedavileri',
-      icon: 'bi-emoji-smile-fill',
-      procedures: ['İmplant', 'Zirkonyum Kaplama', 'Gülüş Tasarımı', 'Ortodonti'],
-    },
-    {
-      title: 'Saç Ekimi',
-      icon: 'bi-person-fill',
-      procedures: ['FUE Tekniği', 'DHI Tekniği', 'Saç Mezoterapisi', 'PRP Tedavisi'],
-    },
+    { icon: <FaHeartbeat />, title: 'Kardiyoloji', items: ['Koroner Anjiografi', 'Stent Uygulaması', 'Kalp Pili Takımı', 'Kalp Kapağı Ameliyatları'] },
+    { icon: <FaBone />, title: 'Ortopedi', items: ['Diz Protezi', 'Kalça Protezi', 'Omurga Cerrahisi', 'Spor Yaralanmaları'] },
+    { icon: <FaEye />, title: 'Göz Hastalıkları', items: ['LASIK Ameliyatı', 'Katarakt Ameliyatı', 'Retina Tedavileri', 'Göz Kapağı Estetiği'] },
+    { icon: <FaUserEdit />, title: 'Plastik Cerrahi', items: ['Yüz Germe', 'Burun Estetiği', 'Meme Estetiği', 'Liposuction'] },
+    { icon: <FaTooth />, title: 'Diş Tedavileri', items: ['İmplant', 'Zirkonyum Kaplama', 'Gülüş Tasarımı', 'Ortodonti'] },
+    { icon: <FaCut />, title: 'Saç Ekimi', items: ['FUE Tekniği', 'DHI Tekniği', 'Sakal Ekimi', 'Kaş Ekimi'] },
+  ];
+
+  const process = [
+    { step: 1, title: 'İletişim', desc: 'Bizimle iletişime geçin ve sağlık durumunuz hakkında bilgi verin.' },
+    { step: 2, title: 'Tedavi Planı', desc: 'Uzman doktorlarımız tarafından size özel tedavi planı oluşturulur.' },
+    { step: 3, title: 'Seyahat ve Konaklama', desc: 'Seyahat ve konaklama planlamasında size yardımcı oluruz.' },
+    { step: 4, title: 'Tedavi ve Takip', desc: 'Tedaviniz gerçekleştirilir ve sonrasında takip edilir.' },
   ];
 
   const testimonials = [
-    {
-      name: 'John Smith',
-      country: 'United Kingdom',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
-      text: 'I had my heart surgery at Anadolu Hospitals and I am extremely satisfied with the results. The doctors and staff were very professional and caring. The facilities were modern and clean. I would highly recommend Anadolu Hospitals to anyone seeking medical treatment in Turkey.',
-      treatment: 'Kalp Ameliyatı',
-    },
-    {
-      name: 'Maria Rodriguez',
-      country: 'Spain',
-      image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
-      text: 'My experience with Anadolu Hospitals for my knee replacement surgery was exceptional. From the initial consultation to the post-operative care, everything was handled with utmost professionalism. The hospital arranged my accommodation and transportation, which made my stay in Turkey very comfortable.',
-      treatment: 'Diz Protezi',
-    },
-    {
-      name: 'Ahmed Al-Farsi',
-      country: 'United Arab Emirates',
-      image: 'https://images.unsplash.com/photo-1566753323558-f4e0952af115?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
-      text: 'I came to Anadolu Hospitals for dental treatment and I am very happy with the results. The dental team was highly skilled and used the latest technology. The international patient services team was very helpful and made my stay in Turkey enjoyable. I would definitely come back for any future treatments.',
-      treatment: 'Diş Tedavisi',
-    },
+    { name: 'Tamzin Tihema', country: 'Yeni Zelanda', rating: 5, text: 'Jennifer made the process clear and calm. She went above and beyond to cater to my needs. The hospital itself was clean and the cleaning staff were very thorough. I had an overall enjoyable experience and would definitely recommend this hospital.' },
+    { name: 'Fil JC', country: 'Kanada', rating: 5, text: 'I had my gastric surgery at Anadolu Hospital and from the moment I was picked up at the airport until I was dropped back off, everything was absolutely flawless. The entire process was organized perfectly — the hospital runs like a well-oiled machine.' },
+    { name: 'Kelsyrina Sanele', country: 'Avustralya', rating: 5, text: 'Travelled abroad to Turkey to get the Gastric Sleeve. Our surgeon Dr Ercan Yalcin was amazing, and so was the staff from Anadolu. JENNIFER assisted us throughout our whole journey. She is such a beautiful soul!' },
   ];
 
-  const faqItems = [
-    {
-      question: 'Sağlık turizmi için Türkiye\'ye nasıl gelebilirim?',
-      answer: 'Türkiye\'ye sağlık turizmi için gelmek isteyen hastalar, öncelikle bizimle iletişime geçerek tedavi planı ve randevu alabilirler. Vize işlemleri için gerekli davet mektubu ve sağlık raporlarını sağlıyoruz. Ayrıca, havalimanı transferi, konaklama ve tercüman hizmetleri de sunuyoruz.',
-    },
-    {
-      question: 'Tedavi sürecim ne kadar sürer?',
-      answer: 'Tedavi süresi, alacağınız tedavinin türüne ve kişisel sağlık durumunuza bağlı olarak değişiklik gösterir. Örneğin, diş tedavileri 3-7 gün, saç ekimi 2-3 gün, ortopedik ameliyatlar 7-14 gün sürebilir. Tedavi planınız oluşturulurken, tahmini süre size bildirilecektir.',
-    },
-    {
-      question: 'Tedavi maliyetleri nedir?',
-      answer: 'Tedavi maliyetleri, alacağınız tedavinin türüne, kapsamına ve süresine göre değişiklik gösterir. Bizimle iletişime geçtiğinizde, tedavi planınıza özel detaylı bir fiyat teklifi sunuyoruz. Genel olarak, Türkiye\'deki sağlık hizmetleri, Avrupa ve Amerika\'daki fiyatlara göre %50-70 daha ekonomiktir.',
-    },
-    {
-      question: 'Konaklama ve ulaşım hizmetleri sağlıyor musunuz?',
-      answer: 'Evet, uluslararası hastalarımız için konaklama ve ulaşım hizmetleri sunuyoruz. Havalimanı transferleri, hastane-otel transferleri ve şehir içi ulaşım için araç tahsis ediyoruz. Ayrıca, anlaşmalı otellerimizde özel indirimli konaklama imkanı sağlıyoruz.',
-    },
-    {
-      question: 'Tercüman hizmeti var mı?',
-      answer: 'Evet, uluslararası hastalarımız için İngilizce, Almanca, Arapça, Rusça ve daha birçok dilde tercüman hizmeti sunuyoruz. Tedavi süreciniz boyunca, doktor görüşmelerinde ve hastane işlemlerinde size yardımcı olacak bir tercüman tahsis ediyoruz.',
-    },
-    {
-      question: 'Tedavi sonrası takip nasıl yapılıyor?',
-      answer: 'Tedavi sonrası takip, tedavinin türüne göre değişiklik gösterir. Ülkenize döndükten sonra, düzenli olarak durumunuzu kontrol ediyor ve gerekli tavsiyelerde bulunuyoruz. Ayrıca, ihtiyaç duyulması halinde, ülkenizdeki partner sağlık kuruluşlarımız aracılığıyla takip muayeneleri düzenliyoruz.',
-    },
+  const faqs = [
+    { q: 'Sağlık turizmi için Türkiye\'ye nasıl gelebilirim?', a: 'Bizimle iletişime geçtiğinizde, tüm seyahat ve vize süreçleri konusunda size rehberlik ediyoruz. Havalimanı transferi de dahil tüm organizasyonu sizin adınıza gerçekleştiriyoruz.' },
+    { q: 'Tedavi sürecim ne kadar sürer?', a: 'Tedavi süresi, uygulanacak prosedüre göre değişiklik gösterir. İlk görüşmede size özel tedavi planı ve tahmini süre hakkında bilgi verilir.' },
+    { q: 'Tedavi maliyetleri nedir?', a: 'Maliyetler tedavi türüne göre değişmekle birlikte, Avrupa ve Amerika\'daki fiyatlara göre %40-70 daha ekonomik fiyatlar sunuyoruz.' },
+    { q: 'Konaklama ve ulaşım hizmetleri sağlıyor musunuz?', a: 'Evet, havalimanı transferi, otel rezervasyonu ve hastane-otel transferleri dahil tüm lojistik süreçlerde size destek sağlıyoruz.' },
+    { q: 'Tercüman hizmeti var mı?', a: 'Evet, İngilizce, Almanca, Arapça, Rusça ve daha birçok dilde tercüman hizmeti sunuyoruz.' },
+    { q: 'Tedavi sonrası takip nasıl yapılıyor?', a: 'Tedaviniz tamamlandıktan sonra, düzenli online görüşmeler ve raporlama sistemi ile sağlık durumunuzu takip ediyoruz.' },
   ];
 
   return (
-    <>
+    <div className="bg-white min-h-screen">
       <Helmet>
         <title>Sağlık Turizmi | Anadolu Hastaneleri Grubu</title>
-        <meta name="description" content="Anadolu Hastaneleri Grubu olarak, dünya standartlarında sağlık hizmetleri sunuyoruz. Uluslararası hasta hizmetlerimiz, konaklama ve transfer desteğimiz ile sağlık turizmi için ideal bir seçimiz." />
+        <meta name="description" content="Dünya standartlarında sağlık hizmetleri için Türkiye'nin önde gelen sağlık kuruluşu." />
       </Helmet>
 
-      <div className="pt-24 pb-12">
-        {/* Hero Section */}
-        <div className="relative h-[500px]">
-          <div className="absolute inset-0">
-            <img
-              src="https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80"
-              alt="Sağlık Turizmi"
-              className="w-full h-full object-cover"
-              loading="lazy"
-              crossOrigin="anonymous"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/30" />
-          </div>
-          <div className="container-custom relative h-full flex flex-col justify-center">
-            <div className="max-w-2xl text-white">
-              <motion.span
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="inline-block bg-accent px-4 py-1 rounded-full text-sm font-medium mb-4"
-              >
+      {/* HERO SECTION WITH BANNER */}
+      <section className="relative min-h-[600px] flex items-center pt-24 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=1920&q=80"
+            alt="Medical Technology"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-primary/60" />
+        </div>
+
+        <div className="container-custom relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <span className="inline-block px-4 py-2 bg-accent/20 text-accent rounded-full text-sm font-bold mb-6">
                 Anadolu Hastaneleri Grubu
-              </motion.span>
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
-              >
+              </span>
+              <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-6">
                 Sağlık Turizmi
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-                className="text-lg md:text-xl text-white/90 mb-8"
-              >
+              </h1>
+              <p className="text-lg text-white/80 leading-relaxed mb-8 max-w-lg">
                 Dünya standartlarında sağlık hizmetleri için Türkiye'nin önde gelen sağlık kuruluşu. Modern teknolojimiz, uzman doktor kadromuz ve uluslararası standartlardaki tesislerimizle sağlığınız için buradayız.
-              </motion.p>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
-                className="flex flex-wrap gap-4"
-              >
-                <a
-                  href="#contact"
-                  className="btn btn-accent"
-                >
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <a href="#contact" className="px-8 py-4 bg-accent text-white rounded-xl font-bold hover:bg-accent/90 transition-all shadow-lg">
                   İletişime Geçin
                 </a>
-                <a
-                  href="#services"
-                  className="btn bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors"
-                >
+                <a href="#services" className="px-8 py-4 bg-white/10 text-white border border-white/30 rounded-xl font-bold hover:bg-white/20 transition-all backdrop-blur-sm">
                   Hizmetlerimiz
                 </a>
+              </div>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="hidden lg:block"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=600&q=80"
+                alt="Medical Equipment"
+                className="rounded-3xl shadow-2xl border-4 border-white/20"
+              />
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* LANGUAGE SELECTOR */}
+      <div className="bg-slate-100 py-4">
+        <div className="container-custom flex justify-center items-center gap-6">
+          <span className="text-slate-500 font-medium">Dil Seçin:</span>
+          {['Türkçe', 'English', 'العربية', 'Русский', 'Deutsch'].map((lang, i) => (
+            <button
+              key={i}
+              className={`font-medium transition-colors ${i === 0 ? 'text-primary underline' : 'text-slate-400 hover:text-primary'}`}
+            >
+              {lang}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* WHY CHOOSE US */}
+      <section className="py-20">
+        <div className="container-custom">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-black text-primary mb-6">Neden Bizi Tercih Etmelisiniz?</h2>
+              <p className="text-slate-500 mb-8">
+                Anadolu Hastaneleri Grubu olarak, uluslararası hastalara en yüksek kalitede sağlık hizmeti sunuyoruz.
+              </p>
+              <p className="text-slate-500 mb-8">
+                Anadolu Hastaneleri Grubu olarak, dünyanın dört bir yanından gelen hastalara en yüksek kalitede sağlık hizmeti sunuyoruz. Modern teknolojimiz, uzman doktor kadromuz ve uluslararası standartlardaki tesislerimizle sağlığınız için buradayız.
+              </p>
+              <div className="space-y-4">
+                {whyUs.map((item, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <FaCheck className="text-accent mt-1 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-bold text-primary">{item.title}</h4>
+                      <p className="text-sm text-slate-500">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="relative">
+              <img
+                src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=600&q=80"
+                alt="Medical Team"
+                className="rounded-3xl shadow-xl"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SERVICES */}
+      <section id="services" className="py-20 bg-slate-50">
+        <div className="container-custom">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">Hizmetlerimiz</h2>
+            <p className="text-slate-500 max-w-2xl mx-auto">
+              Anadolu Hastaneleri Grubu olarak, uluslararası hastalarımıza geniş bir yelpazede hizmet sunuyoruz.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {services.map((service, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow"
+              >
+                <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center text-accent text-2xl mb-6">
+                  {service.icon}
+                </div>
+                <h3 className="text-lg font-bold text-primary mb-3">{service.title}</h3>
+                <p className="text-slate-500 text-sm">{service.desc}</p>
               </motion.div>
-            </div>
+            ))}
           </div>
         </div>
+      </section>
 
-        {/* Language Selector */}
-        <div className="bg-primary text-white py-4">
-          <div className="container-custom">
-            <div className="flex items-center justify-center space-x-6">
-              <span className="font-medium">Dil Seçin:</span>
-              <a href="#" className="hover:text-accent transition-colors">Türkçe</a>
-              <a href="#" className="hover:text-accent transition-colors">English</a>
-              <a href="#" className="hover:text-accent transition-colors">العربية</a>
-              <a href="#" className="hover:text-accent transition-colors">Русский</a>
-              <a href="#" className="hover:text-accent transition-colors">Deutsch</a>
-            </div>
+      {/* TREATMENTS */}
+      <section className="py-20">
+        <div className="container-custom">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">Tedavi Seçenekleri</h2>
+            <p className="text-slate-500 max-w-2xl mx-auto">
+              Anadolu Hastaneleri Grubu olarak, birçok farklı alanda tedavi hizmeti sunuyoruz.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {treatments.map((treatment, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-white p-8 rounded-2xl border border-slate-100 hover:border-accent/20 hover:shadow-lg transition-all"
+              >
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary text-xl">
+                    {treatment.icon}
+                  </div>
+                  <h3 className="text-lg font-bold text-primary">{treatment.title}</h3>
+                </div>
+                <ul className="space-y-2">
+                  {treatment.items.map((item, j) => (
+                    <li key={j} className="flex items-center gap-2 text-slate-500 text-sm">
+                      <FaCheck className="text-accent text-xs" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
           </div>
         </div>
+      </section>
 
-        {/* Why Choose Us */}
-        <section className="py-20">
-          <div className="container-custom">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <SectionTitle
-                  title="Neden Bizi Tercih Etmelisiniz?"
-                  subtitle="Anadolu Hastaneleri Grubu olarak, uluslararası hastalara en yüksek kalitede sağlık hizmeti sunuyoruz."
-                  alignment="left"
-                />
-
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="text-text-light mb-6"
-                >
-                  Anadolu Hastaneleri Grubu olarak, dünyanın dört bir yanından gelen hastalara en yüksek kalitede sağlık hizmeti sunuyoruz. Modern teknolojimiz, uzman doktor kadromuz ve uluslararası standartlardaki tesislerimizle sağlığınız için buradayız.
-                </motion.p>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
-                  className="space-y-4 mb-8"
-                >
-                  <div className="flex items-start">
-                    <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center mt-1 mr-3 flex-shrink-0">
-                      <FaCheck className="text-white text-xs" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-primary">JCI Akreditasyonu</h3>
-                      <p className="text-text-light text-sm">Uluslararası standartlarda sağlık hizmeti sunduğumuzu belgeleyen JCI akreditasyonuna sahibiz.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center mt-1 mr-3 flex-shrink-0">
-                      <FaCheck className="text-white text-xs" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-primary">Uzman Doktor Kadrosu</h3>
-                      <p className="text-text-light text-sm">Alanında uzman ve uluslararası deneyime sahip doktorlarımızla hizmet veriyoruz.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center mt-1 mr-3 flex-shrink-0">
-                      <FaCheck className="text-white text-xs" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-primary">Modern Teknoloji</h3>
-                      <p className="text-text-light text-sm">En son teknoloji tıbbi cihazlar ve tedavi yöntemleri kullanıyoruz.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center mt-1 mr-3 flex-shrink-0">
-                      <FaCheck className="text-white text-xs" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-primary">Çok Dilli Hizmet</h3>
-                      <p className="text-text-light text-sm">İngilizce, Almanca, Arapça, Rusça ve daha birçok dilde hizmet sunuyoruz.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center mt-1 mr-3 flex-shrink-0">
-                      <FaCheck className="text-white text-xs" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-primary">Uygun Fiyatlar</h3>
-                      <p className="text-text-light text-sm">Avrupa ve Amerika'daki fiyatlara göre %50-70 daha ekonomik fiyatlarla hizmet veriyoruz.</p>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-
-              <div className="relative">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.7 }}
-                  className="relative z-10"
-                >
-                  <img
-                    src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
-                    alt="Sağlık Turizmi"
-                    className="w-full h-auto rounded-xl shadow-lg"
-                    loading="lazy"
-                    crossOrigin="anonymous"
-                  />
-                </motion.div>
-                <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-accent rounded-xl z-0"></div>
-                <div className="absolute -top-6 -left-6 w-32 h-32 bg-primary rounded-xl z-0"></div>
-              </div>
-            </div>
+      {/* PROCESS */}
+      <section className="py-20 bg-primary">
+        <div className="container-custom">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">Tedavi Süreci</h2>
+            <p className="text-white/60 max-w-2xl mx-auto">
+              Anadolu Hastaneleri Grubu'nda tedavi süreciniz nasıl ilerler?
+            </p>
           </div>
-        </section>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {process.map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="text-center"
+              >
+                <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center text-white text-2xl font-black mx-auto mb-6">
+                  {item.step}
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
+                <p className="text-white/60 text-sm">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        {/* Our Services */}
-        <section id="services" className="py-20 bg-neutral">
-          <div className="container-custom">
-            <SectionTitle
-              title="Hizmetlerimiz"
-              subtitle="Anadolu Hastaneleri Grubu olarak, uluslararası hastalarımıza geniş bir yelpazede hizmet sunuyoruz."
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {services.map((service, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="card flex items-start p-6"
-                >
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mr-4 flex-shrink-0 text-primary text-xl">
-                    {service.icon}
+      {/* TESTIMONIALS */}
+      <section className="py-20">
+        <div className="container-custom">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">Hasta Yorumları</h2>
+            <p className="text-slate-500 max-w-2xl mx-auto">
+              Dünyanın dört bir yanından gelen hastalarımızın deneyimleri
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-white p-8 rounded-2xl border border-slate-100 shadow-lg"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-primary font-bold">
+                    {testimonial.name.charAt(0)}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-primary mb-2">{service.title}</h3>
-                    <p className="text-sm text-text-light">{service.description}</p>
+                    <h4 className="font-bold text-primary">{testimonial.name}</h4>
+                    <p className="text-sm text-slate-400">{testimonial.country}</p>
                   </div>
-                </motion.div>
-              ))}
-            </div>
+                </div>
+                <div className="flex gap-1 mb-4">
+                  {Array(testimonial.rating).fill(0).map((_, j) => (
+                    <span key={j} className="text-accent">★</span>
+                  ))}
+                </div>
+                <p className="text-slate-500 text-sm leading-relaxed">{testimonial.text}</p>
+              </motion.div>
+            ))}
           </div>
-        </section>
-
-        {/* Treatments */}
-        <section className="py-20">
-          <div className="container-custom">
-            <SectionTitle
-              title="Tedavi Seçenekleri"
-              subtitle="Anadolu Hastaneleri Grubu olarak, birçok farklı alanda tedavi hizmeti sunuyoruz."
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {treatments.map((treatment, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="card p-6"
-                >
-                  <div className="flex items-center mb-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mr-4">
-                      <i className={`bi ${treatment.icon} text-xl text-primary`}></i>
-                    </div>
-                    <h3 className="text-lg font-semibold text-primary">{treatment.title}</h3>
-                  </div>
-                  <ul className="space-y-2">
-                    {treatment.procedures.map((procedure, idx) => (
-                      <li key={idx} className="flex items-center">
-                        <div className="w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center mr-2">
-                          <FaCheck className="text-accent text-xs" />
-                        </div>
-                        <span className="text-text-light text-sm">{procedure}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Process */}
-        <section className="py-20 bg-primary text-white">
-          <div className="container-custom">
-            <SectionTitle
-              title="Tedavi Süreci"
-              subtitle="Anadolu Hastaneleri Grubu'nda tedavi süreciniz nasıl ilerler?"
-              light
-            />
-
-            <div className="relative">
-              <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-white/20 -translate-y-1/2"></div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5 }}
-                  className="relative text-center"
-                >
-                  <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-2xl font-bold mx-auto mb-4 relative z-10">
-                    1
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">İletişim</h3>
-                  <p className="text-white/80 text-sm">
-                    Bizimle iletişime geçin ve sağlık durumunuz hakkında bilgi verin.
-                  </p>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="relative text-center"
-                >
-                  <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-2xl font-bold mx-auto mb-4 relative z-10">
-                    2
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Tedavi Planı</h3>
-                  <p className="text-white/80 text-sm">
-                    Uzman doktorlarımız tarafından size özel tedavi planı oluşturulur.
-                  </p>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
-                  className="relative text-center"
-                >
-                  <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-2xl font-bold mx-auto mb-4 relative z-10">
-                    3
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Seyahat ve Konaklama</h3>
-                  <p className="text-white/80 text-sm">
-                    Seyahat ve konaklama planlamanızda size yardımcı oluruz.
-                  </p>
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.6 }}
-                  className="relative text-center"
-                >
-                  <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-2xl font-bold mx-auto mb-4 relative z-10">
-                    4
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Tedavi ve Takip</h3>
-                  <p className="text-white/80 text-sm">
-                    Tedaviniz gerçekleştirilir ve sonrasında takip edilir.
-                  </p>
-                </motion.div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Testimonials */}
-        <section className="py-20">
-          <div className="container-custom">
-            <SectionTitle
-              title="Hasta Yorumları"
-              subtitle="Dünyanın dört bir yanından gelen hastalarımızın deneyimleri"
-            />
-
-            <Swiper
-              modules={[Navigation, Pagination, Autoplay]}
-              spaceBetween={30}
-              slidesPerView={1}
-              navigation
-              pagination={{ clickable: true }}
-              autoplay={{ delay: 5000, disableOnInteraction: false }}
-              breakpoints={{
-                640: {
-                  slidesPerView: 1,
-                },
-                768: {
-                  slidesPerView: 2,
-                },
-                1024: {
-                  slidesPerView: 3,
-                },
-              }}
-              className="mt-12"
+          <div className="text-center mt-8">
+            <a
+              href="https://www.trustpilot.com/review/anadoluhastaneleri.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-accent font-medium hover:underline"
             >
-              {testimonials.map((testimonial, index) => (
-                <SwiperSlide key={index}>
-                  <div className="bg-white rounded-xl p-6 shadow-card h-full flex flex-col">
-                    <div className="flex items-center mb-4">
-                      <img
-                        src={testimonial.image}
-                        alt={testimonial.name}
-                        className="w-14 h-14 rounded-full object-cover mr-4"
-                        loading="lazy"
-                        crossOrigin="anonymous"
-                      />
-                      <div>
-                        <h3 className="font-semibold text-text">{testimonial.name}</h3>
-                        <p className="text-xs text-text-light">{testimonial.country}</p>
-                      </div>
-                    </div>
-                    <div className="flex mb-4">
-                      {[...Array(5)].map((_, i) => (
-                        <i key={i} className="bi bi-star-fill text-accent text-lg"></i>
-                      ))}
-                    </div>
-                    <p className="text-text-light text-sm flex-grow">"{testimonial.text}"</p>
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <p className="text-xs text-text-light">
-                        <span className="font-medium text-primary">Tedavi:</span> {testimonial.treatment}
-                      </p>
-                    </div>
-                  </div>
-                </SwiperSlide>
-              ))}
-            </Swiper>
+              Trustpilot'ta tüm yorumları görüntüleyin →
+            </a>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* FAQ */}
-        <section className="py-20 bg-neutral">
-          <div className="container-custom">
-            <SectionTitle
-              title="Sık Sorulan Sorular"
-              subtitle="Sağlık turizmi hakkında merak ettiğiniz soruların cevapları"
-            />
-
-            <div className="max-w-3xl mx-auto mt-12">
-              {faqItems.map((item, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="mb-4"
-                >
-                  <details className="group bg-white rounded-xl overflow-hidden">
-                    <summary className="flex justify-between items-center p-6 cursor-pointer font-semibold text-primary">
-                      {item.question}
-                      <i className="bi bi-chevron-down text-primary group-open:rotate-180 transition-transform"></i>
-                    </summary>
-                    <div className="p-6 pt-0 text-text-light">
-                      <p>{item.answer}</p>
-                    </div>
-                  </details>
-                </motion.div>
-              ))}
-            </div>
+      {/* FAQ */}
+      <section className="py-20 bg-slate-50">
+        <div className="container-custom">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">Sık Sorulan Sorular</h2>
+            <p className="text-slate-500 max-w-2xl mx-auto">
+              Sağlık turizmi hakkında merak ettiğiniz soruların cevapları
+            </p>
           </div>
-        </section>
+          <div className="max-w-3xl mx-auto space-y-4">
+            {faqs.map((faq, i) => (
+              <details key={i} className="group bg-white rounded-xl overflow-hidden shadow-sm">
+                <summary className="flex justify-between items-center p-6 cursor-pointer font-medium text-primary">
+                  {faq.q}
+                  <span className="text-slate-400 group-open:rotate-180 transition-transform">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                </summary>
+                <div className="px-6 pb-6 text-slate-500">
+                  {faq.a}
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        {/* Contact */}
-        <section id="contact" className="py-20">
-          <div className="container-custom">
-            <SectionTitle
-              title="İletişime Geçin"
-              subtitle="Sağlık turizmi hakkında daha fazla bilgi almak için bizimle iletişime geçin"
-            />
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-12">
-              <div>
-                <h3 className="text-2xl font-semibold text-primary mb-6">Bize Ulaşın</h3>
-                <p className="text-text-light mb-8">
-                  Sağlık turizmi hakkında daha fazla bilgi almak, tedavi seçeneklerini öğrenmek veya randevu almak için bizimle iletişime geçebilirsiniz. Uzman ekibimiz, size en kısa sürede dönüş yapacaktır.
-                </p>
-
-                <div className="space-y-6">
-                  <div className="flex items-start">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 flex-shrink-0">
-                      <FaEnvelope className="text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-text mb-1">E-posta</h4>
-                      <a href="mailto:international@anadoluhastaneleri.com" className="text-text-light hover:text-primary transition-colors">
-                        international@anadoluhastaneleri.com
-                      </a>
-                    </div>
+      {/* CONTACT */}
+      <section id="contact" className="py-20">
+        <div className="container-custom">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">İletişime Geçin</h2>
+            <p className="text-slate-500 max-w-2xl mx-auto">
+              Sağlık turizmi hakkında daha fazla bilgi almak için bizimle iletişime geçin.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+            {/* Contact Info */}
+            <div>
+              <h3 className="text-xl font-bold text-primary mb-6">Bize Ulaşın</h3>
+              <p className="text-slate-500 mb-8">
+                Sağlık turizmi hakkında daha fazla bilgi almak, tedavi seçeneklerini öğrenmek veya randevu almak için bizimle iletişime geçebilirsiniz. Uzman ekibimiz, size en kısa sürede dönüş yapacaktır.
+              </p>
+              <div className="space-y-4 mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                    <FaEnvelope />
                   </div>
-                  <div className="flex items-start">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 flex-shrink-0">
-                      <i className="bi bi-telephone-fill text-primary"></i>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-text mb-1">Telefon</h4>
-                      <a href="tel:+902121234567" className="text-text-light hover:text-primary transition-colors">
-                        +90 212 123 45 67
-                      </a>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-4 flex-shrink-0">
-                      <FaWhatsapp className="text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-text mb-1">WhatsApp</h4>
-                      <a href="https://wa.me/902121234567" className="text-text-light hover:text-primary transition-colors">
-                        +90 212 123 45 67
-                      </a>
-                    </div>
+                  <div>
+                    <p className="text-sm text-slate-400">E-posta</p>
+                    <a href="mailto:international@anadoluhastaneleri.com" className="text-primary font-medium">international@anadoluhastaneleri.com</a>
                   </div>
                 </div>
-
-                <div className="mt-8">
-                  <h4 className="font-semibold text-text mb-4">Bizi Takip Edin</h4>
-                  <div className="flex space-x-4">
-                    <a href="#" className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors">
-                      <i className="bi bi-facebook"></i>
-                    </a>
-                    <a href="#" className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors">
-                      <i className="bi bi-twitter"></i>
-                    </a>
-                    <a href="#" className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors">
-                      <i className="bi bi-instagram"></i>
-                    </a>
-                    <a href="#" className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors">
-                      <i className="bi bi-linkedin"></i>
-                    </a>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                    <FaPhone />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-400">Telefon</p>
+                    <a href="tel:+902121234567" className="text-primary font-medium">+90 212 123 45 67</a>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                    <FaWhatsapp />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-400">WhatsApp</p>
+                    <a href="https://wa.me/902121234567" className="text-primary font-medium">+90 212 123 45 67</a>
                   </div>
                 </div>
               </div>
-
               <div>
-                <div className="card">
-                  <h3 className="text-2xl font-semibold text-primary mb-6">İletişim Formu</h3>
-                  <form className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-text mb-1">Ad Soyad</label>
-                        <input
-                          type="text"
-                          id="name"
-                          className="input-field"
-                          placeholder="Adınız Soyadınız"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-text mb-1">E-posta</label>
-                        <input
-                          type="email"
-                          id="email"
-                          className="input-field"
-                          placeholder="ornek@email.com"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="phone" className="block text-sm font-medium text-text mb-1">Telefon</label>
-                        <input
-                          type="tel"
-                          id="phone"
-                          className="input-field"
-                          placeholder="+90 555 123 45 67"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="country" className="block text-sm font-medium text-text mb-1">Ülke</label>
-                        <input
-                          type="text"
-                          id="country"
-                          className="input-field"
-                          placeholder="Ülkeniz"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label htmlFor="treatment" className="block text-sm font-medium text-text mb-1">İlgilendiğiniz Tedavi</label>
-                      <select id="treatment" className="input-field">
-                        <option value="">Tedavi Seçiniz</option>
-                        <option value="kardiyoloji">Kardiyoloji</option>
-                        <option value="ortopedi">Ortopedi</option>
-                        <option value="goz">Göz Hastalıkları</option>
-                        <option value="plastik-cerrahi">Plastik Cerrahi</option>
-                        <option value="dis">Diş Tedavileri</option>
-                        <option value="sac-ekimi">Saç Ekimi</option>
-                        <option value="diger">Diğer</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="message" className="block text-sm font-medium text-text mb-1">Mesajınız</label>
-                      <textarea
-                        id="message"
-                        rows={4}
-                        className="input-field resize-none"
-                        placeholder="Sağlık durumunuz ve tedavi beklentileriniz hakkında bilgi verebilirsiniz."
-                        required
-                      ></textarea>
-                    </div>
-                    <div className="flex items-start">
-                      <input
-                        type="checkbox"
-                        id="consent"
-                        className="mt-1 mr-2"
-                        required
-                      />
-                      <label htmlFor="consent" className="text-sm text-text-light">
-                        Kişisel verilerimin, tarafıma sağlık hizmeti sunulması amacıyla işlenmesine izin veriyorum.
-                      </label>
-                    </div>
-                    <button type="submit" className="btn btn-primary w-full">
-                      Gönder
-                    </button>
-                  </form>
+                <p className="text-sm text-slate-400 mb-4">Bizi Takip Edin</p>
+                <div className="flex gap-3">
+                  {[FaFacebookF, FaTwitter, FaInstagram, FaYoutube].map((Icon, i) => (
+                    <a key={i} href="#" className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors">
+                      <Icon />
+                    </a>
+                  ))}
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-      </div>
-    </>
-  );
-};
 
-const HealthTourismPage = () => {
-  return (
-    <DynamicPageRenderer
-      slug="saglik-turizmi"
-      fallbackComponent={OriginalHealthTourismPage}
-    />
+            {/* Contact Form */}
+            <div>
+              <h3 className="text-xl font-bold text-primary mb-6">İletişim Formu</h3>
+              <form className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-2">Ad Soyad</label>
+                    <input type="text" placeholder="Adınız Soyadınız" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-2">E-posta</label>
+                    <input type="email" placeholder="ornek@email.com" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-2">Telefon</label>
+                    <input type="tel" placeholder="+90 555 123 45 67" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-2">Ülke</label>
+                    <input type="text" placeholder="Ülkeniz" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-2">İlgilendiğiniz Tedavi</label>
+                  <select className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary bg-white">
+                    <option>Tedavi Seçiniz</option>
+                    <option>Kardiyoloji</option>
+                    <option>Ortopedi</option>
+                    <option>Göz Hastalıkları</option>
+                    <option>Plastik Cerrahi</option>
+                    <option>Diş Tedavileri</option>
+                    <option>Saç Ekimi</option>
+                    <option>Diğer</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-2">Mesajınız</label>
+                  <textarea rows={4} placeholder="Sağlık durumunuz ve tedavi beklentileriniz hakkında bilgi verebilirsiniz." className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary resize-none" />
+                </div>
+                <div className="flex items-start gap-2">
+                  <input type="checkbox" id="consent" className="mt-1" />
+                  <label htmlFor="consent" className="text-sm text-slate-500">
+                    Kişisel verilerimin, tarafıma dönüş yapılması amacıyla işlenmesine onay veriyorum.
+                  </label>
+                </div>
+                <button type="submit" className="w-full py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors">
+                  Gönder
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 };
 

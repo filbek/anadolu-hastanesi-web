@@ -1,5 +1,5 @@
 import React from 'react';
-import { supabaseNew as supabase } from '../lib/supabase-new';
+import { supabase } from '../lib/supabase';
 
 const TestPage = () => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -16,7 +16,7 @@ const TestPage = () => {
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Environment Variables Test</h1>
-        
+
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Environment Variables (from .env)</h2>
           <div className="space-y-4">
@@ -83,7 +83,7 @@ const TestPage = () => {
                 <code className="text-sm text-green-800">https://cfwwcxqpyxktikizjjxx.supabase.co</code>
               </div>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Expected Key (first 50 chars):
@@ -108,11 +108,10 @@ const TestPage = () => {
         </div>
 
         <div className="mt-4">
-          <div className={`p-4 rounded-lg ${
-            supabaseUrl === 'https://cfwwcxqpyxktikizjjxx.supabase.co'
+          <div className={`p-4 rounded-lg ${supabaseUrl === 'https://cfwwcxqpyxktikizjjxx.supabase.co'
               ? 'bg-blue-100 border border-blue-400 text-blue-700'
               : 'bg-yellow-100 border border-yellow-400 text-yellow-700'
-          }`}>
+            }`}>
             <h3 className="font-semibold">
               {supabaseUrl === 'https://cfwwcxqpyxktikizjjxx.supabase.co'
                 ? '✅ Environment Variables Working'

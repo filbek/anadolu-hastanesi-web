@@ -1,72 +1,28 @@
-import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { getDepartments, getDepartmentsByCategory, getDepartmentBySlug, createDepartment, updateDepartment, deleteDepartment } from '../services';
-import { Department } from '../lib/supabase';
-import { CACHE_KEYS } from '../services';
+import { useQuery } from 'react-query';
+import { getDepartments, getDepartmentBySlug } from '../services/departmentService';
 
-export function useDepartments() {
-  return useQuery(CACHE_KEYS.DEPARTMENTS, getDepartments);
-}
+const CACHE_KEYS = {
+  DEPARTMENTS: ['departments'],
+  DEPARTMENT: (slug: string) => ['department', slug],
+};
 
-export function useDepartmentsByCategory(category: string) {
+export function useDepartments(options: { onlyPublished?: boolean } = {}) {
   return useQuery(
-    ['departments', 'category', category], 
-    () => getDepartmentsByCategory(category),
+    [...CACHE_KEYS.DEPARTMENTS, options],
+    () => getDepartments(options),
     {
-      enabled: !!category,
+      staleTime: 1000 * 60 * 5, // 5 minutes
     }
   );
 }
 
-export function useDepartmentDetail(slug: string) {
+export function useDepartment(slug: string) {
   return useQuery(
-    CACHE_KEYS.DEPARTMENT_DETAIL(slug), 
+    CACHE_KEYS.DEPARTMENT(slug),
     () => getDepartmentBySlug(slug),
     {
       enabled: !!slug,
-    }
-  );
-}
-
-export function useCreateDepartment() {
-  const queryClient = useQueryClient();
-  
-  return useMutation(
-    (department: Omit<Department, 'id' | 'created_at'>) => createDepartment(department),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(CACHE_KEYS.DEPARTMENTS);
-      },
-    }
-  );
-}
-
-export function useUpdateDepartment() {
-  const queryClient = useQueryClient();
-  
-  return useMutation(
-    ({ id, updates }: { id: number; updates: Partial<Department> }) => updateDepartment(id, updates),
-    {
-      onSuccess: (data, variables) => {
-        queryClient.invalidateQueries(CACHE_KEYS.DEPARTMENTS);
-        
-        // If we have the slug, invalidate the detail query as well
-        if (variables.updates.slug) {
-          queryClient.invalidateQueries(CACHE_KEYS.DEPARTMENT_DETAIL(variables.updates.slug));
-        }
-      },
-    }
-  );
-}
-
-export function useDeleteDepartment() {
-  const queryClient = useQueryClient();
-  
-  return useMutation(
-    (id: number) => deleteDepartment(id),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(CACHE_KEYS.DEPARTMENTS);
-      },
+      staleTime: 1000 * 60 * 5, // 5 minutes
     }
   );
 }

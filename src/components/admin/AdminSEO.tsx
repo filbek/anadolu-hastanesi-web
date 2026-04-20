@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FaSave, FaGlobe, FaSearch, FaCode, FaChartLine } from 'react-icons/fa';
-import { supabaseNew as supabase } from '../../lib/supabase-new';
+import { supabase } from '../../lib/supabase';
 
 interface SEOSettings {
   id?: number;
@@ -72,7 +72,7 @@ const AdminSEO = () => {
   const saveSEOSettings = async () => {
     try {
       setSaving(true);
-      
+
       const seoData = {
         ...seoSettings,
         updated_at: new Date().toISOString(),
@@ -151,11 +151,10 @@ const AdminSEO = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${
-                  activeTab === tab.id
+                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center ${activeTab === tab.id
                     ? 'border-primary text-primary'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 <tab.icon className="mr-2" />
                 {tab.label}
@@ -181,7 +180,7 @@ const AdminSEO = () => {
                   Önerilen uzunluk: 50-60 karakter
                 </p>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Site Açıklaması (Meta Description)
@@ -196,7 +195,7 @@ const AdminSEO = () => {
                   Önerilen uzunluk: 150-160 karakter
                 </p>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Anahtar Kelimeler (Keywords)
@@ -209,7 +208,7 @@ const AdminSEO = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Canonical URL
@@ -228,7 +227,7 @@ const AdminSEO = () => {
             <div className="space-y-6">
               <div className="border-b border-gray-200 pb-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Open Graph (Facebook)</h3>
-                
+
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -241,7 +240,7 @@ const AdminSEO = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       OG Açıklama
@@ -253,7 +252,7 @@ const AdminSEO = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       OG Resim URL
@@ -273,7 +272,7 @@ const AdminSEO = () => {
 
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Twitter Cards</h3>
-                
+
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -286,7 +285,7 @@ const AdminSEO = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Twitter Açıklama
@@ -298,7 +297,7 @@ const AdminSEO = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Twitter Resim URL
@@ -332,7 +331,7 @@ const AdminSEO = () => {
                   Google Analytics 4 ölçüm kimliği
                 </p>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Google Search Console Doğrulama Kodu
@@ -361,7 +360,7 @@ const AdminSEO = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Sitemap URL

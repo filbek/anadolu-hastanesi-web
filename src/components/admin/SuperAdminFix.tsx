@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabaseNew as supabase } from '../../lib/supabase-new';
+import { supabase } from '../../lib/supabase';
 
 const SuperAdminFix = () => {
   const [isFixing, setIsFixing] = useState(false);
@@ -12,7 +12,7 @@ const SuperAdminFix = () => {
     try {
       // 1. Create/Update super admin user
       console.log('🔧 Creating super admin user...');
-      
+
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: 'sagliktruizmi34@gmail.com',
         password: 'SuperAdmin2024!',
@@ -29,12 +29,12 @@ const SuperAdminFix = () => {
 
       // 2. Get or create user ID
       let userId = signUpData?.user?.id;
-      
+
       if (!userId) {
         // Try to get existing user
         const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
         if (listError) throw listError;
-        
+
         const existingUser = users.find(u => u.email === 'sagliktruizmi34@gmail.com');
         if (existingUser) {
           userId = existingUser.id;
@@ -47,7 +47,7 @@ const SuperAdminFix = () => {
 
       // 3. Create/Update profile
       console.log('🔧 Creating/updating super admin profile...');
-      
+
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
@@ -68,7 +68,7 @@ const SuperAdminFix = () => {
             full_name: 'Super Admin',
             role: 'super_admin'
           });
-        
+
         if (insertError && !insertError.message.includes('duplicate')) {
           throw insertError;
         }
@@ -85,7 +85,7 @@ const SuperAdminFix = () => {
       }
 
       setMessage('✅ Super Admin hesabı düzeltildi!\n\nGiriş Bilgileri:\nE-posta: sagliktruizmi34@gmail.com\nŞifre: SuperAdmin2024!');
-      
+
     } catch (error: any) {
       console.error('Super admin fix error:', error);
       setMessage(`❌ Hata: ${error.message}`);
@@ -108,7 +108,7 @@ const SuperAdminFix = () => {
         setMessage(`❌ Giriş başarısız: ${error.message}`);
       } else {
         setMessage(`✅ Giriş başarılı! User ID: ${data.user?.id}`);
-        
+
         // Sign out immediately
         await supabase.auth.signOut();
       }
@@ -129,7 +129,7 @@ const SuperAdminFix = () => {
       <h3 className="text-lg font-semibold text-yellow-800 mb-3">
         🔧 Super Admin Düzeltme Aracı
       </h3>
-      
+
       <div className="space-y-3">
         <button
           onClick={fixSuperAdmin}

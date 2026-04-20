@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaEye, FaFileAlt, FaCode } from 'react-icons/fa';
-import { supabaseNew as supabase } from '../../lib/supabase-new';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaFileAlt, FaCode } from 'react-icons/fa';
+import { supabase } from '../../lib/supabase';
 import PageContentEditor from './PageContentEditor';
 
 interface Page {
@@ -68,7 +68,7 @@ const AdminPages = () => {
         .from('pages')
         .select('id')
         .limit(1);
-      
+
       if (createError && createError.code === '42P01') {
         // Table doesn't exist, we'll create some default pages
         console.log('Pages table needs to be created');
@@ -79,7 +79,7 @@ const AdminPages = () => {
   const fetchPages = async () => {
     try {
       setLoading(true);
-      
+
       // Create default pages if table is empty
       const defaultPages = [
         {
@@ -192,6 +192,7 @@ const AdminPages = () => {
         setPages(defaultPages.map((page, index) => ({
           ...page,
           id: index + 1,
+          page_type: page.page_type as 'static' | 'dynamic' | 'landing',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })));
@@ -210,6 +211,8 @@ const AdminPages = () => {
           slug: 'ana-sayfa',
           content: 'Ana sayfa içeriği...',
           is_published: true,
+          page_type: 'landing',
+          template: 'homepage',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }
@@ -221,7 +224,7 @@ const AdminPages = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       if (editingPage) {
         // Update existing page
@@ -234,9 +237,9 @@ const AdminPages = () => {
           .eq('id', editingPage.id);
 
         if (error) throw error;
-        
-        setPages(pages.map(page => 
-          page.id === editingPage.id 
+
+        setPages(pages.map(page =>
+          page.id === editingPage.id
             ? { ...page, ...formData, updated_at: new Date().toISOString() }
             : page
         ));
@@ -249,7 +252,7 @@ const AdminPages = () => {
           .single();
 
         if (error) throw error;
-        
+
         setPages([data, ...pages]);
       }
 
@@ -259,11 +262,16 @@ const AdminPages = () => {
         title: '',
         slug: '',
         content: '',
+        hero_title: '',
+        hero_subtitle: '',
+        hero_image: '',
         meta_title: '',
         meta_description: '',
-        is_published: true
+        is_published: true,
+        page_type: 'static',
+        template: 'default'
       });
-      
+
       alert(editingPage ? 'Sayfa güncellendi!' : 'Sayfa oluşturuldu!');
     } catch (error) {
       console.error('Error saving page:', error);
@@ -281,7 +289,7 @@ const AdminPages = () => {
         .eq('id', id);
 
       if (error) throw error;
-      
+
       setPages(pages.filter(page => page.id !== id));
       alert('Sayfa silindi!');
     } catch (error) {
@@ -397,11 +405,10 @@ const AdminPages = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      page.is_published 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${page.is_published
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                      }`}>
                       {page.is_published ? 'Yayında' : 'Taslak'}
                     </span>
                   </td>
@@ -448,7 +455,7 @@ const AdminPages = () => {
             <h2 className="text-xl font-semibold mb-4">
               {editingPage ? 'Sayfa Düzenle' : 'Yeni Sayfa'}
             </h2>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -457,12 +464,12 @@ const AdminPages = () => {
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   required
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -471,7 +478,7 @@ const AdminPages = () => {
                   <input
                     type="text"
                     value={formData.slug}
-                    onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                   />
@@ -483,7 +490,7 @@ const AdminPages = () => {
                   </label>
                   <select
                     value={formData.page_type}
-                    onChange={(e) => setFormData({...formData, page_type: e.target.value as any})}
+                    onChange={(e) => setFormData({ ...formData, page_type: e.target.value as any })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="static">Statik Sayfa</option>
@@ -500,7 +507,7 @@ const AdminPages = () => {
                 <input
                   type="text"
                   value={formData.hero_title}
-                  onChange={(e) => setFormData({...formData, hero_title: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, hero_title: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="Sayfanın ana başlığı"
                 />
@@ -513,7 +520,7 @@ const AdminPages = () => {
                 <input
                   type="text"
                   value={formData.hero_subtitle}
-                  onChange={(e) => setFormData({...formData, hero_subtitle: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, hero_subtitle: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="Sayfanın alt başlığı"
                 />
@@ -526,19 +533,19 @@ const AdminPages = () => {
                 <input
                   type="url"
                   value={formData.hero_image}
-                  onChange={(e) => setFormData({...formData, hero_image: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, hero_image: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="https://example.com/image.jpg"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   İçerik
                 </label>
                 <textarea
                   value={formData.content}
-                  onChange={(e) => setFormData({...formData, content: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   rows={8}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="HTML içerik veya metin"
@@ -556,7 +563,7 @@ const AdminPages = () => {
                   <input
                     type="text"
                     value={formData.meta_title}
-                    onChange={(e) => setFormData({...formData, meta_title: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="SEO için sayfa başlığı"
                   />
@@ -568,27 +575,27 @@ const AdminPages = () => {
                   </label>
                   <textarea
                     value={formData.meta_description}
-                    onChange={(e) => setFormData({...formData, meta_description: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="SEO için sayfa açıklaması (150-160 karakter)"
                   />
                 </div>
               </div>
-              
+
               <div className="flex items-center">
                 <input
                   type="checkbox"
                   id="is_published"
                   checked={formData.is_published}
-                  onChange={(e) => setFormData({...formData, is_published: e.target.checked})}
+                  onChange={(e) => setFormData({ ...formData, is_published: e.target.checked })}
                   className="mr-2"
                 />
                 <label htmlFor="is_published" className="text-sm font-medium text-gray-700">
                   Yayında
                 </label>
               </div>
-              
+
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"

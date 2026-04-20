@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaUser } from 'react-icons/fa';
-import { supabaseNew as supabase } from '../../lib/supabase-new';
-import type { Doctor, Department, Hospital } from '../../lib/supabase-new';
+import { supabase } from '../../lib/supabase';
+import type { Doctor, Department, Hospital } from '../../lib/supabase';
 
 interface DoctorWithRelations extends Doctor {
   department?: Department;
@@ -25,14 +25,14 @@ const AdminDoctors = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch doctors with relations
       const { data: doctorsData, error: doctorsError } = await supabase
         .from('doctors')
         .select(`
           *,
-          departments:department_id(id, name),
-          hospitals:hospital_id(id, name)
+          department:department_id(id, name),
+          hospital:hospital_id(id, name)
         `)
         .order('created_at', { ascending: false });
 
@@ -74,7 +74,7 @@ const AdminDoctors = () => {
         .eq('id', id);
 
       if (error) throw error;
-      
+
       setDoctors(doctors.filter(doctor => doctor.id !== id));
       alert('Doktor başarıyla silindi!');
     } catch (error) {
@@ -85,7 +85,7 @@ const AdminDoctors = () => {
 
   const filteredDoctors = doctors.filter(doctor => {
     const matchesSearch = doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doctor.title?.toLowerCase().includes(searchTerm.toLowerCase());
+      doctor.title?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = selectedDepartment === 'all' || doctor.department_id?.toString() === selectedDepartment;
     const matchesHospital = selectedHospital === 'all' || doctor.hospital_id?.toString() === selectedHospital;
     return matchesSearch && matchesDepartment && matchesHospital;
@@ -159,8 +159,8 @@ const AdminDoctors = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
                 {doctor.image ? (
-                  <img 
-                    src={doctor.image} 
+                  <img
+                    src={doctor.image}
                     alt={doctor.name}
                     className="w-full h-full object-cover"
                   />
@@ -183,31 +183,31 @@ const AdminDoctors = () => {
                 </button>
               </div>
             </div>
-            
+
             <h3 className="text-lg font-semibold text-primary mb-1">{doctor.name}</h3>
             {doctor.title && (
               <p className="text-gray-600 text-sm mb-2">{doctor.title}</p>
             )}
-            
+
             <div className="space-y-1 mb-4">
-              {doctor.departments && (
+              {doctor.department && (
                 <span className="inline-block bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">
-                  {doctor.departments.name}
+                  {doctor.department.name}
                 </span>
               )}
-              {doctor.hospitals && (
+              {doctor.hospital && (
                 <span className="inline-block bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full ml-1">
-                  {doctor.hospitals.name}
+                  {doctor.hospital.name}
                 </span>
               )}
             </div>
-            
+
             {doctor.education && (
               <p className="text-gray-600 text-sm mb-2 line-clamp-2">
                 <strong>Eğitim:</strong> {doctor.education}
               </p>
             )}
-            
+
             <div className="text-xs text-gray-500">
               Oluşturulma: {new Date(doctor.created_at).toLocaleDateString('tr-TR')}
             </div>
@@ -221,7 +221,7 @@ const AdminDoctors = () => {
           <h3 className="text-lg font-medium text-gray-900 mb-2">Doktor bulunamadı</h3>
           <p className="text-gray-500 mb-4">
             {searchTerm || selectedDepartment !== 'all' || selectedHospital !== 'all'
-              ? 'Arama kriterlerinize uygun doktor bulunamadı.' 
+              ? 'Arama kriterlerinize uygun doktor bulunamadı.'
               : 'Henüz hiç doktor eklenmemiş.'}
           </p>
           <Link

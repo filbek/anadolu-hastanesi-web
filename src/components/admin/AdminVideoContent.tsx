@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaPlay, FaYoutube } from 'react-icons/fa';
-import { supabaseNew as supabase } from '../../lib/supabase-new';
 
 interface VideoContent {
   id: number;
@@ -51,7 +50,7 @@ const AdminVideoContent = () => {
   const fetchVideos = async () => {
     try {
       setLoading(true);
-      
+
       // Create sample video data since table might not exist
       const sampleVideos: VideoContent[] = [
         {
@@ -108,7 +107,7 @@ const AdminVideoContent = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const videoData = {
         ...formData,
@@ -119,8 +118,8 @@ const AdminVideoContent = () => {
 
       if (editingVideo) {
         // Update existing video
-        setVideos(videos.map(video => 
-          video.id === editingVideo.id 
+        setVideos(videos.map(video =>
+          video.id === editingVideo.id
             ? { ...video, ...videoData, updated_at: new Date().toISOString() }
             : video
         ));
@@ -131,7 +130,7 @@ const AdminVideoContent = () => {
           ...videoData,
           created_at: new Date().toISOString()
         } as VideoContent;
-        
+
         setVideos([newVideo, ...videos]);
       }
 
@@ -147,7 +146,7 @@ const AdminVideoContent = () => {
         tags: '',
         is_published: true
       });
-      
+
       alert(editingVideo ? 'Video güncellendi!' : 'Video eklendi!');
     } catch (error) {
       console.error('Error saving video:', error);
@@ -182,14 +181,11 @@ const AdminVideoContent = () => {
     setShowForm(true);
   };
 
-  const getYouTubeVideoId = (url: string) => {
-    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-    return match ? match[1] : null;
-  };
+
 
   const filteredVideos = videos.filter(video => {
     const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         video.description.toLowerCase().includes(searchTerm.toLowerCase());
+      video.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || video.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -262,8 +258,8 @@ const AdminVideoContent = () => {
           <div key={video.id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div className="relative">
               {video.thumbnail_url ? (
-                <img 
-                  src={video.thumbnail_url} 
+                <img
+                  src={video.thumbnail_url}
                   alt={video.title}
                   className="w-full h-48 object-cover"
                 />
@@ -281,34 +277,33 @@ const AdminVideoContent = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
                   {categories.find(c => c.value === video.category)?.label || video.category}
                 </span>
-                <span className={`text-xs px-2 py-1 rounded ${
-                  video.is_published 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
+                <span className={`text-xs px-2 py-1 rounded ${video.is_published
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800'
+                  }`}>
                   {video.is_published ? 'Yayında' : 'Taslak'}
                 </span>
               </div>
-              
+
               <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
                 {video.title}
               </h3>
-              
+
               <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                 {video.description}
               </p>
-              
+
               <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                 <span>{video.view_count} görüntüleme</span>
                 <span>{new Date(video.created_at).toLocaleDateString('tr-TR')}</span>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <div className="flex space-x-2">
                   <button
@@ -364,7 +359,7 @@ const AdminVideoContent = () => {
             <h2 className="text-xl font-semibold mb-4">
               {editingVideo ? 'Video Düzenle' : 'Yeni Video'}
             </h2>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -373,12 +368,12 @@ const AdminVideoContent = () => {
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Video URL (YouTube)
@@ -386,13 +381,13 @@ const AdminVideoContent = () => {
                 <input
                   type="url"
                   value={formData.video_url}
-                  onChange={(e) => setFormData({...formData, video_url: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="https://www.youtube.com/watch?v=..."
                   required
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -400,7 +395,7 @@ const AdminVideoContent = () => {
                   </label>
                   <select
                     value={formData.category}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {categories.map(category => (
@@ -410,7 +405,7 @@ const AdminVideoContent = () => {
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Süre (opsiyonel)
@@ -418,26 +413,26 @@ const AdminVideoContent = () => {
                   <input
                     type="text"
                     value={formData.duration}
-                    onChange={(e) => setFormData({...formData, duration: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="5:30"
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Açıklama
                 </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={4}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Etiketler (virgülle ayırın)
@@ -445,25 +440,25 @@ const AdminVideoContent = () => {
                 <input
                   type="text"
                   value={formData.tags}
-                  onChange={(e) => setFormData({...formData, tags: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="sağlık, beslenme, egzersiz"
                 />
               </div>
-              
+
               <div className="flex items-center">
                 <input
                   type="checkbox"
                   id="is_published"
                   checked={formData.is_published}
-                  onChange={(e) => setFormData({...formData, is_published: e.target.checked})}
+                  onChange={(e) => setFormData({ ...formData, is_published: e.target.checked })}
                   className="mr-2"
                 />
                 <label htmlFor="is_published" className="text-sm font-medium text-gray-700">
                   Yayında
                 </label>
               </div>
-              
+
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"

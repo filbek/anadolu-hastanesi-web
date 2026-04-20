@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { FaCheckCircle, FaTimesCircle, FaSpinner, FaDatabase, FaUser, FaTable } from 'react-icons/fa';
-import { supabaseNew as supabase } from '../../lib/supabase-new';
+import { useState } from 'react';
+import { FaCheckCircle, FaTimesCircle, FaSpinner, FaDatabase } from 'react-icons/fa';
+import { supabase } from '../../lib/supabase';
 
 interface TestResult {
   name: string;
@@ -31,19 +31,19 @@ const AdminTestConnection = () => {
     // Test 1: Supabase Bağlantısı
     try {
       updateTest(0, { status: 'pending', message: 'Bağlantı test ediliyor...' });
-      
+
       const { data, error } = await supabase.from('profiles').select('count').limit(1);
-      
+
       if (error) throw error;
-      
-      updateTest(0, { 
-        status: 'success', 
+
+      updateTest(0, {
+        status: 'success',
         message: 'Supabase bağlantısı başarılı',
-        details: { url: supabase.supabaseUrl }
+        details: { url: (supabase as any).supabaseUrl }
       });
     } catch (error: any) {
-      updateTest(0, { 
-        status: 'error', 
+      updateTest(0, {
+        status: 'error',
         message: `Bağlantı hatası: ${error.message}`,
         details: error
       });
@@ -52,26 +52,26 @@ const AdminTestConnection = () => {
     // Test 2: Kimlik Doğrulama
     try {
       updateTest(1, { status: 'pending', message: 'Kimlik doğrulama test ediliyor...' });
-      
+
       const { data: { session }, error } = await supabase.auth.getSession();
-      
+
       if (error) throw error;
-      
+
       if (session) {
-        updateTest(1, { 
-          status: 'success', 
+        updateTest(1, {
+          status: 'success',
           message: 'Kullanıcı oturumu aktif',
           details: { user: session.user.email }
         });
       } else {
-        updateTest(1, { 
-          status: 'error', 
+        updateTest(1, {
+          status: 'error',
           message: 'Kullanıcı oturumu bulunamadı'
         });
       }
     } catch (error: any) {
-      updateTest(1, { 
-        status: 'error', 
+      updateTest(1, {
+        status: 'error',
         message: `Kimlik doğrulama hatası: ${error.message}`,
         details: error
       });
@@ -80,10 +80,10 @@ const AdminTestConnection = () => {
     // Test 3: Veritabanı Tabloları
     try {
       updateTest(2, { status: 'pending', message: 'Tablolar kontrol ediliyor...' });
-      
+
       const tables = ['hospitals', 'departments', 'doctors', 'health_articles', 'profiles'];
       const tableResults = [];
-      
+
       for (const table of tables) {
         try {
           const { error } = await supabase.from(table).select('*').limit(1);
@@ -93,17 +93,17 @@ const AdminTestConnection = () => {
           tableResults.push({ table, status: 'error', error: error.message });
         }
       }
-      
+
       const successCount = tableResults.filter(r => r.status === 'success').length;
-      
-      updateTest(2, { 
+
+      updateTest(2, {
         status: successCount === tables.length ? 'success' : 'error',
         message: `${successCount}/${tables.length} tablo erişilebilir`,
         details: tableResults
       });
     } catch (error: any) {
-      updateTest(2, { 
-        status: 'error', 
+      updateTest(2, {
+        status: 'error',
         message: `Tablo kontrolü hatası: ${error.message}`,
         details: error
       });
@@ -112,7 +112,7 @@ const AdminTestConnection = () => {
     // Test 4: CRUD İşlemleri
     try {
       updateTest(3, { status: 'pending', message: 'CRUD işlemleri test ediliyor...' });
-      
+
       // Test insert
       const testData = {
         name: 'Test Hospital',
@@ -125,39 +125,39 @@ const AdminTestConnection = () => {
         services: ['Test service'],
         image_url: 'https://example.com/test.jpg'
       };
-      
+
       const { data: insertData, error: insertError } = await supabase
         .from('hospitals')
         .insert([testData])
         .select()
         .single();
-      
+
       if (insertError) throw insertError;
-      
+
       // Test update
       const { error: updateError } = await supabase
         .from('hospitals')
         .update({ description: 'Updated test description' })
         .eq('id', insertData.id);
-      
+
       if (updateError) throw updateError;
-      
+
       // Test delete
       const { error: deleteError } = await supabase
         .from('hospitals')
         .delete()
         .eq('id', insertData.id);
-      
+
       if (deleteError) throw deleteError;
-      
-      updateTest(3, { 
-        status: 'success', 
+
+      updateTest(3, {
+        status: 'success',
         message: 'CRUD işlemleri başarılı (Create, Read, Update, Delete)',
         details: { testId: insertData.id }
       });
     } catch (error: any) {
-      updateTest(3, { 
-        status: 'error', 
+      updateTest(3, {
+        status: 'error',
         message: `CRUD test hatası: ${error.message}`,
         details: error
       });
@@ -166,10 +166,10 @@ const AdminTestConnection = () => {
     // Test 5: RLS Güvenlik
     try {
       updateTest(4, { status: 'pending', message: 'RLS güvenlik kontrol ediliyor...' });
-      
+
       // Test RLS policies
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (session) {
         // Test profile access
         const { data: profileData, error: profileError } = await supabase
@@ -177,23 +177,23 @@ const AdminTestConnection = () => {
           .select('*')
           .eq('id', session.user.id)
           .single();
-        
+
         if (profileError) throw profileError;
-        
-        updateTest(4, { 
-          status: 'success', 
+
+        updateTest(4, {
+          status: 'success',
           message: 'RLS güvenlik aktif ve çalışıyor',
           details: { userRole: profileData?.role }
         });
       } else {
-        updateTest(4, { 
-          status: 'error', 
+        updateTest(4, {
+          status: 'error',
           message: 'RLS test için oturum gerekli'
         });
       }
     } catch (error: any) {
-      updateTest(4, { 
-        status: 'error', 
+      updateTest(4, {
+        status: 'error',
         message: `RLS test hatası: ${error.message}`,
         details: error
       });
@@ -203,11 +203,11 @@ const AdminTestConnection = () => {
     setTests(currentTests => {
       const hasError = currentTests.some(test => test.status === 'error');
       const allComplete = currentTests.every(test => test.status !== 'pending');
-      
+
       if (allComplete) {
         setOverallStatus(hasError ? 'error' : 'success');
       }
-      
+
       return currentTests;
     });
 
@@ -281,9 +281,9 @@ const AdminTestConnection = () => {
                 <span className="ml-3">{test.name}</span>
               </h3>
             </div>
-            
+
             <p className="text-gray-600 mb-3">{test.message}</p>
-            
+
             {test.details && (
               <details className="mt-3">
                 <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
@@ -305,7 +305,7 @@ const AdminTestConnection = () => {
           <div>
             <strong>Supabase URL:</strong>
             <br />
-            <code className="text-xs bg-white p-1 rounded">{supabase.supabaseUrl}</code>
+            <code className="text-xs bg-white p-1 rounded">{(supabase as any).supabaseUrl}</code>
           </div>
           <div>
             <strong>API Key (İlk 20 karakter):</strong>

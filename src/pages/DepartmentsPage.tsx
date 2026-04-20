@@ -5,140 +5,19 @@ import { motion } from 'framer-motion'
 import SectionTitle from '../components/ui/SectionTitle'
 import { FaSearch } from 'react-icons/fa'
 
-// Mock data for departments
-const departments = [
-  {
-    id: 1,
-    name: 'Kardiyoloji',
-    slug: 'kardiyoloji',
-    icon: 'bi-heart-pulse-fill',
-    description: 'Kalp ve damar hastalıklarının tanı ve tedavisi',
-    category: 'dahili',
-  },
-  {
-    id: 2,
-    name: 'Nöroloji',
-    slug: 'noroloji',
-    icon: 'bi-brain',
-    description: 'Sinir sistemi hastalıklarının tanı ve tedavisi',
-    category: 'dahili',
-  },
-  {
-    id: 3,
-    name: 'Ortopedi',
-    slug: 'ortopedi',
-    icon: 'bi-person-standing',
-    description: 'Kemik, kas ve eklem hastalıklarının tanı ve tedavisi',
-    category: 'cerrahi',
-  },
-  {
-    id: 4,
-    name: 'Göz Hastalıkları',
-    slug: 'goz-hastaliklari',
-    icon: 'bi-eye-fill',
-    description: 'Göz ve görme ile ilgili hastalıkların tanı ve tedavisi',
-    category: 'cerrahi',
-  },
-  {
-    id: 5,
-    name: 'Genel Cerrahi',
-    slug: 'genel-cerrahi',
-    icon: 'bi-scissors',
-    description: 'Cerrahi müdahale gerektiren hastalıkların tanı ve tedavisi',
-    category: 'cerrahi',
-  },
-  {
-    id: 6,
-    name: 'Kadın Hastalıkları',
-    slug: 'kadin-hastaliklari',
-    icon: 'bi-gender-female',
-    description: 'Kadın üreme sistemi hastalıklarının tanı ve tedavisi',
-    category: 'cerrahi',
-  },
-  {
-    id: 7,
-    name: 'Çocuk Sağlığı',
-    slug: 'cocuk-sagligi',
-    icon: 'bi-balloon-heart-fill',
-    description: 'Çocuk sağlığı ve hastalıklarının tanı ve tedavisi',
-    category: 'dahili',
-  },
-  {
-    id: 8,
-    name: 'Dahiliye',
-    slug: 'dahiliye',
-    icon: 'bi-clipboard2-pulse-fill',
-    description: 'İç hastalıklarının tanı ve tedavisi',
-    category: 'dahili',
-  },
-  {
-    id: 9,
-    name: 'Üroloji',
-    slug: 'uroloji',
-    icon: 'bi-droplet-fill',
-    description: 'Üriner sistem hastalıklarının tanı ve tedavisi',
-    category: 'cerrahi',
-  },
-  {
-    id: 10,
-    name: 'Dermatoloji',
-    slug: 'dermatoloji',
-    icon: 'bi-bandaid-fill',
-    description: 'Cilt hastalıklarının tanı ve tedavisi',
-    category: 'dahili',
-  },
-  {
-    id: 11,
-    name: 'Kulak Burun Boğaz',
-    slug: 'kulak-burun-bogaz',
-    icon: 'bi-ear-fill',
-    description: 'Kulak, burun ve boğaz hastalıklarının tanı ve tedavisi',
-    category: 'cerrahi',
-  },
-  {
-    id: 12,
-    name: 'Psikiyatri',
-    slug: 'psikiyatri',
-    icon: 'bi-emoji-smile-fill',
-    description: 'Ruh sağlığı ve hastalıklarının tanı ve tedavisi',
-    category: 'dahili',
-  },
-  {
-    id: 13,
-    name: 'Fizik Tedavi',
-    slug: 'fizik-tedavi',
-    icon: 'bi-activity',
-    description: 'Fiziksel rehabilitasyon ve tedavi',
-    category: 'dahili',
-  },
-  {
-    id: 14,
-    name: 'Radyoloji',
-    slug: 'radyoloji',
-    icon: 'bi-radioactive',
-    description: 'Görüntüleme ve tanı hizmetleri',
-    category: 'teshis',
-  },
-  {
-    id: 15,
-    name: 'Laboratuvar',
-    slug: 'laboratuvar',
-    icon: 'bi-eyedropper',
-    description: 'Kan ve diğer tahlil hizmetleri',
-    category: 'teshis',
-  },
-];
+import { useDepartments } from '../hooks/useDepartments'
 
 const DepartmentsPage = () => {
+  const { data: departments = [], isLoading } = useDepartments({ onlyPublished: true })
   const [searchTerm, setSearchTerm] = useState('')
   const [activeCategory, setActiveCategory] = useState('all')
 
-  const filteredDepartments = departments.filter((department) => {
+  const filteredDepartments = departments.filter((department: { name: string; description?: string; category: string }) => {
     const matchesSearch = department.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      department.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
+      (department.description || '').toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesCategory = activeCategory === 'all' || department.category === activeCategory;
-    
+
     return matchesSearch && matchesCategory;
   });
 
@@ -190,33 +69,29 @@ const DepartmentsPage = () => {
 
           <div className="flex flex-wrap justify-center gap-2 mb-8">
             <button
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                activeCategory === 'all' ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
-              }`}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeCategory === 'all' ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
+                }`}
               onClick={() => setActiveCategory('all')}
             >
               Tüm Bölümler
             </button>
             <button
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                activeCategory === 'cerrahi' ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
-              }`}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeCategory === 'cerrahi' ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
+                }`}
               onClick={() => setActiveCategory('cerrahi')}
             >
               Cerrahi Birimler
             </button>
             <button
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                activeCategory === 'dahili' ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
-              }`}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeCategory === 'dahili' ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
+                }`}
               onClick={() => setActiveCategory('dahili')}
             >
               Dahili Birimler
             </button>
             <button
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                activeCategory === 'teshis' ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
-              }`}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeCategory === 'teshis' ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
+                }`}
               onClick={() => setActiveCategory('teshis')}
             >
               Teşhis Birimleri
@@ -229,14 +104,14 @@ const DepartmentsPage = () => {
             animate="visible"
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
           >
-            {filteredDepartments.map((department) => (
+            {filteredDepartments.map((department: any) => (
               <motion.div
                 key={department.id}
                 variants={itemVariants}
                 className="card text-center hover:-translate-y-2 group"
               >
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <i className={`bi ${department.icon} text-2xl text-primary`}></i>
+                  <i className={`bi ${department.icon || 'bi-hospital'} text-2xl text-primary`}></i>
                 </div>
                 <h3 className="text-xl font-semibold mb-2 text-primary">{department.name}</h3>
                 <p className="text-text-light text-sm mb-4">{department.description}</p>

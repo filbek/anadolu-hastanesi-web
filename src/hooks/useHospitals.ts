@@ -3,8 +3,8 @@ import { getHospitals, getHospitalBySlug, createHospital, updateHospital, delete
 import { Hospital } from '../lib/supabase';
 import { CACHE_KEYS } from '../services';
 
-export function useHospitals() {
-  return useQuery(CACHE_KEYS.HOSPITALS, getHospitals);
+export function useHospitals(options: { onlyPublished?: boolean } = {}) {
+  return useQuery([CACHE_KEYS.HOSPITALS, options], () => getHospitals(options));
 }
 
 export function useHospitalDetail(slug: string) {
@@ -32,7 +32,7 @@ export function useUpdateHospital() {
   return useMutation(
     ({ id, updates }: { id: number; updates: Partial<Hospital> }) => updateHospital(id, updates),
     {
-      onSuccess: (data, variables) => {
+      onSuccess: (_, variables) => {
         queryClient.invalidateQueries(CACHE_KEYS.HOSPITALS);
         
         // If we have the slug, invalidate the detail query as well

@@ -1,51 +1,11 @@
-import { useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useInView } from 'framer-motion'
+import { motion } from 'framer-motion'
 import SectionTitle from '../ui/SectionTitle'
 import { FaMapMarkerAlt, FaPhone, FaArrowRight } from 'react-icons/fa'
-
-const hospitals = [
-  {
-    id: 1,
-    name: 'Anadolu Merkez Hastanesi',
-    slug: 'anadolu-merkez-hastanesi',
-    image: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-    address: 'Atatürk Bulvarı No:123, Şişli, İstanbul',
-    phone: '0212 123 45 67',
-    description: 'Modern teknoloji ve uzman kadrosuyla hizmet veren ana hastanemiz.',
-  },
-  {
-    id: 2,
-    name: 'Anadolu Avrupa Hastanesi',
-    slug: 'anadolu-avrupa-hastanesi',
-    image: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-    address: 'Bağdat Caddesi No:456, Kadıköy, İstanbul',
-    phone: '0216 987 65 43',
-    description: 'Avrupa yakasında bulunan modern ve tam donanımlı hastanemiz.',
-  },
-  {
-    id: 3,
-    name: 'Anadolu Çocuk Hastanesi',
-    slug: 'anadolu-cocuk-hastanesi',
-    image: 'https://images.unsplash.com/photo-1581056771107-24ca5f033842?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-    address: 'Cumhuriyet Caddesi No:789, Beşiktaş, İstanbul',
-    phone: '0212 345 67 89',
-    description: 'Çocuk sağlığı ve hastalıkları konusunda uzmanlaşmış hastanemiz.',
-  },
-  {
-    id: 4,
-    name: 'Anadolu Uluslararası Hastanesi',
-    slug: 'anadolu-uluslararasi-hastanesi',
-    image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-    address: 'İstiklal Caddesi No:101, Beyoğlu, İstanbul',
-    phone: '0212 876 54 32',
-    description: 'Uluslararası hasta hizmetleri sunan modern hastanemiz.',
-  },
-]
+import { useHospitals } from '../../hooks/useHospitals'
 
 const HospitalBranches = () => {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, amount: 0.2 })
+  const { data: hospitals = [], isLoading } = useHospitals({ onlyPublished: true })
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -66,6 +26,30 @@ const HospitalBranches = () => {
     },
   }
 
+  if (isLoading) {
+    return (
+      <section className="py-20 bg-neutral">
+        <div className="container-custom">
+          <SectionTitle
+            title="Hastane Şubelerimiz"
+            subtitle="Hastanelerimiz yükleniyor..."
+          />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="animate-pulse bg-white rounded-2xl h-80 shadow-sm border border-gray-100" />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  // Filter and sort hospitals for homepage
+  const displayHospitals = hospitals
+    .filter(h => h.display_on_homepage !== false) // Handle undefined as true for safety
+    .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+    .slice(0, 4)
+
   return (
     <section className="py-20 bg-neutral">
       <div className="container-custom">
@@ -75,28 +59,28 @@ const HospitalBranches = () => {
         />
 
         <motion.div
-          ref={ref}
           variants={containerVariants}
           initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto"
         >
-          {hospitals.map((hospital) => (
+          {displayHospitals.map((hospital) => (
             <motion.div
               key={hospital.id}
               variants={itemVariants}
-              className="card group hover:-translate-y-2"
+              className="card group hover:-translate-y-2 bg-white shadow-sm hover:shadow-md transition-all duration-300"
             >
-              <div className="relative h-48 mb-4 rounded-lg overflow-hidden">
+              <div className="relative h-48 mb-4 rounded-lg overflow-hidden bg-slate-100">
                 <img
-                  src={hospital.image}
+                  src={hospital.images && hospital.images[0] ? hospital.images[0] : 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=800&q=80'}
                   alt={hospital.name}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   loading="lazy"
                   crossOrigin="anonymous"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                <h3 className="absolute bottom-4 left-4 text-white font-semibold text-xl">{hospital.name}</h3>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <h3 className="absolute bottom-4 left-4 text-white font-bold text-xl drop-shadow-md z-10">{hospital.name}</h3>
               </div>
               <div className="space-y-3">
                 <div className="flex items-start">
@@ -105,14 +89,14 @@ const HospitalBranches = () => {
                 </div>
                 <div className="flex items-center">
                   <FaPhone className="text-primary mr-2 flex-shrink-0" />
-                  <a href={`tel:${hospital.phone.replace(/\s/g, '')}`} className="text-sm text-text-light hover:text-primary transition-colors">
+                  <a href={`tel:${hospital.phone?.replace(/\s/g, '')}`} className="text-sm text-text-light hover:text-primary transition-colors">
                     {hospital.phone}
                   </a>
                 </div>
-                <p className="text-text-light text-sm pt-2">{hospital.description}</p>
+                <p className="text-text-light text-sm pt-2 line-clamp-2">{hospital.description}</p>
                 <Link
                   to={`/hastanelerimiz/${hospital.slug}`}
-                  className="inline-flex items-center text-primary font-medium mt-4 hover:text-primary-dark transition-colors"
+                  className="inline-flex items-center text-primary font-bold mt-4 hover:text-primary-dark transition-colors"
                 >
                   Detaylı Bilgi <FaArrowRight className="ml-2" />
                 </Link>
@@ -121,14 +105,15 @@ const HospitalBranches = () => {
           ))}
         </motion.div>
 
-        <div className="text-center mt-12">
-          <Link to="/hastanelerimiz" className="btn btn-outline">
-            Tüm Hastanelerimiz
-          </Link>
-        </div>
+        {hospitals.length > displayHospitals.length && (
+          <div className="text-center mt-12">
+            <Link to="/hastanelerimiz" className="btn btn-outline">
+              Tüm Hastanelerimiz
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   )
 }
-
 export default HospitalBranches

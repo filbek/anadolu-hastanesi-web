@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { FaUpload, FaTrash, FaSearch, FaImage, FaVideo, FaFile, FaCopy } from 'react-icons/fa';
-import { supabaseNew as supabase } from '../../lib/supabase-new';
 
 interface MediaFile {
   id: number;
@@ -25,7 +24,7 @@ const AdminMedia = () => {
   const fetchMediaFiles = async () => {
     try {
       setLoading(true);
-      
+
       // Create sample media files since we don't have actual file storage
       const sampleMedia: MediaFile[] = [
         {
@@ -75,7 +74,7 @@ const AdminMedia = () => {
     if (!files || files.length === 0) return;
 
     setUploading(true);
-    
+
     try {
       // Simulate file upload
       for (const file of Array.from(files)) {
@@ -87,10 +86,10 @@ const AdminMedia = () => {
           size: file.size,
           created_at: new Date().toISOString()
         };
-        
+
         setMediaFiles(prev => [newFile, ...prev]);
       }
-      
+
       alert('Dosyalar başarıyla yüklendi!');
     } catch (error) {
       console.error('Error uploading files:', error);
@@ -133,10 +132,10 @@ const AdminMedia = () => {
 
   const filteredFiles = mediaFiles.filter(file => {
     const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedType === 'all' || 
-                       (selectedType === 'image' && file.type.startsWith('image/')) ||
-                       (selectedType === 'video' && file.type.startsWith('video/')) ||
-                       (selectedType === 'document' && !file.type.startsWith('image/') && !file.type.startsWith('video/'));
+    const matchesType = selectedType === 'all' ||
+      (selectedType === 'image' && file.type.startsWith('image/')) ||
+      (selectedType === 'video' && file.type.startsWith('video/')) ||
+      (selectedType === 'document' && !file.type.startsWith('image/') && !file.type.startsWith('video/'));
     return matchesSearch && matchesType;
   });
 
@@ -204,8 +203,8 @@ const AdminMedia = () => {
           <div key={file.id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
               {file.type.startsWith('image/') ? (
-                <img 
-                  src={file.url} 
+                <img
+                  src={file.url}
                   alt={file.name}
                   className="w-full h-full object-cover"
                 />
@@ -215,17 +214,17 @@ const AdminMedia = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="p-4">
               <h3 className="text-sm font-medium text-gray-900 mb-2 truncate" title={file.name}>
                 {file.name}
               </h3>
-              
+
               <div className="text-xs text-gray-500 mb-3">
                 <div>{formatFileSize(file.size)}</div>
                 <div>{new Date(file.created_at).toLocaleDateString('tr-TR')}</div>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <button
                   onClick={() => copyUrl(file.url)}

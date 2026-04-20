@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabaseNew as supabase } from '../lib/supabase-new';
+import { supabase } from '../lib/supabase';
 
 interface PageData {
   id: number;
@@ -37,72 +37,80 @@ interface PageContent {
 }
 
 export const usePage = (slug: string) => {
-  console.log('🪝 usePage hook called for slug:', slug);
-  const [pageData, setPageData] = useState<PageData | null>(null);
-  const [pageContent, setPageContent] = useState<PageContent | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<{
+    pageData: PageData | null;
+    pageContent: PageContent | null;
+    loading: boolean;
+    error: string | null;
+  }>({
+    pageData: null,
+    pageContent: null,
+    loading: true,
+    error: null
+  });
 
   useEffect(() => {
-    console.log('🔄 usePage useEffect triggered for slug:', slug);
     fetchPageData();
   }, [slug]);
 
   const fetchPageData = async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setState(prev => ({ ...prev, loading: true, error: null }));
 
-      // Fetch page basic data
-      const { data: page, error: pageError } = await supabase
+      // Add a timeout to prevent hanging the whole home page
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Sayfa verisi yüklenirken zaman aşımı oluştu.')), 15000)
+      );
+
+      // Fetch page basic data with timeout
+      const pagePromise = supabase
         .from('pages')
         .select('*')
-        .eq('slug', slug)
+        .eq('slug', slug === 'ana-sayfa' ? '/' : slug)
         .eq('is_published', true)
         .single();
 
-      if (pageError && pageError.code !== 'PGRST116') {
-        throw pageError;
+      const { data: page, error: pageError } = await Promise.race([pagePromise, timeoutPromise]) as any;
+      if (pageError && pageError.code !== 'PGRST116') { // PGRST116 is "no rows found"
+        console.warn('Page fetch error:', pageError);
       }
 
-      // If page doesn't exist, create default page data
-      if (!page) {
-        const defaultPage = getDefaultPageData(slug);
-        setPageData(defaultPage);
-      } else {
-        setPageData(page);
-      }
-
-      // Fetch page content sections
-      const { data: content, error: contentError } = await supabase
-        .from('page_contents')
+      // Fetch page content sections with timeout
+      const sectionsPromise = supabase
+        .from('page_sections')
         .select('*')
-        .eq('page_slug', slug)
-        .single();
+        .eq('page_slug', slug === 'ana-sayfa' ? '/' : slug)
+        .eq('is_visible', true)
+        .order('order_index');
 
-      if (contentError && contentError.code !== 'PGRST116') {
-        console.warn('Content fetch error:', contentError);
+      const { data: sections, error: sectionsError } = await Promise.race([sectionsPromise, timeoutPromise]) as any;
+      if (sectionsError) {
+        console.warn('Page sections fetch error:', sectionsError);
       }
 
-      if (content) {
-        setPageContent(content);
-      } else {
-        // Create default content
-        const defaultContent = getDefaultPageContent(slug);
-        setPageContent(defaultContent);
-      }
+      setState({
+        pageData: page || getDefaultPageData(slug),
+        pageContent: sections ? { page_slug: slug, sections: sections.map((s: any) => ({
+          id: s.id,
+          type: s.section_type,
+          title: s.title,
+          subtitle: s.subtitle,
+          content: typeof s.content === 'string' ? s.content : JSON.stringify(s.content),
+          image: s.image_url,
+          order: s.order_index
+        })) } : getDefaultPageContent(slug),
+        loading: false,
+        error: null
+      });
 
     } catch (err: any) {
-      console.error('Error fetching page:', err);
-      setError(err.message);
-      
-      // Set default data on error
-      const defaultPage = getDefaultPageData(slug);
-      const defaultContent = getDefaultPageContent(slug);
-      setPageData(defaultPage);
-      setPageContent(defaultContent);
-    } finally {
-      setLoading(false);
+      console.error('Error fetching page (resorted to defaults):', err);
+      setState({
+        pageData: getDefaultPageData(slug),
+        pageContent: getDefaultPageContent(slug),
+        loading: false,
+        error: err.message
+      });
     }
   };
 
@@ -277,10 +285,7 @@ export const usePage = (slug: string) => {
   };
 
   return {
-    pageData,
-    pageContent,
-    loading,
-    error,
+    ...state,
     refetch: fetchPageData
   };
 };

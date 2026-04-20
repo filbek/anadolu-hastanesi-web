@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaSave, FaGlobe, FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaExternalLinkAlt, FaUpload, FaImage, FaTrash, FaEye } from 'react-icons/fa';
-import { supabaseNew as supabase } from '../../lib/supabase-new';
+import { FaSave, FaGlobe, FaPhone, FaExternalLinkAlt, FaUpload, FaImage, FaTrash, FaEye } from 'react-icons/fa';
+import { supabase } from '../../lib/supabase';
 
 interface SiteSettings {
   id?: number;
@@ -94,7 +94,7 @@ const AdminSettings = () => {
   const saveSettings = async () => {
     try {
       setSaving(true);
-      
+
       const settingsData = {
         ...settings,
         updated_at: new Date().toISOString(),
@@ -236,7 +236,7 @@ const AdminSettings = () => {
   const updateFavicon = (faviconUrl: string) => {
     // Remove existing favicon
     const existingFavicon = document.querySelector('link[rel="icon"]') ||
-                           document.querySelector('link[rel="shortcut icon"]');
+      document.querySelector('link[rel="shortcut icon"]');
     if (existingFavicon) {
       existingFavicon.remove();
     }
@@ -284,7 +284,7 @@ const AdminSettings = () => {
             <FaGlobe className="mr-2" />
             Genel Bilgiler
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -297,7 +297,7 @@ const AdminSettings = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Site Açıklaması
@@ -309,7 +309,7 @@ const AdminSettings = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Anahtar Kelimeler
@@ -331,7 +331,7 @@ const AdminSettings = () => {
             <FaPhone className="mr-2" />
             İletişim Bilgileri
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -344,7 +344,7 @@ const AdminSettings = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 E-posta
@@ -356,7 +356,7 @@ const AdminSettings = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Adres
@@ -368,7 +368,7 @@ const AdminSettings = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Acil Telefon
@@ -380,7 +380,7 @@ const AdminSettings = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Çalışma Saatleri
@@ -401,7 +401,7 @@ const AdminSettings = () => {
             <FaExternalLinkAlt className="mr-2" />
             Randevu Sistemi
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -620,7 +620,7 @@ const AdminSettings = () => {
           <h2 className="text-lg font-semibold text-primary mb-4">
             SEO Ayarları
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -633,7 +633,7 @@ const AdminSettings = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Meta Açıklama
@@ -645,7 +645,7 @@ const AdminSettings = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Google Analytics ID

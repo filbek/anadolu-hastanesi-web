@@ -2,69 +2,12 @@ import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useInView } from 'framer-motion'
 import SectionTitle from '../ui/SectionTitle'
-
-const departments = [
-  {
-    id: 1,
-    name: 'Kardiyoloji',
-    slug: 'kardiyoloji',
-    icon: 'bi-heart-pulse-fill',
-    description: 'Kalp ve damar hastalıklarının tanı ve tedavisi',
-  },
-  {
-    id: 2,
-    name: 'Nöroloji',
-    slug: 'noroloji',
-    icon: 'bi-brain',
-    description: 'Sinir sistemi hastalıklarının tanı ve tedavisi',
-  },
-  {
-    id: 3,
-    name: 'Ortopedi',
-    slug: 'ortopedi',
-    icon: 'bi-person-standing',
-    description: 'Kemik, kas ve eklem hastalıklarının tanı ve tedavisi',
-  },
-  {
-    id: 4,
-    name: 'Göz Hastalıkları',
-    slug: 'goz-hastaliklari',
-    icon: 'bi-eye-fill',
-    description: 'Göz ve görme ile ilgili hastalıkların tanı ve tedavisi',
-  },
-  {
-    id: 5,
-    name: 'Genel Cerrahi',
-    slug: 'genel-cerrahi',
-    icon: 'bi-scissors',
-    description: 'Cerrahi müdahale gerektiren hastalıkların tanı ve tedavisi',
-  },
-  {
-    id: 6,
-    name: 'Kadın Hastalıkları',
-    slug: 'kadin-hastaliklari',
-    icon: 'bi-gender-female',
-    description: 'Kadın üreme sistemi hastalıklarının tanı ve tedavisi',
-  },
-  {
-    id: 7,
-    name: 'Çocuk Sağlığı',
-    slug: 'cocuk-sagligi',
-    icon: 'bi-balloon-heart-fill',
-    description: 'Çocuk sağlığı ve hastalıklarının tanı ve tedavisi',
-  },
-  {
-    id: 8,
-    name: 'Dahiliye',
-    slug: 'dahiliye',
-    icon: 'bi-clipboard2-pulse-fill',
-    description: 'İç hastalıklarının tanı ve tedavisi',
-  },
-]
+import { useDepartments } from '../../hooks/useDepartments'
 
 const DepartmentsSection = () => {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.2 })
+  const { data: departments = [], isLoading } = useDepartments({ onlyPublished: true })
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -85,6 +28,27 @@ const DepartmentsSection = () => {
     },
   }
 
+  // Only show first 8 departments on homepage
+  const displayDepartments = departments.slice(0, 8)
+
+  if (isLoading && departments.length === 0) {
+    return (
+      <section className="py-20">
+        <div className="container-custom">
+          <SectionTitle
+            title="Bölümlerimiz"
+            subtitle="Hizmetlerimiz yükleniyor..."
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="animate-pulse bg-neutral rounded-2xl h-48 shadow-sm" />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="py-20">
       <div className="container-custom">
@@ -100,17 +64,17 @@ const DepartmentsSection = () => {
           animate={isInView ? 'visible' : 'hidden'}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
         >
-          {departments.map((department) => (
+          {displayDepartments.map((department) => (
             <motion.div
               key={department.id}
               variants={itemVariants}
               className="card text-center hover:-translate-y-2 group"
             >
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                <i className={`bi ${department.icon} text-2xl text-primary`}></i>
+                <i className={`bi ${department.icon || 'bi-hospital'} text-2xl text-primary`}></i>
               </div>
               <h3 className="text-xl font-semibold mb-2 text-primary">{department.name}</h3>
-              <p className="text-text-light text-sm mb-4">{department.description}</p>
+              <p className="text-text-light text-sm mb-4 line-clamp-2">{department.description}</p>
               <Link
                 to={`/bolumlerimiz/${department.slug}`}
                 className="inline-block text-sm font-medium text-primary hover:text-primary-dark transition-colors"

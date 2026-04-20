@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
 import { Session, User } from '@supabase/supabase-js';
-import { supabaseNew as supabase, UserCredentials, NewUser, UserProfile } from '../lib/supabase-new';
+import { supabase, UserCredentials, NewUser, UserProfile } from '../lib/supabase';
 
 type SupabaseContextType = {
   session: Session | null;
@@ -24,14 +23,29 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Safety timeout for loading state
+    const loadingTimeout = setTimeout(() => {
+      if (loading) {
+        console.warn('⚠️ Supabase initialization timed out (10s). Forcing loading to false.');
+        setLoading(false);
+      }
+    }, 10000);
+
     // Get initial session
+    console.log('🚀 Supabase initialization started...');
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('📦 Initial session received:', session?.user?.email || 'No session');
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchUserProfile(session.user.id);
       }
       setLoading(false);
+      clearTimeout(loadingTimeout);
+    }).catch(err => {
+      console.error('💥 Initial session error:', err);
+      setLoading(false);
+      clearTimeout(loadingTimeout);
     });
 
     // Listen for auth changes
@@ -78,11 +92,19 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
     try {
       console.log('🔍 Fetching profile for user:', userId);
 
-      const { data, error } = await supabase
+      // Use a timeout for profiles fetch
+      const profilePromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
+
+      const { data, error } = await Promise.race([
+        profilePromise,
+        new Promise<{ data: null, error: any }>((_, reject) =>
+          setTimeout(() => reject(new Error('Profil yüklenirken zaman aşımı oluştu.')), 8000)
+        )
+      ]) as any;
 
       if (error) {
         console.error('❌ Profile fetch error:', error);
@@ -223,34 +245,34 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
 
         if (data.user) {
           console.log('✅ User found:', data.user.email);
-        console.log('🔍 User email check:', data.user.email, typeof data.user.email);
-        console.log('🔍 Email comparison:', data.user.email === 'sagliktruizmi34@gmail.com');
+          console.log('🔍 User email check:', data.user.email, typeof data.user.email);
+          console.log('🔍 Email comparison:', data.user.email === 'sagliktruizmi34@gmail.com');
 
-        // Always set user and session first
-        setUser(data.user);
-        setSession(data.session);
+          // Always set user and session first
+          setUser(data.user);
+          setSession(data.session);
 
-        // Immediately set profile for admin users
-        if (data.user.email === 'sagliktruizmi34@gmail.com') {
-          console.log('🔧 Setting super admin profile after login');
-          setUserProfile({
-            id: data.user.id,
-            email: data.user.email,
-            full_name: 'Super Admin',
-            role: 'super_admin'
-          });
-        } else if (data.user.email === 'bekir.filizdag@anadoluhastaneleri.com') {
-          console.log('🔧 Setting admin profile after login');
-          setUserProfile({
-            id: data.user.id,
-            email: data.user.email,
-            full_name: 'Bekir Filizdag',
-            role: 'admin'
-          });
-        } else {
-          console.log('⚠️ Not an admin email, fetching profile from database');
-          await fetchUserProfile(data.user.id);
-        }
+          // Immediately set profile for admin users
+          if (data.user.email === 'sagliktruizmi34@gmail.com') {
+            console.log('🔧 Setting super admin profile after login');
+            setUserProfile({
+              id: data.user.id,
+              email: data.user.email,
+              full_name: 'Super Admin',
+              role: 'super_admin'
+            });
+          } else if (data.user.email === 'bekir.filizdag@anadoluhastaneleri.com') {
+            console.log('🔧 Setting admin profile after login');
+            setUserProfile({
+              id: data.user.id,
+              email: data.user.email,
+              full_name: 'Bekir Filizdag',
+              role: 'admin'
+            });
+          } else {
+            console.log('⚠️ Not an admin email, fetching profile from database');
+            await fetchUserProfile(data.user.id);
+          }
         } else {
           console.log('❌ No user in response data');
         }

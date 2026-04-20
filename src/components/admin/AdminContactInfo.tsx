@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FaSave, FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaWhatsapp, FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
-import { supabaseNew as supabase } from '../../lib/supabase-new';
+import { FaSave, FaPhone, FaMapMarkerAlt, FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
+import { supabase } from '../../lib/supabase';
 
 interface ContactInfo {
   id?: number;
@@ -67,7 +67,7 @@ const AdminContactInfo = () => {
   const saveContactInfo = async () => {
     try {
       setSaving(true);
-      
+
       const contactData = {
         ...contactInfo,
         updated_at: new Date().toISOString(),
@@ -138,7 +138,7 @@ const AdminContactInfo = () => {
             <FaPhone className="mr-2" />
             Temel İletişim
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -151,7 +151,7 @@ const AdminContactInfo = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Acil Telefon
@@ -163,7 +163,7 @@ const AdminContactInfo = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 E-posta
@@ -175,7 +175,7 @@ const AdminContactInfo = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 WhatsApp
@@ -196,7 +196,7 @@ const AdminContactInfo = () => {
             <FaMapMarkerAlt className="mr-2" />
             Adres ve Saatler
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -209,7 +209,7 @@ const AdminContactInfo = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Çalışma Saatleri
@@ -221,7 +221,7 @@ const AdminContactInfo = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Acil Servis Saatleri
@@ -241,7 +241,7 @@ const AdminContactInfo = () => {
           <h2 className="text-lg font-semibold text-primary mb-4">
             Sosyal Medya
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
@@ -255,7 +255,7 @@ const AdminContactInfo = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                 <FaTwitter className="mr-2 text-blue-400" />
@@ -268,7 +268,7 @@ const AdminContactInfo = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                 <FaInstagram className="mr-2 text-pink-500" />
@@ -281,7 +281,7 @@ const AdminContactInfo = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                 <FaLinkedin className="mr-2 text-blue-700" />
@@ -302,7 +302,7 @@ const AdminContactInfo = () => {
           <h2 className="text-lg font-semibold text-primary mb-4">
             Google Maps
           </h2>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Google Maps Embed Kodu

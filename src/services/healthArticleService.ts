@@ -1,20 +1,31 @@
 import { supabase, HealthArticle } from '../lib/supabase';
 
 export async function getHealthArticles(): Promise<HealthArticle[]> {
-  const { data, error } = await supabase
-    .from('health_articles')
-    .select(`
-      *,
-      authors:author_id(id, name, slug, title, image)
-    `)
-    .order('date', { ascending: false });
+  try {
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Makaleler yüklenirken zaman aşımı oluştu.')), 15000)
+    );
 
-  if (error) {
-    console.error('Error fetching health articles:', error);
+    const fetchPromise = supabase
+      .from('health_articles')
+      .select(`
+        *,
+        authors:author_id(id, name, slug, title, image)
+      `)
+      .order('date', { ascending: false });
+
+    const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
+    if (error) {
+      console.error('Error fetching health articles:', error);
+      return [];
+    }
+
+    return (data as unknown as HealthArticle[]) || [];
+  } catch (err) {
+    console.error('Fetch health articles timeout or exception:', err);
     return [];
   }
-
-  return data as unknown as HealthArticle[];
 }
 
 export async function getHealthArticlesByCategory(category: string): Promise<HealthArticle[]> {

@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { Link, Outlet, Navigate } from 'react-router-dom';
+import { Link, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useSupabase } from '../../contexts/SupabaseContext';
-import { FaHospital, FaStethoscope, FaUserMd, FaNewspaper, FaUsers, FaSignOutAlt, FaTachometerAlt, FaBars, FaTimes, FaCog, FaImages, FaFileAlt, FaPhone, FaInfoCircle, FaGlobe, FaDatabase, FaVideo, FaAward, FaFilePdf } from 'react-icons/fa';
+import {
+  FaHospital, FaStethoscope, FaUserMd, FaNewspaper, FaUsers,
+  FaSignOutAlt, FaTachometerAlt, FaBars, FaTimes, FaCog,
+  FaImages, FaFileAlt, FaPhone, FaInfoCircle, FaGlobe,
+  FaDatabase, FaVideo, FaAward, FaFilePdf, FaChevronRight
+} from 'react-icons/fa';
 
 const AdminLayout = () => {
   const { user, signOut, userProfile } = useSupabase();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const location = useLocation();
 
-  // Check if user is authenticated and has admin or super_admin role in profile
   const isAdmin = user && userProfile && (userProfile.role === 'admin' || userProfile.role === 'super_admin');
-
-  // Eğer gelecekte e-posta uzantısına dayalı bir kontrol yapılmak istenirse, aşağıdaki satır açılabilir.
-  // const isAdmin = user && (userProfile?.role === 'admin' || userProfile?.role === 'super_admin' || user.email?.endsWith('@anadoluhastaneleri.com'));
 
   if (!isAdmin) {
     return <Navigate to="/" />;
@@ -21,227 +23,172 @@ const AdminLayout = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const navGroups = [
+    {
+      label: 'SAYFA YÖNETİMİ',
+      items: [
+        { path: '/admin/home-settings', icon: FaTachometerAlt, label: 'Ana Sayfa' },
+        { path: '/admin/hospitals', icon: FaHospital, label: 'Hastaneler' },
+        { path: '/admin/departments', icon: FaStethoscope, label: 'Bölümler' },
+        { path: '/admin/doctors', icon: FaUserMd, label: 'Doktorlar' },
+        { path: '/admin/articles', icon: FaNewspaper, label: 'Sağlık Rehberi' },
+        { path: '/admin/health-tourism', icon: FaGlobe, label: 'Sağlık Turizmi' },
+        { path: '/admin/contact-info', icon: FaPhone, label: 'İletişim' },
+      ]
+    },
+    {
+      label: 'İÇERİK & MEDYA',
+      items: [
+        { path: '/admin/pages', icon: FaFileAlt, label: 'Tüm Sayfalar' },
+        { path: '/admin/media', icon: FaImages, label: 'Medya Galerisi' },
+        { path: '/admin/video-content', icon: FaVideo, label: 'Video İçerikler' },
+      ]
+    },
+    {
+      label: 'HASTA HİZMETLERİ',
+      items: [
+        { path: '/admin/patient-info', icon: FaFilePdf, label: 'Hasta Bilgilendirme' },
+        { path: '/admin/quality-certificates', icon: FaAward, label: 'Kalite Sertifikaları' },
+      ]
+    },
+    {
+      label: 'SİSTEM',
+      items: [
+        { path: '/admin/users', icon: FaUsers, label: 'Kullanıcılar' },
+        { path: '/admin/seo', icon: FaGlobe, label: 'SEO Ayarları' },
+        { path: '/admin/settings', icon: FaCog, label: 'Site Ayarları' },
+        { path: '/admin/test-connection', icon: FaDatabase, label: 'Bağlantı Testi' },
+      ]
+    }
+  ];
+
   return (
-    <div className="flex h-screen bg-neutral">
+    <div className="flex h-screen bg-admin-bg overflow-hidden font-sans">
       {/* Sidebar */}
-      <div
-        className={`bg-primary text-white w-64 flex-shrink-0 transition-all duration-300 ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } fixed lg:relative h-full z-50`}
+      <aside
+        className={`bg-admin-sidebar text-slate-300 w-72 flex-shrink-0 transition-all duration-300 ease-in-out border-r border-white/5 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:-ml-72'
+          } fixed lg:relative h-full z-50 shadow-2xl`}
       >
-        <div className="p-4 flex items-center justify-between border-b border-primary-dark">
-          <Link to="/admin" className="text-xl font-bold">
-            Anadolu Admin
-          </Link>
-          <button
-            className="lg:hidden text-white"
-            onClick={toggleSidebar}
-          >
-            <FaTimes />
-          </button>
-        </div>
-        <nav className="p-4">
-          <ul className="space-y-2">
-            <li>
-              <Link
-                to="/admin"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaTachometerAlt className="mr-3" />
-                <span>Dashboard</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/hospitals"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaHospital className="mr-3" />
-                <span>Hastaneler</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/departments"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaStethoscope className="mr-3" />
-                <span>Bölümler</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/doctors"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaUserMd className="mr-3" />
-                <span>Doktorlar</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/articles"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaNewspaper className="mr-3" />
-                <span>Makaleler</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/video-content"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaVideo className="mr-3" />
-                <span>Video İçerikler</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/quality-certificates"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaAward className="mr-3" />
-                <span>Kalite Sertifikaları</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/patient-info"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaFilePdf className="mr-3" />
-                <span>Hasta Bilgilendirme</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/users"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaUsers className="mr-3" />
-                <span>Kullanıcılar</span>
-              </Link>
-            </li>
-
-            {/* Site İçeriği Yönetimi */}
-            <li className="pt-4 mt-4 border-t border-primary-dark">
-              <div className="text-xs text-gray-300 uppercase tracking-wider mb-2 px-2">
-                Site İçeriği
+        <div className="flex flex-col h-full">
+          {/* Logo Section */}
+          <div className="p-6 flex items-center justify-between">
+            <Link to="/admin" className="flex items-center space-x-3 group">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform duration-200">
+                <span className="text-white font-bold text-xl">A</span>
               </div>
-            </li>
-            <li>
-              <Link
-                to="/admin/pages"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaFileAlt className="mr-3" />
-                <span>Sayfa Yönetimi</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/media"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaImages className="mr-3" />
-                <span>Medya Galerisi</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/contact-info"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaPhone className="mr-3" />
-                <span>İletişim Bilgileri</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/about"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaInfoCircle className="mr-3" />
-                <span>Hakkımızda</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/seo"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaGlobe className="mr-3" />
-                <span>SEO Ayarları</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/test-connection"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaDatabase className="mr-3" />
-                <span>Bağlantı Testi</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/settings"
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors"
-              >
-                <FaCog className="mr-3" />
-                <span>Site Ayarları</span>
-              </Link>
-            </li>
-
-            <li className="pt-4 mt-4 border-t border-primary-dark">
-              <button
-                onClick={() => signOut()}
-                className="flex items-center p-2 rounded-lg hover:bg-primary-dark transition-colors w-full text-left"
-              >
-                <FaSignOutAlt className="mr-3" />
-                <span>Çıkış Yap</span>
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="bg-white shadow-sm">
-          <div className="px-4 py-3 flex items-center justify-between">
-            <button
-              className="lg:hidden text-text"
-              onClick={toggleSidebar}
-            >
-              <FaBars />
+              <div className="flex flex-col">
+                <span className="text-white font-bold tracking-tight text-lg leading-none">ANADOLU</span>
+                <span className="text-primary text-xs font-semibold tracking-widest mt-0.5">ADMIN</span>
+              </div>
+            </Link>
+            <button className="lg:hidden text-slate-400 hover:text-white" onClick={toggleSidebar}>
+              <FaTimes size={20} />
             </button>
-            <div className="flex items-center">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-2">
-                {user?.user_metadata?.avatar_url ? (
-                  <img
-                    src={user.user_metadata.avatar_url}
-                    alt="Avatar"
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="text-primary font-medium">
-                    {user?.email?.charAt(0).toUpperCase()}
-                  </span>
-                )}
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 overflow-y-auto px-4 py-2 custom-scrollbar">
+            {navGroups.map((group, gIdx) => (
+              <div key={gIdx} className="mb-8">
+                <h3 className="px-4 text-[11px] font-bold text-slate-500 uppercase tracking-[2px] mb-3">
+                  {group.label}
+                </h3>
+                <ul className="space-y-1">
+                  {group.items.map((item) => {
+                    const isActive = location.pathname === item.path;
+                    return (
+                      <li key={item.path}>
+                        <Link
+                          to={item.path}
+                          className={`flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-200 group ${isActive
+                            ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                            : 'hover:bg-white/5 hover:text-white'
+                            }`}
+                        >
+                          <div className="flex items-center">
+                            <item.icon className={`mr-3.5 transition-colors ${isActive ? 'text-white' : 'group-hover:text-primary'}`} />
+                            <span className="text-[14px] font-medium">{item.label}</span>
+                          </div>
+                          {isActive && <FaChevronRight size={10} className="text-white/50" />}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
-              <span className="text-text font-medium">
-                {user?.user_metadata?.full_name || user?.email}
-              </span>
+            ))}
+          </nav>
+
+          {/* User Section Bottom */}
+          <div className="p-4 bg-black/20 mt-auto">
+            <button
+              onClick={() => signOut()}
+              className="flex items-center w-full px-4 py-3 rounded-xl hover:bg-red-500/10 hover:text-red-500 transition-all duration-200 text-slate-400"
+            >
+              <FaSignOutAlt className="mr-3" />
+              <span className="text-sm font-medium">Güvenli Çıkış</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-40">
+          <div className="h-full px-8 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button
+                className="lg:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                onClick={toggleSidebar}
+              >
+                <FaBars className="text-slate-600" />
+              </button>
+              <div className="hidden md:flex items-center text-slate-400 text-sm">
+                <span>Yönetim Paneli</span>
+                <FaChevronRight size={10} className="mx-3 opacity-50" />
+                <span className="text-slate-900 font-medium capitalize">
+                  {location.pathname === '/admin' ? 'Dashboard' : location.pathname.split('/').pop()?.replace('-', ' ')}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-6">
+              <div className="hidden sm:flex flex-col items-end mr-4">
+                <span className="text-slate-900 font-bold text-sm leading-none mb-1">
+                  {user?.user_metadata?.full_name || user?.email?.split('@')[0]}
+                </span>
+                <span className="text-primary text-[11px] font-bold uppercase tracking-wider">
+                  {userProfile?.role === 'super_admin' ? 'SÜPER ADMİN' : 'DİREKTÖR'}
+                </span>
+              </div>
+
+              <div className="relative group">
+                <div className="w-11 h-11 rounded-2xl bg-slate-100 overflow-hidden border-2 border-white shadow-sm group-hover:shadow-md transition-all duration-200">
+                  {user?.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-bold">
+                      {user?.email?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                {/* Status Dot */}
+                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+              </div>
             </div>
           </div>
         </header>
 
-        {/* Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-neutral p-4">
-          <Outlet />
+        {/* Dynamic Content Container */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-8 custom-scrollbar">
+          <div className="max-w-7xl mx-auto animate-fade-in">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
@@ -249,3 +196,4 @@ const AdminLayout = () => {
 };
 
 export default AdminLayout;
+

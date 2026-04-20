@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaPlus, FaEdit, FaTrash, FaSearch } from 'react-icons/fa';
-import { supabaseNew as supabase } from '../../lib/supabase-new';
-import type { Department } from '../../lib/supabase-new';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaEyeSlash } from 'react-icons/fa';
+import { getDepartments, deleteDepartment } from '../../services/departmentService';
+import type { Department } from '../../lib/supabase';
 
 const AdminDepartments = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -17,12 +17,7 @@ const AdminDepartments = () => {
   const fetchDepartments = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('departments')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await getDepartments();
       setDepartments(data || []);
     } catch (error) {
       console.error('Error fetching departments:', error);
@@ -31,17 +26,13 @@ const AdminDepartments = () => {
     }
   };
 
-  const deleteDepartment = async (id: number) => {
+  const handleDelete = async (id: number) => {
     if (!confirm('Bu bölümü silmek istediğinizden emin misiniz?')) return;
 
     try {
-      const { error } = await supabase
-        .from('departments')
-        .delete()
-        .eq('id', id);
-
+      const { error } = await deleteDepartment(id);
       if (error) throw error;
-      
+
       setDepartments(departments.filter(dept => dept.id !== id));
       alert('Bölüm başarıyla silindi!');
     } catch (error) {
@@ -52,7 +43,7 @@ const AdminDepartments = () => {
 
   const filteredDepartments = departments.filter(dept => {
     const matchesSearch = dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         dept.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      (dept.description || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || dept.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -115,43 +106,57 @@ const AdminDepartments = () => {
       {/* Departments Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredDepartments.map((department) => (
-          <div key={department.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+          <div key={department.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow relative overflow-hidden">
+            {!department.is_published && (
+              <div className="absolute top-0 right-0 bg-yellow-400 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg flex items-center shadow-sm">
+                <FaEyeSlash className="mr-1" /> TASLAK
+              </div>
+            )}
+
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-primary text-xl">{department.icon || '🏥'}</span>
+                <i className={`bi ${department.icon || 'bi-hospital'} text-primary text-xl`}></i>
               </div>
               <div className="flex space-x-2">
                 <Link
                   to={`/admin/departments/edit/${department.id}`}
-                  className="text-blue-600 hover:text-blue-800 transition-colors"
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Düzenle"
                 >
                   <FaEdit />
                 </Link>
                 <button
-                  onClick={() => deleteDepartment(department.id)}
-                  className="text-red-600 hover:text-red-800 transition-colors"
+                  onClick={() => handleDelete(department.id)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Sil"
                 >
                   <FaTrash />
                 </button>
               </div>
             </div>
-            
-            <h3 className="text-lg font-semibold text-primary mb-2">{department.name}</h3>
-            
-            {department.category && (
-              <span className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full mb-2">
-                {department.category}
+
+            <h3 className="text-lg font-semibold text-primary mb-1">{department.name}</h3>
+
+            <div className="flex flex-wrap gap-2 mb-3">
+              {department.category && (
+                <span className="inline-block bg-primary/5 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  {department.category}
+                </span>
+              )}
+              <span className="inline-block bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                Sıra: {department.display_order}
               </span>
-            )}
-            
+            </div>
+
             {department.description && (
-              <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+              <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                 {department.description}
               </p>
             )}
-            
-            <div className="text-xs text-gray-500">
-              Oluşturulma: {new Date(department.created_at).toLocaleDateString('tr-TR')}
+
+            <div className="flex items-center justify-between pt-4 border-t border-gray-50 text-[10px] text-gray-400">
+              <span>Slug: {department.slug}</span>
+              <span>{new Date(department.created_at).toLocaleDateString('tr-TR')}</span>
             </div>
           </div>
         ))}
@@ -162,8 +167,8 @@ const AdminDepartments = () => {
           <div className="text-gray-400 text-6xl mb-4">🏥</div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">Bölüm bulunamadı</h3>
           <p className="text-gray-500 mb-4">
-            {searchTerm || selectedCategory !== 'all' 
-              ? 'Arama kriterlerinize uygun bölüm bulunamadı.' 
+            {searchTerm || selectedCategory !== 'all'
+              ? 'Arama kriterlerinize uygun bölüm bulunamadı.'
               : 'Henüz hiç bölüm eklenmemiş.'}
           </p>
           <Link

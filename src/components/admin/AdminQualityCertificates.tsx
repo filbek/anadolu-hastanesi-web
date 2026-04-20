@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaSave, FaAward } from 'react-icons/fa';
-import { supabaseNew as supabase } from '../../lib/supabase-new';
 
 interface QualityCertificate {
   id: number;
@@ -38,7 +37,7 @@ const AdminQualityCertificates = () => {
   const fetchCertificates = async () => {
     try {
       setLoading(true);
-      
+
       // Create sample certificates data since table might not exist
       const sampleCertificates: QualityCertificate[] = [
         {
@@ -101,7 +100,7 @@ const AdminQualityCertificates = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const certificateData = {
         ...formData,
@@ -110,8 +109,8 @@ const AdminQualityCertificates = () => {
 
       if (editingCertificate) {
         // Update existing certificate
-        setCertificates(certificates.map(cert => 
-          cert.id === editingCertificate.id 
+        setCertificates(certificates.map(cert =>
+          cert.id === editingCertificate.id
             ? { ...cert, ...certificateData, updated_at: new Date().toISOString() }
             : cert
         ));
@@ -122,7 +121,7 @@ const AdminQualityCertificates = () => {
           ...certificateData,
           created_at: new Date().toISOString()
         } as QualityCertificate;
-        
+
         setCertificates([newCertificate, ...certificates]);
       }
 
@@ -137,7 +136,7 @@ const AdminQualityCertificates = () => {
         is_active: true,
         display_order: 1
       });
-      
+
       alert(editingCertificate ? 'Sertifika güncellendi!' : 'Sertifika eklendi!');
     } catch (error) {
       console.error('Error saving certificate:', error);
@@ -229,8 +228,8 @@ const AdminQualityCertificates = () => {
           <div key={certificate.id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             <div className="relative h-48">
               {certificate.image_url ? (
-                <img 
-                  src={certificate.image_url} 
+                <img
+                  src={certificate.image_url}
                   alt={certificate.name}
                   className="w-full h-full object-cover"
                 />
@@ -240,26 +239,25 @@ const AdminQualityCertificates = () => {
                 </div>
               )}
               <div className="absolute top-2 right-2">
-                <span className={`px-2 py-1 text-xs rounded-full ${
-                  certificate.is_active 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
+                <span className={`px-2 py-1 text-xs rounded-full ${certificate.is_active
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800'
+                  }`}>
                   {certificate.is_active ? 'Aktif' : 'Pasif'}
                 </span>
               </div>
             </div>
-            
+
             <div className="p-4">
               <h3 className="text-lg font-semibold text-primary mb-2">{certificate.name}</h3>
               <p className="text-gray-600 text-sm mb-3 line-clamp-2">{certificate.description}</p>
-              
+
               <div className="space-y-1 text-sm text-gray-500 mb-4">
                 <div><strong>Veren Kurum:</strong> {certificate.issuer}</div>
                 <div><strong>Tarih:</strong> {new Date(certificate.issue_date).toLocaleDateString('tr-TR')}</div>
                 <div><strong>Sıra:</strong> {certificate.display_order}</div>
               </div>
-              
+
               <div className="flex justify-between items-center">
                 <button
                   onClick={() => editCertificate(certificate)}
@@ -284,8 +282,8 @@ const AdminQualityCertificates = () => {
           <div className="text-gray-400 text-6xl mb-4">🏆</div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">Sertifika bulunamadı</h3>
           <p className="text-gray-500 mb-4">
-            {searchTerm 
-              ? 'Arama kriterlerinize uygun sertifika bulunamadı.' 
+            {searchTerm
+              ? 'Arama kriterlerinize uygun sertifika bulunamadı.'
               : 'Henüz hiç sertifika eklenmemiş.'}
           </p>
           <button
@@ -305,7 +303,7 @@ const AdminQualityCertificates = () => {
             <h2 className="text-xl font-semibold mb-4">
               {editingCertificate ? 'Sertifika Düzenle' : 'Yeni Sertifika'}
             </h2>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -314,25 +312,25 @@ const AdminQualityCertificates = () => {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Açıklama
                 </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   required
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -341,12 +339,12 @@ const AdminQualityCertificates = () => {
                   <input
                     type="text"
                     value={formData.issuer}
-                    onChange={(e) => setFormData({...formData, issuer: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, issuer: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Veriliş Tarihi
@@ -354,13 +352,13 @@ const AdminQualityCertificates = () => {
                   <input
                     type="date"
                     value={formData.issue_date}
-                    onChange={(e) => setFormData({...formData, issue_date: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Resim URL
@@ -368,12 +366,12 @@ const AdminQualityCertificates = () => {
                 <input
                   type="url"
                   value={formData.image_url}
-                  onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="https://example.com/certificate.jpg"
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -382,19 +380,19 @@ const AdminQualityCertificates = () => {
                   <input
                     type="number"
                     value={formData.display_order}
-                    onChange={(e) => setFormData({...formData, display_order: parseInt(e.target.value)})}
+                    onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     min="1"
                     required
                   />
                 </div>
-                
+
                 <div className="flex items-center pt-6">
                   <input
                     type="checkbox"
                     id="is_active"
                     checked={formData.is_active}
-                    onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
+                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                     className="mr-2"
                   />
                   <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
@@ -402,7 +400,7 @@ const AdminQualityCertificates = () => {
                   </label>
                 </div>
               </div>
-              
+
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"

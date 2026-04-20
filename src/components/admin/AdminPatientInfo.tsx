@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaDownload, FaFileAlt, FaSave } from 'react-icons/fa';
-import { supabaseNew as supabase } from '../../lib/supabase-new';
 
 interface PatientDocument {
   id: number;
@@ -49,7 +48,7 @@ const AdminPatientInfo = () => {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
-      
+
       // Create sample documents data since table might not exist
       const sampleDocuments: PatientDocument[] = [
         {
@@ -136,7 +135,7 @@ const AdminPatientInfo = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const documentData = {
         ...formData,
@@ -145,8 +144,8 @@ const AdminPatientInfo = () => {
 
       if (editingDocument) {
         // Update existing document
-        setDocuments(documents.map(doc => 
-          doc.id === editingDocument.id 
+        setDocuments(documents.map(doc =>
+          doc.id === editingDocument.id
             ? { ...doc, ...documentData, updated_at: new Date().toISOString() }
             : doc
         ));
@@ -157,7 +156,7 @@ const AdminPatientInfo = () => {
           ...documentData,
           created_at: new Date().toISOString()
         } as PatientDocument;
-        
+
         setDocuments([newDocument, ...documents]);
       }
 
@@ -172,7 +171,7 @@ const AdminPatientInfo = () => {
         is_published: true,
         display_order: documents.length + 1
       });
-      
+
       alert(editingDocument ? 'Belge güncellendi!' : 'Belge eklendi!');
     } catch (error) {
       console.error('Error saving document:', error);
@@ -208,7 +207,7 @@ const AdminPatientInfo = () => {
 
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.description.toLowerCase().includes(searchTerm.toLowerCase());
+      doc.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -300,7 +299,7 @@ const AdminPatientInfo = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredDocuments.map((document) => (
+              {filteredDocuments.map((document: PatientDocument) => (
                 <tr key={document.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -320,11 +319,10 @@ const AdminPatientInfo = () => {
                     {document.file_size}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      document.is_published 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${document.is_published
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                      }`}>
                       {document.is_published ? 'Yayında' : 'Taslak'}
                     </span>
                   </td>
@@ -387,7 +385,7 @@ const AdminPatientInfo = () => {
             <h2 className="text-xl font-semibold mb-4">
               {editingDocument ? 'Belge Düzenle' : 'Yeni Belge'}
             </h2>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -396,25 +394,25 @@ const AdminPatientInfo = () => {
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Açıklama
                 </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   required
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -422,7 +420,7 @@ const AdminPatientInfo = () => {
                   </label>
                   <select
                     value={formData.category}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     {categories.filter(c => c.value !== 'all').map(category => (
@@ -432,7 +430,7 @@ const AdminPatientInfo = () => {
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Dosya Boyutu
@@ -440,14 +438,14 @@ const AdminPatientInfo = () => {
                   <input
                     type="text"
                     value={formData.file_size}
-                    onChange={(e) => setFormData({...formData, file_size: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, file_size: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="2.5 MB"
                     required
                   />
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Dosya URL
@@ -455,13 +453,13 @@ const AdminPatientInfo = () => {
                 <input
                   type="url"
                   value={formData.file_url}
-                  onChange={(e) => setFormData({...formData, file_url: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, file_url: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="/documents/belge.pdf"
                   required
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -470,19 +468,19 @@ const AdminPatientInfo = () => {
                   <input
                     type="number"
                     value={formData.display_order}
-                    onChange={(e) => setFormData({...formData, display_order: parseInt(e.target.value)})}
+                    onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     min="1"
                     required
                   />
                 </div>
-                
+
                 <div className="flex items-center pt-6">
                   <input
                     type="checkbox"
                     id="is_published"
                     checked={formData.is_published}
-                    onChange={(e) => setFormData({...formData, is_published: e.target.checked})}
+                    onChange={(e) => setFormData({ ...formData, is_published: e.target.checked })}
                     className="mr-2"
                   />
                   <label htmlFor="is_published" className="text-sm font-medium text-gray-700">
@@ -490,7 +488,7 @@ const AdminPatientInfo = () => {
                   </label>
                 </div>
               </div>
-              
+
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"

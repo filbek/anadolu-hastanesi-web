@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaEye, FaFileAlt, FaVideo, FaFilePdf } from 'react-icons/fa';
-import { supabaseNew as supabase } from '../../lib/supabase-new';
-import type { HealthArticle } from '../../lib/supabase-new';
+import { supabase } from '../../lib/supabase';
+import type { HealthArticle } from '../../lib/supabase';
 
 const AdminArticles = () => {
   const [articles, setArticles] = useState<HealthArticle[]>([]);
@@ -42,7 +42,7 @@ const AdminArticles = () => {
         .eq('id', id);
 
       if (error) throw error;
-      
+
       setArticles(articles.filter(article => article.id !== id));
       alert('Makale başarıyla silindi!');
     } catch (error) {
@@ -59,8 +59,8 @@ const AdminArticles = () => {
         .eq('id', id);
 
       if (error) throw error;
-      
-      setArticles(articles.map(article => 
+
+      setArticles(articles.map(article =>
         article.id === id ? { ...article, views: currentViews + 1 } : article
       ));
     } catch (error) {
@@ -70,7 +70,7 @@ const AdminArticles = () => {
 
   const filteredArticles = articles.filter(article => {
     const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         article.content?.toLowerCase().includes(searchTerm.toLowerCase());
+      article.content?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
     const matchesType = selectedType === 'all' || article.type === selectedType;
     return matchesSearch && matchesCategory && matchesType;
@@ -162,14 +162,14 @@ const AdminArticles = () => {
           <div key={article.id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
             {article.image && (
               <div className="h-48 bg-gray-200 overflow-hidden">
-                <img 
-                  src={article.image} 
+                <img
+                  src={article.image}
                   alt={article.title}
                   className="w-full h-full object-cover"
                 />
               </div>
             )}
-            
+
             <div className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
@@ -191,23 +191,23 @@ const AdminArticles = () => {
                   </button>
                 </div>
               </div>
-              
+
               <h3 className="text-lg font-semibold text-primary mb-2 line-clamp-2">
                 {article.title}
               </h3>
-              
+
               {article.category && (
                 <span className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full mb-3">
                   {article.category}
                 </span>
               )}
-              
+
               {article.content && (
                 <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                   {article.content.replace(/<[^>]*>/g, '')}
                 </p>
               )}
-              
+
               <div className="flex items-center justify-between text-xs text-gray-500">
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center">
@@ -226,11 +226,11 @@ const AdminArticles = () => {
                   <FaEye />
                 </button>
               </div>
-              
+
               {article.tags && article.tags.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1">
                   {article.tags.slice(0, 3).map((tag, index) => (
-                    <span 
+                    <span
                       key={index}
                       className="bg-primary/10 text-primary text-xs px-2 py-1 rounded"
                     >
@@ -255,7 +255,7 @@ const AdminArticles = () => {
           <h3 className="text-lg font-medium text-gray-900 mb-2">Makale bulunamadı</h3>
           <p className="text-gray-500 mb-4">
             {searchTerm || selectedCategory !== 'all' || selectedType !== 'all'
-              ? 'Arama kriterlerinize uygun makale bulunamadı.' 
+              ? 'Arama kriterlerinize uygun makale bulunamadı.'
               : 'Henüz hiç makale eklenmemiş.'}
           </p>
           <Link

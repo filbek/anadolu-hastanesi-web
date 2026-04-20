@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaPhone, FaEnvelope, FaClock } from 'react-icons/fa';
-import { supabaseNew as supabase } from '../../lib/supabase-new';
-import type { Hospital } from '../../lib/supabase-new';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaPhone, FaEnvelope, FaClock, FaHome } from 'react-icons/fa';
+import { getHospitals, deleteHospital as deleteHospitalService } from '../../services/hospitalService';
+import type { Hospital } from '../../lib/supabase';
 
 const AdminHospitals = () => {
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
@@ -16,13 +16,8 @@ const AdminHospitals = () => {
   const fetchHospitals = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('hospitals')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setHospitals(data || []);
+      const data = await getHospitals();
+      setHospitals(data);
     } catch (error) {
       console.error('Error fetching hospitals:', error);
     } finally {
@@ -34,11 +29,7 @@ const AdminHospitals = () => {
     if (!confirm('Bu hastaneyi silmek istediğinizden emin misiniz?')) return;
 
     try {
-      const { error } = await supabase
-        .from('hospitals')
-        .delete()
-        .eq('id', id);
-
+      const { error } = await deleteHospitalService(id);
       if (error) throw error;
 
       setHospitals(hospitals.filter(hospital => hospital.id !== id));
@@ -113,7 +104,15 @@ const AdminHospitals = () => {
               </div>
             </div>
 
-            <h3 className="text-lg font-semibold text-primary mb-2">{hospital.name}</h3>
+            <h3 className="text-lg font-semibold text-primary mb-2 flex items-center justify-between">
+              {hospital.name}
+              {hospital.display_on_homepage && (
+                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full flex items-center shadow-sm">
+                  <FaHome className="mr-1" size={10} />
+                  Ana Sayfa
+                </span>
+              )}
+            </h3>
 
             {hospital.description && (
               <p className="text-gray-600 text-sm mb-4 line-clamp-3">

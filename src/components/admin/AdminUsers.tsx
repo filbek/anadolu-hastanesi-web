@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { FaSearch, FaEdit, FaTrash, FaUser, FaEnvelope, FaPhone, FaUserShield } from 'react-icons/fa';
-import { supabaseNew as supabase } from '../../lib/supabase-new';
-import type { UserProfile } from '../../lib/supabase-new';
+import { FaSearch, FaTrash, FaUser, FaEnvelope, FaPhone } from 'react-icons/fa';
+import { supabase } from '../../lib/supabase';
+import { UserProfile } from '../../lib/supabase';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -38,8 +38,8 @@ const AdminUsers = () => {
         .eq('id', userId);
 
       if (error) throw error;
-      
-      setUsers(users.map(user => 
+
+      setUsers(users.map(user =>
         user.id === userId ? { ...user, role: newRole } : user
       ));
       alert('Kullanıcı rolü güncellendi!');
@@ -59,7 +59,7 @@ const AdminUsers = () => {
         .eq('id', userId);
 
       if (error) throw error;
-      
+
       setUsers(users.filter(user => user.id !== userId));
       alert('Kullanıcı başarıyla silindi!');
     } catch (error) {
@@ -70,7 +70,7 @@ const AdminUsers = () => {
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = selectedRole === 'all' || user.role === selectedRole;
     return matchesSearch && matchesRole;
   });
@@ -81,15 +81,6 @@ const AdminUsers = () => {
       case 'admin': return 'bg-blue-100 text-blue-700';
       case 'user': return 'bg-green-100 text-green-700';
       default: return 'bg-gray-100 text-gray-700';
-    }
-  };
-
-  const getRoleLabel = (role?: string) => {
-    switch (role) {
-      case 'super_admin': return 'Süper Admin';
-      case 'admin': return 'Admin';
-      case 'user': return 'Kullanıcı';
-      default: return 'Belirsiz';
     }
   };
 
@@ -166,8 +157,8 @@ const AdminUsers = () => {
                     <div className="flex items-center">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                         {user.avatar_url ? (
-                          <img 
-                            src={user.avatar_url} 
+                          <img
+                            src={user.avatar_url}
                             alt={user.full_name}
                             className="w-full h-full rounded-full object-cover"
                           />

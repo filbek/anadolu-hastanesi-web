@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { FaBars, FaTimes, FaChevronDown, FaPhone, FaUser } from 'react-icons/fa'
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
+import { FaBars, FaTimes, FaChevronDown, FaPhone, FaUser, FaRegHospital, FaStethoscope, FaInfoCircle, FaPhoneAlt } from 'react-icons/fa'
 import { useSupabase } from '../../contexts/SupabaseContext'
 import AuthModal from '../auth/AuthModal'
 import Logo from '../ui/Logo'
@@ -14,6 +14,10 @@ const Header = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const location = useLocation()
   const { user, signOut } = useSupabase()
+
+  const { scrollY } = useScroll()
+  const headerHeight = useTransform(scrollY, [0, 100], ['5.5rem', '4.5rem'])
+  const headerBg = useTransform(scrollY, [0, 100], ['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.95)'])
 
   const toggleMenu = () => setIsOpen(!isOpen)
   const closeMenu = () => setIsOpen(false)
@@ -28,7 +32,7 @@ const Header = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50)
+      setIsScrolled(window.scrollY > 20)
     }
 
     window.addEventListener('scroll', handleScroll)
@@ -39,6 +43,7 @@ const Header = () => {
     {
       title: 'Hastanelerimiz',
       path: '/hastanelerimiz',
+      icon: <FaRegHospital />,
       dropdown: [
         { name: 'Tüm Hastanelerimiz', path: '/hastanelerimiz' },
         { name: 'Tarihçe ve Misyon', path: '/hakkimizda' },
@@ -48,6 +53,7 @@ const Header = () => {
     {
       title: 'Bölümlerimiz',
       path: '/bolumlerimiz',
+      icon: <FaStethoscope />,
       dropdown: [
         { name: 'Tüm Bölümler', path: '/bolumlerimiz' },
         { name: 'Cerrahi Birimler', path: '/bolumlerimiz?kategori=cerrahi' },
@@ -72,303 +78,301 @@ const Header = () => {
     {
       title: 'Sağlık Turizmi',
       path: '/saglik-turizmi',
+      icon: <FaInfoCircle />,
       dropdown: null,
     },
     {
       title: 'İletişim',
       path: '/iletisim',
+      icon: <FaPhoneAlt />,
       dropdown: null,
     },
   ]
 
   return (
-    <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white shadow-md py-2' : 'bg-white/90 backdrop-blur-md py-4'
-      }`}
+    <motion.header
+      style={{ height: headerHeight, backgroundColor: headerBg }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-shadow duration-300 backdrop-blur-xl border-b border-white/10 ${isScrolled ? 'shadow-lg' : ''
+        }`}
     >
-      <div className="container-custom flex justify-between items-center">
-        {/* Logo */}
-        <Link to="/" className="z-50 flex items-center h-16 py-1">
+      <div className="container-custom h-full flex justify-between items-center relative">
+        {/* Logo Section */}
+        <Link to="/" className="z-50 shrink-0 transform transition-transform hover:scale-105">
           <Logo clickable={false} />
         </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center space-x-1">
           {menuItems.map((item) => (
-            <div key={item.title} className="relative group">
+            <div
+              key={item.title}
+              className="relative group h-full flex items-center"
+              onMouseEnter={() => item.dropdown && setActiveDropdown(item.title)}
+              onMouseLeave={() => setActiveDropdown(null)}
+            >
               <NavLink
                 to={item.path}
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 hover:text-primary ${
-                    isActive ? 'text-primary' : 'text-text'
+                  `px-4 py-2 rounded-xl text-[14px] font-semibold tracking-wide transition-all duration-300 flex items-center gap-2 group-hover:bg-primary/5 ${isActive ? 'text-primary' : 'text-slate-600 hover:text-primary'
                   }`
                 }
-                onClick={() => item.dropdown && toggleDropdown(item.title)}
               >
-                <span className="flex items-center">
-                  {item.title}
-                  {item.dropdown && (
-                    <FaChevronDown className="ml-1 text-xs transition-transform duration-200 group-hover:rotate-180" />
-                  )}
-                </span>
+                {item.title}
+                {item.dropdown && (
+                  <FaChevronDown className={`text-[10px] transition-transform duration-300 ${activeDropdown === item.title ? 'rotate-180' : ''}`} />
+                )}
+                {/* Active Indicator */}
+                <motion.div
+                  className="absolute bottom-[-1px] left-4 right-4 h-[2px] bg-primary scale-x-0 group-hover:scale-x-100 transition-transform origin-center"
+                  initial={false}
+                />
               </NavLink>
 
-              {/* Dropdown Menu */}
-              {item.dropdown && (
-                <div className="absolute left-0 mt-2 w-64 origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform group-hover:translate-y-0 translate-y-2">
-                  <div className="py-1">
-                    {item.dropdown.map((dropdownItem) => (
-                      <NavLink
-                        key={dropdownItem.name}
-                        to={dropdownItem.path}
-                        className={({ isActive }) =>
-                          `block px-4 py-2 text-sm hover:bg-neutral hover:text-primary transition-colors duration-200 ${
-                            isActive ? 'text-primary font-medium' : 'text-text'
-                          }`
-                        }
-                      >
-                        {dropdownItem.name}
-                      </NavLink>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Enhanced Dropdown Menu */}
+              <AnimatePresence>
+                {item.dropdown && activeDropdown === item.title && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="absolute top-full left-0 mt-0 w-64 pt-2"
+                  >
+                    <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden premium-shadow-lg">
+                      <div className="py-2">
+                        {item.dropdown.map((dropdownItem) => (
+                          <Link
+                            key={dropdownItem.name}
+                            to={dropdownItem.path}
+                            className="block px-6 py-3 text-[14px] text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors border-l-2 border-transparent hover:border-primary font-medium"
+                          >
+                            {dropdownItem.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ))}
         </nav>
 
-        {/* CTA Button */}
-        <div className="hidden lg:flex items-center space-x-4">
+        {/* Action Buttons */}
+        <div className="hidden lg:flex items-center space-x-6">
           <a
             href="tel:+902121234567"
-            className="flex items-center text-primary font-medium hover:text-primary-dark transition-colors"
+            className="group flex flex-col items-end"
           >
-            <FaPhone className="mr-2" />
-            <span>0212 123 45 67</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Acil Destek</span>
+            <span className="text-[15px] font-bold text-slate-700 group-hover:text-primary transition-colors flex items-center">
+              <FaPhone className="mr-2 text-xs" /> 0212 123 45 67
+            </span>
           </a>
-          
+
+          <div className="h-8 w-[1px] bg-slate-200" />
+
           {user ? (
             <div className="relative">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center space-x-2 text-primary hover:text-primary-dark transition-colors"
+                className="flex items-center space-x-2 group"
               >
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  {user.user_metadata?.avatar_url ? (
-                    <img
-                      src={user.user_metadata.avatar_url}
-                      alt="Avatar"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <FaUser />
-                  )}
-                </div>
-                <span className="font-medium">
-                  {user.user_metadata?.full_name?.split(' ')[0] || 'Hesabım'}
-                </span>
-                <FaChevronDown className={`text-xs transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
-              </button>
-              
-              {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                  <div className="py-1">
-                    <Link
-                      to="/profil"
-                      className="block px-4 py-2 text-sm text-text hover:bg-neutral hover:text-primary transition-colors"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <i className="bi bi-person mr-2"></i> Profilim
-                    </Link>
-                    <Link
-                      to="/profil"
-                      className="block px-4 py-2 text-sm text-text hover:bg-neutral hover:text-primary transition-colors"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <i className="bi bi-calendar-check mr-2"></i> Randevularım
-                    </Link>
-                    <button
-                      onClick={() => {
-                        signOut();
-                        setIsUserMenuOpen(false);
-                      }}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-neutral hover:text-red-700 transition-colors"
-                    >
-                      <i className="bi bi-box-arrow-right mr-2"></i> Çıkış Yap
-                    </button>
+                <div className="w-10 h-10 rounded-full bg-primary/5 p-[2px] transition-transform group-hover:scale-105">
+                  <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-white border border-primary/10 shadow-sm">
+                    {user.user_metadata?.avatar_url ? (
+                      <img
+                        src={user.user_metadata.avatar_url}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <FaUser className="text-primary text-sm" />
+                    )}
                   </div>
                 </div>
-              )}
+                <div className="flex flex-col items-start leading-none">
+                  <span className="text-[13px] font-bold text-slate-800">
+                    {user.user_metadata?.full_name?.split(' ')[0] || 'Hesabım'}
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">Profil</span>
+                </div>
+                <FaChevronDown className={`text-[10px] text-slate-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {isUserMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute right-0 mt-4 w-56 rounded-2xl bg-white shadow-2xl border border-slate-100 overflow-hidden z-50 premium-shadow-lg"
+                  >
+                    <div className="py-2">
+                      <Link
+                        to="/profil"
+                        className="flex items-center px-4 py-3 text-[14px] text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <FaUser className="mr-3 text-xs opacity-50" /> Profilim
+                      </Link>
+                      <Link
+                        to="/profil"
+                        className="flex items-center px-4 py-3 text-[14px] text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <i className="bi bi-calendar-check mr-3 opacity-50"></i> Randevularım
+                      </Link>
+                      <div className="h-[1px] bg-slate-100 my-1 mx-2" />
+                      <button
+                        onClick={() => {
+                          signOut();
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="flex items-center w-full text-left px-4 py-3 text-[14px] text-red-500 hover:bg-red-50/50 transition-colors"
+                      >
+                        <i className="bi bi-box-arrow-right mr-3 opacity-70"></i> Güvenli Çıkış
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ) : (
             <button
               onClick={() => setIsAuthModalOpen(true)}
-              className="flex items-center text-primary font-medium hover:text-primary-dark transition-colors"
+              className="flex items-center px-5 py-2.5 rounded-full border border-slate-200 text-slate-700 font-bold text-[14px] hover:bg-slate-50 hover:border-slate-300 transition-all duration-300 shadow-sm"
             >
-              <FaUser className="mr-2" />
-              <span>Giriş Yap</span>
+              <FaUser className="mr-2 text-xs opacity-50" />
+              Giriş Yap
             </button>
           )}
-          
+
           <a
             href="https://anadoluhastaneleri.kendineiyibak.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-accent"
+            className="btn btn-primary !rounded-full !px-8 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transform hover:-translate-y-0.5"
           >
             Online Randevu
           </a>
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile menu logic remains but with enhanced UI */}
         <button
-          className="lg:hidden z-50 text-text hover:text-primary transition-colors"
+          className="lg:hidden z-50 p-3 rounded-xl bg-slate-50 text-slate-800 hover:text-primary transition-all duration-300"
           onClick={toggleMenu}
-          aria-label={isOpen ? 'Menüyü Kapat' : 'Menüyü Aç'}
         >
-          {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+          {isOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
         </button>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu Overlay */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ opacity: 0, x: '100%' }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: '100%' }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 bg-white z-40 lg:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden"
+              onClick={closeMenu}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Improved Mobile Sidebar */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 right-0 w-[85%] max-w-[400px] bg-white z-50 lg:hidden shadow-2xl flex flex-col pt-24 px-8 pb-10"
             >
-              <div className="flex flex-col h-full pt-24 pb-8 px-6 overflow-y-auto">
-                <nav className="flex-1">
-                  <ul className="space-y-2">
-                    {menuItems.map((item) => (
-                      <li key={item.title}>
-                        <div className="border-b border-gray-100 pb-2">
-                          {item.dropdown ? (
-                            <>
-                              <button
-                                onClick={() => toggleDropdown(item.title)}
-                                className="w-full flex justify-between items-center py-3 text-lg font-medium text-text hover:text-primary transition-colors"
+              <nav className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                <div className="space-y-4">
+                  {menuItems.map((item) => (
+                    <div key={item.title} className="border-b border-slate-50 pb-2">
+                      <div className="flex justify-between items-center">
+                        <NavLink
+                          to={item.path}
+                          className={({ isActive }) =>
+                            `py-3 text-lg font-bold tracking-tight ${isActive ? 'text-primary' : 'text-slate-800'}`
+                          }
+                          onClick={closeMenu}
+                        >
+                          {item.title}
+                        </NavLink>
+                        {item.dropdown && (
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              toggleDropdown(item.title);
+                            }}
+                            className="p-2 bg-slate-50 rounded-lg text-slate-400"
+                          >
+                            <FaChevronDown className={`transition-transform ${activeDropdown === item.title ? 'rotate-180' : ''}`} />
+                          </button>
+                        )}
+                      </div>
+
+                      <AnimatePresence>
+                        {item.dropdown && activeDropdown === item.title && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden pl-4 mt-2 space-y-2 border-l-2 border-slate-100"
+                          >
+                            {item.dropdown.map((sub) => (
+                              <Link
+                                key={sub.name}
+                                to={sub.path}
+                                onClick={closeMenu}
+                                className="block py-3 text-[15px] font-medium text-slate-500 active:text-primary transition-colors"
                               >
-                                {item.title}
-                                <FaChevronDown
-                                  className={`transition-transform duration-200 ${
-                                    activeDropdown === item.title ? 'rotate-180' : ''
-                                  }`}
-                                />
-                              </button>
-                              <AnimatePresence>
-                                {activeDropdown === item.title && (
-                                  <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="overflow-hidden"
-                                  >
-                                    <ul className="pl-4 py-2 space-y-2">
-                                      {item.dropdown.map((dropdownItem) => (
-                                        <li key={dropdownItem.name}>
-                                          <NavLink
-                                            to={dropdownItem.path}
-                                            className={({ isActive }) =>
-                                              `block py-2 text-base ${
-                                                isActive ? 'text-primary font-medium' : 'text-text-light'
-                                              }`
-                                            }
-                                            onClick={closeMenu}
-                                          >
-                                            {dropdownItem.name}
-                                          </NavLink>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </>
-                          ) : (
-                            <NavLink
-                              to={item.path}
-                              className={({ isActive }) =>
-                                `block py-3 text-lg font-medium ${
-                                  isActive ? 'text-primary' : 'text-text hover:text-primary'
-                                }`
-                              }
-                              onClick={closeMenu}
-                            >
-                              {item.title}
-                            </NavLink>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </nav>
-                <div className="mt-8 space-y-4">
-                  <a
-                    href="tel:+902121234567"
-                    className="flex items-center justify-center text-primary font-medium hover:text-primary-dark transition-colors"
-                  >
-                    <FaPhone className="mr-2" />
-                    <span>0212 123 45 67</span>
-                  </a>
-                  
-                  {user ? (
-                    <div className="space-y-2">
-                      <Link
-                        to="/profil"
-                        className="btn btn-outline w-full flex items-center justify-center"
-                        onClick={closeMenu}
-                      >
-                        <i className="bi bi-person mr-2"></i> Profilim
-                      </Link>
-                      <button
-                        onClick={() => {
-                          signOut();
-                          closeMenu();
-                        }}
-                        className="btn bg-red-600 hover:bg-red-700 text-white w-full flex items-center justify-center"
-                      >
-                        <i className="bi bi-box-arrow-right mr-2"></i> Çıkış Yap
-                      </button>
+                                {sub.name}
+                              </Link>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        setIsAuthModalOpen(true);
-                        closeMenu();
-                      }}
-                      className="btn btn-outline w-full flex items-center justify-center"
-                    >
-                      <FaUser className="mr-2" />
-                      <span>Giriş Yap</span>
-                    </button>
-                  )}
-                  
-                  <a
-                    href="https://anadoluhastaneleri.kendineiyibak.app/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-accent w-full text-center"
-                  >
-                    Online Randevu
-                  </a>
+                  ))}
                 </div>
+              </nav>
+
+              <div className="mt-8 space-y-4 pt-8 border-t border-slate-100">
+                <div className="grid grid-cols-2 gap-4">
+                  <a href="tel:+902121234567" className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 text-center">
+                    <FaPhone className="text-primary mb-2" />
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Acil Çağrı</span>
+                    <span className="text-xs font-bold text-slate-700 line-clamp-1">0212 123...</span>
+                  </a>
+                  <button className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 text-center">
+                    <FaUser className="text-primary mb-2" />
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Giriş Yap</span>
+                    <span className="text-xs font-bold text-slate-700">Hesabım</span>
+                  </button>
+                </div>
+                <a
+                  href="https://anadoluhastaneleri.kendineiyibak.app/"
+                  className="btn btn-primary w-full !rounded-xl !py-4 shadow-xl shadow-primary/20 text-center block"
+                >
+                  Hemen Randevu Al
+                </a>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
-      
-      {/* Auth Modal */}
+
+      {/* Auth Modal remains the same */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
       />
-    </header>
+    </motion.header>
   )
 }
 

@@ -1,32 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 
-// COMPLETELY NEW: Force cloud Supabase configuration
-const CLOUD_SUPABASE_URL = 'https://cfwwcxqpyxktikizjjxx.supabase.co';
-const CLOUD_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmd3djeHFweXhrdGlraXpqanh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwNDUyOTcsImV4cCI6MjA2MjYyMTI5N30.YUD6Uwxyd38xXs7R60UC-199FE52VYkqOZSXHtrBiH0';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Force log the configuration
-console.log('🚀 CLOUD Supabase URL:', CLOUD_SUPABASE_URL);
-console.log('🚀 CLOUD Supabase Key:', CLOUD_SUPABASE_KEY.substring(0, 40));
-console.log('🚀 Creating NEW Supabase client...');
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase URL or Anon Key. Check your .env variables.');
+}
 
 // Create NEW Supabase client instance
-export const supabase = createClient(CLOUD_SUPABASE_URL, CLOUD_SUPABASE_KEY, {
+export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce'
-  },
-  global: {
-    headers: {
-      'X-Client-Info': 'supabase-js-web'
-    }
   }
 });
-
-// Log the actual client URL
-console.log('🚀 Client created with URL:', (supabase as any).supabaseUrl);
-console.log('🚀 Client auth URL:', (supabase as any).auth.url);
 
 // Database types
 export type Hospital = {
@@ -40,6 +29,16 @@ export type Hospital = {
   working_hours: string;
   emergency_hours: string;
   images: string[];
+  display_on_homepage?: boolean;
+  is_active?: boolean;
+  image_url?: string;
+  display_order: number;
+  meta_title?: string;
+  meta_description?: string;
+  hero_title?: string;
+  hero_subtitle?: string;
+  map_url?: string;
+  is_published?: boolean;
   created_at: string;
 };
 
@@ -50,6 +49,16 @@ export type Department = {
   icon: string;
   description: string;
   category: string;
+  long_description?: string;
+  meta_title?: string;
+  meta_description?: string;
+  hero_title?: string;
+  hero_subtitle?: string;
+  is_published?: boolean;
+  display_order?: number;
+  images?: string[];
+  treatments?: any[]; // JSONB data
+  equipment?: any[]; // JSONB data
   created_at: string;
 };
 
@@ -99,6 +108,7 @@ export type UserProfile = {
   phone?: string;
   avatar_url?: string;
   role?: string; // Admin rolü için eklendi
+  created_at?: string;
 };
 
 // Type definitions will remain here.

@@ -3,11 +3,27 @@
 @tailwind utilities;
 
 :root {
-  --primary: #1E5F74;
-  --secondary: #4BA3C3;
-  --accent: #F0A500;
-  --neutral: #F5F5F5;
-  --text: #333333;
+  --primary: #141729;
+  --primary-dark: #0D0F1A;
+  --primary-light: #1D2138;
+  --secondary: #475569;
+  --accent: #E21A22;
+  --accent-dark: #B8151B;
+  --neutral: #F8FAFC;
+  --text: #1E293B;
+  --text-light: #94A3B8;
+  --border: #E2E8F0;
+  --footer-bg: #141729;
+
+  /* Admin & Premium Frontend Tokens */
+  --admin-sidebar: #0F172A;
+  --admin-sidebar-hover: #1E293B;
+  --admin-bg: #F1F5F9;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-light: rgba(255, 255, 255, 0.4);
+  --premium-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+  --premium-shadow-lg: 0 20px 50px -12px rgba(0, 0, 0, 0.15);
 }
 
 * {
@@ -31,37 +47,70 @@ body {
   .container-custom {
     @apply container mx-auto px-4 md:px-6 lg:px-8;
   }
-  
+
   .btn {
     @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-all duration-300 focus:outline-none;
   }
-  
+
   .btn-primary {
     @apply bg-primary text-white hover:bg-primary-dark;
   }
-  
+
   .btn-accent {
     @apply bg-accent text-white hover:bg-accent-dark;
   }
-  
+
   .btn-outline {
     @apply border-2 border-primary text-primary hover:bg-primary hover:text-white;
   }
-  
+
   .section-title {
     @apply text-3xl md:text-4xl font-bold mb-6 text-primary;
   }
-  
+
   .section-subtitle {
     @apply text-xl md:text-2xl font-semibold mb-4 text-secondary;
   }
-  
+
   .card {
     @apply bg-white rounded-xl shadow-card p-6 transition-all duration-300 hover:shadow-hover;
   }
-  
+
   .input-field {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+    @apply w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 bg-white;
+  }
+
+  /* Admin Premium Utilities */
+  .admin-glass {
+    @apply backdrop-blur-md bg-white/70 border border-white/20;
+  }
+
+  .admin-card {
+    @apply bg-white rounded-2xl border border-border/50 shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  .admin-sidebar-item {
+    @apply flex items-center px-4 py-3 rounded-xl transition-all duration-200 text-slate-400 hover:text-white hover:bg-white/5;
+  }
+
+  .admin-sidebar-item-active {
+    @apply bg-primary text-white shadow-lg shadow-primary/20;
+  }
+
+  .premium-shadow {
+    box-shadow: var(--premium-shadow);
+  }
+
+  .premium-shadow-lg {
+    box-shadow: var(--premium-shadow-lg);
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary-light to-secondary;
+  }
+
+  .glass-modern {
+    @apply backdrop-blur-xl bg-white/70 border border-white/20 shadow-xl;
   }
 }
 
@@ -93,6 +142,7 @@ body {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

@@ -1,21 +1,32 @@
 import { supabase, Doctor } from '../lib/supabase';
 
 export async function getDoctors(): Promise<Doctor[]> {
-  const { data, error } = await supabase
-    .from('doctors')
-    .select(`
-      *,
-      departments:department_id(name, slug),
-      hospitals:hospital_id(name, slug)
-    `)
-    .order('name');
+  try {
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Doktorlar yüklenirken zaman aşımı oluştu.')), 15000)
+    );
 
-  if (error) {
-    console.error('Error fetching doctors:', error);
+    const fetchPromise = supabase
+      .from('doctors')
+      .select(`
+        *,
+        departments:department_id(name, slug),
+        hospitals:hospital_id(name, slug)
+      `)
+      .order('name');
+
+    const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
+    if (error) {
+      console.error('Error fetching doctors:', error);
+      return [];
+    }
+
+    return (data as unknown as Doctor[]) || [];
+  } catch (err) {
+    console.error('Fetch doctors timeout or exception:', err);
     return [];
   }
-
-  return data as unknown as Doctor[];
 }
 
 export async function getDoctorsByDepartment(departmentId: number): Promise<Doctor[]> {
