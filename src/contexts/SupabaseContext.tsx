@@ -74,7 +74,7 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
             role: 'admin'
           });
         } else {
-          await fetchUserProfile(session.user.id);
+          fetchUserProfile(session.user.id, session.user.email);
         }
       } else {
         console.log('❌ No user, clearing profile');
@@ -88,29 +88,20 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = async (userId: string, userEmail?: string) => {
     try {
       console.log('🔍 Fetching profile for user:', userId);
 
-      // Use a timeout for profiles fetch
-      const profilePromise = supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
 
-      const { data, error } = await Promise.race([
-        profilePromise,
-        new Promise<{ data: null, error: any }>((_, reject) =>
-          setTimeout(() => reject(new Error('Profil yüklenirken zaman aşımı oluştu.')), 8000)
-        )
-      ]) as any;
-
       if (error) {
         console.error('❌ Profile fetch error:', error);
 
         // If profile doesn't exist, create one for admin users
-        const userEmail = await getUserEmail(userId);
         if (userEmail && (userEmail === 'sagliktruizmi34@gmail.com' || userEmail === 'bekir.filizdag@anadoluhastaneleri.com')) {
           console.log('🔧 Creating missing admin profile...');
           await createAdminProfile(userId, userEmail);
@@ -124,7 +115,6 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
         setUserProfile(data as UserProfile);
       } else {
         console.log('⚠️ No profile found, checking if admin user...');
-        const userEmail = await getUserEmail(userId);
         if (userEmail && (userEmail === 'sagliktruizmi34@gmail.com' || userEmail === 'bekir.filizdag@anadoluhastaneleri.com')) {
           console.log('🔧 Creating admin profile...');
           await createAdminProfile(userId, userEmail);
@@ -132,21 +122,6 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('💥 Error fetching user profile:', error);
-    }
-  };
-
-  const getUserEmail = async (userId: string) => {
-    try {
-      const { data, error } = await supabase.auth.admin.getUserById(userId);
-      if (error) {
-        // Fallback: get from current session
-        const { data: { session } } = await supabase.auth.getSession();
-        return session?.user?.email;
-      }
-      return data.user?.email;
-    } catch {
-      const { data: { session } } = await supabase.auth.getSession();
-      return session?.user?.email;
     }
   };
 
@@ -271,7 +246,7 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
             });
           } else {
             console.log('⚠️ Not an admin email, fetching profile from database');
-            await fetchUserProfile(data.user.id);
+            fetchUserProfile(data.user.id, data.user.email);
           }
         } else {
           console.log('❌ No user in response data');

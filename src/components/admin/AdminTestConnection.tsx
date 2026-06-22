@@ -1,335 +1,312 @@
-import { useState } from 'react';
-import { FaCheckCircle, FaTimesCircle, FaSpinner, FaDatabase } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { FaCheck, FaTimes, FaRedo, FaDatabase, FaWifi } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
 
 interface TestResult {
   name: string;
-  status: 'pending' | 'success' | 'error';
+  status: 'success' | 'error' | 'pending';
   message: string;
-  details?: any;
+  details?: string;
+  responseTime?: number;
 }
 
 const AdminTestConnection = () => {
-  const [tests, setTests] = useState<TestResult[]>([
-    { name: 'Supabase Bağlantısı', status: 'pending', message: 'Test bekleniyor...' },
-    { name: 'Kimlik Doğrulama', status: 'pending', message: 'Test bekleniyor...' },
-    { name: 'Veritabanı Tabloları', status: 'pending', message: 'Test bekleniyor...' },
-    { name: 'CRUD İşlemleri', status: 'pending', message: 'Test bekleniyor...' },
-    { name: 'RLS Güvenlik', status: 'pending', message: 'Test bekleniyor...' }
-  ]);
-  const [isRunning, setIsRunning] = useState(false);
-  const [overallStatus, setOverallStatus] = useState<'pending' | 'success' | 'error'>('pending');
-
-  const updateTest = (index: number, updates: Partial<TestResult>) => {
-    setTests(prev => prev.map((test, i) => i === index ? { ...test, ...updates } : test));
-  };
+  const { t } = useTranslation();
+  const [results, setResults] = useState<TestResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [overallStatus, setOverallStatus] = useState<'success' | 'error' | 'pending'>('pending');
 
   const runTests = async () => {
-    setIsRunning(true);
+    setLoading(true);
+    setResults([]);
     setOverallStatus('pending');
 
-    // Test 1: Supabase Bağlantısı
+    const tests: TestResult[] = [];
+
+    // Test 1: Basic Supabase Connection
     try {
-      updateTest(0, { status: 'pending', message: 'Bağlantı test ediliyor...' });
+      const startTime = Date.now();
+      const { error } = await supabase.from('hospitals').select('id', { count: 'exact', head: true });
+      const responseTime = Date.now() - startTime;
 
-      const { data, error } = await supabase.from('profiles').select('count').limit(1);
-
-      if (error) throw error;
-
-      updateTest(0, {
-        status: 'success',
-        message: 'Supabase bağlantısı başarılı',
-        details: { url: (supabase as any).supabaseUrl }
-      });
-    } catch (error: any) {
-      updateTest(0, {
-        status: 'error',
-        message: `Bağlantı hatası: ${error.message}`,
-        details: error
-      });
-    }
-
-    // Test 2: Kimlik Doğrulama
-    try {
-      updateTest(1, { status: 'pending', message: 'Kimlik doğrulama test ediliyor...' });
-
-      const { data: { session }, error } = await supabase.auth.getSession();
-
-      if (error) throw error;
-
-      if (session) {
-        updateTest(1, {
-          status: 'success',
-          message: 'Kullanıcı oturumu aktif',
-          details: { user: session.user.email }
+      if (error) {
+        tests.push({
+          name: t('admin.connection.dbConnection', 'Veritabanı Bağlantısı'),
+          status: 'error',
+          message: t('admin.connection.dbConnectionFailed', 'Veritabanına bağlanılamadı'),
+          details: error.message,
+          responseTime
         });
       } else {
-        updateTest(1, {
-          status: 'error',
-          message: 'Kullanıcı oturumu bulunamadı'
+        tests.push({
+          name: t('admin.connection.dbConnection', 'Veritabanı Bağlantısı'),
+          status: 'success',
+          message: t('admin.connection.dbConnectionSuccess', 'Veritabanına başarıyla bağlanıldı'),
+          responseTime
         });
       }
     } catch (error: any) {
-      updateTest(1, {
+      tests.push({
+        name: t('admin.connection.dbConnection', 'Veritabanı Bağlantısı'),
         status: 'error',
-        message: `Kimlik doğrulama hatası: ${error.message}`,
-        details: error
+        message: t('admin.connection.dbConnectionError', 'Beklenmeyen bir hata oluştu'),
+        details: error.message
       });
     }
 
-    // Test 3: Veritabanı Tabloları
+    // Test 2: Authentication Service
     try {
-      updateTest(2, { status: 'pending', message: 'Tablolar kontrol ediliyor...' });
+      const startTime = Date.now();
+      const { error } = await supabase.auth.getSession();
+      const responseTime = Date.now() - startTime;
 
-      const tables = ['hospitals', 'departments', 'doctors', 'health_articles', 'profiles'];
-      const tableResults = [];
-
-      for (const table of tables) {
-        try {
-          const { error } = await supabase.from(table).select('*').limit(1);
-          if (error) throw error;
-          tableResults.push({ table, status: 'success' });
-        } catch (error: any) {
-          tableResults.push({ table, status: 'error', error: error.message });
-        }
-      }
-
-      const successCount = tableResults.filter(r => r.status === 'success').length;
-
-      updateTest(2, {
-        status: successCount === tables.length ? 'success' : 'error',
-        message: `${successCount}/${tables.length} tablo erişilebilir`,
-        details: tableResults
-      });
-    } catch (error: any) {
-      updateTest(2, {
-        status: 'error',
-        message: `Tablo kontrolü hatası: ${error.message}`,
-        details: error
-      });
-    }
-
-    // Test 4: CRUD İşlemleri
-    try {
-      updateTest(3, { status: 'pending', message: 'CRUD işlemleri test ediliyor...' });
-
-      // Test insert
-      const testData = {
-        name: 'Test Hospital',
-        slug: 'test-hospital-' + Date.now(),
-        description: 'Test description',
-        address: 'Test address',
-        phone: '0212 123 45 67',
-        email: 'test@test.com',
-        working_hours: '24/7',
-        services: ['Test service'],
-        image_url: 'https://example.com/test.jpg'
-      };
-
-      const { data: insertData, error: insertError } = await supabase
-        .from('hospitals')
-        .insert([testData])
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
-
-      // Test update
-      const { error: updateError } = await supabase
-        .from('hospitals')
-        .update({ description: 'Updated test description' })
-        .eq('id', insertData.id);
-
-      if (updateError) throw updateError;
-
-      // Test delete
-      const { error: deleteError } = await supabase
-        .from('hospitals')
-        .delete()
-        .eq('id', insertData.id);
-
-      if (deleteError) throw deleteError;
-
-      updateTest(3, {
-        status: 'success',
-        message: 'CRUD işlemleri başarılı (Create, Read, Update, Delete)',
-        details: { testId: insertData.id }
-      });
-    } catch (error: any) {
-      updateTest(3, {
-        status: 'error',
-        message: `CRUD test hatası: ${error.message}`,
-        details: error
-      });
-    }
-
-    // Test 5: RLS Güvenlik
-    try {
-      updateTest(4, { status: 'pending', message: 'RLS güvenlik kontrol ediliyor...' });
-
-      // Test RLS policies
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (session) {
-        // Test profile access
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profileError) throw profileError;
-
-        updateTest(4, {
-          status: 'success',
-          message: 'RLS güvenlik aktif ve çalışıyor',
-          details: { userRole: profileData?.role }
+      if (error) {
+        tests.push({
+          name: t('admin.connection.authService', 'Kimlik Doğrulama Servisi'),
+          status: 'error',
+          message: t('admin.connection.authServiceFailed', 'Kimlik doğrulama servisi çalışmıyor'),
+          details: error.message,
+          responseTime
         });
       } else {
-        updateTest(4, {
-          status: 'error',
-          message: 'RLS test için oturum gerekli'
+        tests.push({
+          name: t('admin.connection.authService', 'Kimlik Doğrulama Servisi'),
+          status: 'success',
+          message: t('admin.connection.authServiceSuccess', 'Kimlik doğrulama servisi aktif'),
+          responseTime
         });
       }
     } catch (error: any) {
-      updateTest(4, {
+      tests.push({
+        name: t('admin.connection.authService', 'Kimlik Doğrulama Servisi'),
         status: 'error',
-        message: `RLS test hatası: ${error.message}`,
-        details: error
+        message: t('admin.connection.authServiceError', 'Beklenmeyen bir hata oluştu'),
+        details: error.message
       });
     }
 
-    // Overall status
-    setTests(currentTests => {
-      const hasError = currentTests.some(test => test.status === 'error');
-      const allComplete = currentTests.every(test => test.status !== 'pending');
+    // Test 3: API Response Time
+    try {
+      const startTime = Date.now();
+      await supabase.from('departments').select('id', { count: 'exact', head: true });
+      const responseTime = Date.now() - startTime;
 
-      if (allComplete) {
-        setOverallStatus(hasError ? 'error' : 'success');
+      tests.push({
+        name: t('admin.connection.apiResponseTime', 'API Yanıt Süresi'),
+        status: responseTime < 1000 ? 'success' : 'error',
+        message: responseTime < 1000
+          ? t('admin.connection.apiResponseGood', 'API yanıt süresi iyi')
+          : t('admin.connection.apiResponseSlow', 'API yanıt süresi yavaş'),
+        details: t('admin.connection.apiResponseDetails', 'Yanıt süresi: {time}ms', { time: responseTime }),
+        responseTime
+      });
+    } catch (error: any) {
+      tests.push({
+        name: t('admin.connection.apiResponseTime', 'API Yanıt Süresi'),
+        status: 'error',
+        message: t('admin.connection.apiResponseError', 'API testi başarısız'),
+        details: error.message
+      });
+    }
+
+    // Test 4: Storage Access
+    try {
+      const startTime = Date.now();
+      const { error } = await supabase.storage.getBucket('public');
+      const responseTime = Date.now() - startTime;
+
+      if (error) {
+        tests.push({
+          name: t('admin.connection.storageAccess', 'Depolama Erişimi'),
+          status: 'error',
+          message: t('admin.connection.storageAccessFailed', 'Depolama alanına erişilemiyor'),
+          details: error.message,
+          responseTime
+        });
+      } else {
+        tests.push({
+          name: t('admin.connection.storageAccess', 'Depolama Erişimi'),
+          status: 'success',
+          message: t('admin.connection.storageAccessSuccess', 'Depolama alanına erişim başarılı'),
+          responseTime
+        });
       }
-
-      return currentTests;
-    });
-
-    setIsRunning(false);
-  };
-
-  const getStatusIcon = (status: TestResult['status']) => {
-    switch (status) {
-      case 'success':
-        return <FaCheckCircle className="text-green-500" />;
-      case 'error':
-        return <FaTimesCircle className="text-red-500" />;
-      case 'pending':
-        return <FaSpinner className="text-blue-500 animate-spin" />;
+    } catch (error: any) {
+      tests.push({
+        name: t('admin.connection.storageAccess', 'Depolama Erişimi'),
+        status: 'error',
+        message: t('admin.connection.storageAccessError', 'Depolama testi başarısız'),
+        details: error.message
+      });
     }
+
+    // Test 5: Edge Functions (if available)
+    try {
+      const startTime = Date.now();
+      const { error } = await supabase.functions.invoke('test-function', {
+        body: { test: true }
+      });
+      const responseTime = Date.now() - startTime;
+
+      if (error) {
+        tests.push({
+          name: t('admin.connection.edgeFunctions', 'Edge Fonksiyonları'),
+          status: 'error',
+          message: t('admin.connection.edgeFunctionsFailed', 'Edge fonksiyonları çalışmıyor veya mevcut değil'),
+          details: error.message,
+          responseTime
+        });
+      } else {
+        tests.push({
+          name: t('admin.connection.edgeFunctions', 'Edge Fonksiyonları'),
+          status: 'success',
+          message: t('admin.connection.edgeFunctionsSuccess', 'Edge fonksiyonları aktif'),
+          responseTime
+        });
+      }
+    } catch (error: any) {
+      tests.push({
+        name: t('admin.connection.edgeFunctions', 'Edge Fonksiyonları'),
+        status: 'error',
+        message: t('admin.connection.edgeFunctionsNotAvailable', 'Edge fonksiyonları mevcut değil'),
+        details: error.message
+      });
+    }
+
+    setResults(tests);
+    setOverallStatus(tests.every(test => test.status === 'success') ? 'success' : 'error');
+    setLoading(false);
   };
 
-  const getOverallStatusColor = () => {
-    switch (overallStatus) {
-      case 'success':
-        return 'bg-green-100 border-green-500 text-green-700';
-      case 'error':
-        return 'bg-red-100 border-red-500 text-red-700';
-      case 'pending':
-        return 'bg-blue-100 border-blue-500 text-blue-700';
-    }
-  };
+  useEffect(() => {
+    runTests();
+  }, []);
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-primary">Bağlantı Testi</h1>
+        <h1 className="text-2xl font-semibold text-primary">{t('admin.connection.title', 'Bağlantı Testi')}</h1>
         <button
           onClick={runTests}
-          disabled={isRunning}
+          disabled={loading}
           className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center disabled:opacity-50"
         >
-          {isRunning ? (
-            <>
-              <FaSpinner className="mr-2 animate-spin" />
-              Test Ediliyor...
-            </>
-          ) : (
-            <>
-              <FaDatabase className="mr-2" />
-              Testleri Çalıştır
-            </>
-          )}
+          <FaRedo className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
+          {loading ? t('admin.connection.testing', 'Test ediliyor...') : t('admin.connection.retest', 'Tekrar Test Et')}
         </button>
       </div>
 
       {/* Overall Status */}
-      <div className={`border-l-4 p-4 mb-6 rounded ${getOverallStatusColor()}`}>
+      <div className={`rounded-lg p-6 mb-6 ${overallStatus === 'success'
+          ? 'bg-green-50 border border-green-200'
+          : overallStatus === 'error'
+            ? 'bg-red-50 border border-red-200'
+            : 'bg-yellow-50 border border-yellow-200'
+        }`}>
         <div className="flex items-center">
-          {getStatusIcon(overallStatus)}
-          <span className="ml-2 font-medium">
-            {overallStatus === 'success' && 'Tüm testler başarılı!'}
-            {overallStatus === 'error' && 'Bazı testler başarısız!'}
-            {overallStatus === 'pending' && 'Testler bekleniyor...'}
-          </span>
+          {overallStatus === 'success' ? (
+            <FaCheck className="text-green-600 text-2xl mr-3" />
+          ) : overallStatus === 'error' ? (
+            <FaTimes className="text-red-600 text-2xl mr-3" />
+          ) : (
+            <FaWifi className="text-yellow-600 text-2xl mr-3 animate-pulse" />
+          )}
+          <div>
+            <h2 className="text-lg font-semibold">
+              {overallStatus === 'success'
+                ? t('admin.connection.allSystemsOperational', 'Tüm Sistemler Çalışıyor')
+                : overallStatus === 'error'
+                  ? t('admin.connection.someIssues', 'Bazı Sorunlar Var')
+                  : t('admin.connection.testingInProgress', 'Test Devam Ediyor')
+              }
+            </h2>
+            <p className="text-sm text-gray-600 mt-1">
+              {overallStatus === 'success'
+                ? t('admin.connection.allTestsPassed', 'Tüm bağlantı testleri başarıyla tamamlandı')
+                : overallStatus === 'error'
+                  ? t('admin.connection.someTestsFailed', 'Bazı testler başarısız oldu, lütfen detayları kontrol edin')
+                  : t('admin.connection.waitingForTests', 'Bağlantı testleri devam ediyor...')
+              }
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Test Results */}
       <div className="space-y-4">
-        {tests.map((test, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-medium text-gray-900 flex items-center">
-                {getStatusIcon(test.status)}
-                <span className="ml-3">{test.name}</span>
-              </h3>
+        {results.map((result, index) => (
+          <div key={index} className={`bg-white rounded-lg shadow-sm p-6 border-l-4 ${result.status === 'success'
+              ? 'border-green-500'
+              : result.status === 'error'
+                ? 'border-red-500'
+                : 'border-yellow-500'
+            }`}>
+            <div className="flex items-start justify-between">
+              <div className="flex items-center">
+                {result.status === 'success' ? (
+                  <FaCheck className="text-green-600 mr-3 mt-1" />
+                ) : result.status === 'error' ? (
+                  <FaTimes className="text-red-600 mr-3 mt-1" />
+                ) : (
+                  <FaRedo className="text-yellow-600 mr-3 mt-1 animate-spin" />
+                )}
+                <div>
+                  <h3 className="font-semibold text-gray-900">{result.name}</h3>
+                  <p className="text-sm text-gray-600 mt-1">{result.message}</p>
+                  {result.details && (
+                    <p className="text-sm text-gray-500 mt-1 font-mono">{result.details}</p>
+                  )}
+                </div>
+              </div>
+              {result.responseTime !== undefined && (
+                <div className="text-right">
+                  <span className={`text-sm font-medium ${result.responseTime < 500
+                      ? 'text-green-600'
+                      : result.responseTime < 1000
+                        ? 'text-yellow-600'
+                        : 'text-red-600'
+                    }`}>
+                    {result.responseTime}ms
+                  </span>
+                </div>
+              )}
             </div>
-
-            <p className="text-gray-600 mb-3">{test.message}</p>
-
-            {test.details && (
-              <details className="mt-3">
-                <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
-                  Detayları Göster
-                </summary>
-                <pre className="mt-2 p-3 bg-gray-50 rounded text-xs overflow-auto">
-                  {JSON.stringify(test.details, null, 2)}
-                </pre>
-              </details>
-            )}
           </div>
         ))}
       </div>
 
-      {/* Environment Info */}
-      <div className="mt-8 bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Ortam Bilgileri</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <strong>Supabase URL:</strong>
-            <br />
-            <code className="text-xs bg-white p-1 rounded">{(supabase as any).supabaseUrl}</code>
-          </div>
-          <div>
-            <strong>API Key (İlk 20 karakter):</strong>
-            <br />
-            <code className="text-xs bg-white p-1 rounded">
-              {import.meta.env.VITE_SUPABASE_ANON_KEY?.substring(0, 20)}...
-            </code>
-          </div>
-          <div>
-            <strong>Ortam:</strong>
-            <br />
-            <code className="text-xs bg-white p-1 rounded">
-              {import.meta.env.MODE}
-            </code>
-          </div>
-          <div>
-            <strong>Zaman:</strong>
-            <br />
-            <code className="text-xs bg-white p-1 rounded">
-              {new Date().toLocaleString('tr-TR')}
-            </code>
-          </div>
+      {/* Troubleshooting Guide */}
+      {overallStatus === 'error' && (
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-800 mb-3">
+            <FaDatabase className="inline mr-2" />
+            {t('admin.connection.troubleshooting', 'Sorun Giderme')}
+          </h3>
+          <ul className="space-y-2 text-sm text-blue-700">
+            <li>{t('admin.connection.troubleshoot1', '• Supabase projesinin çalışır durumda olduğundan emin olun')}</li>
+            <li>{t('admin.connection.troubleshoot2', '• İnternet bağlantınızı kontrol edin')}</li>
+            <li>{t('admin.connection.troubleshoot3', '• Tarayıcı konsolundaki hata mesajlarını inceleyin')}</li>
+            <li>{t('admin.connection.troubleshoot4', '• Supabase Dashboard\'dan servis durumunu kontrol edin')}</li>
+            <li>{t('admin.connection.troubleshoot5', '• Gerekirse sayfayı yenileyin ve tekrar deneyin')}</li>
+          </ul>
         </div>
-      </div>
+      )}
+
+      {results.length === 0 && !loading && (
+        <div className="text-center py-12">
+          <div className="text-gray-400 text-6xl mb-4">🧪</div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.connection.noResults', 'Henüz test yapılmadı')}</h3>
+          <p className="text-gray-500 mb-4">{t('admin.connection.startTesting', 'Bağlantı testini başlatmak için aşağıdaki butona tıklayın')}</p>
+          <button
+            onClick={runTests}
+            className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors inline-flex items-center"
+          >
+            <FaRedo className="mr-2" />
+            {t('admin.connection.startTest', 'Testi Başlat')}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

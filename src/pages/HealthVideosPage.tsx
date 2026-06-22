@@ -1,7 +1,7 @@
 import DynamicPageRenderer from '../components/common/DynamicPageRenderer'
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import SectionTitle from '../components/ui/SectionTitle'
 import { FaPlay, FaSearch, FaFilter, FaClock, FaEye } from 'react-icons/fa'
 
 interface VideoItem {
@@ -18,6 +18,7 @@ interface VideoItem {
 
 // Original health videos page as fallback
 const OriginalHealthVideosPage = () => {
+  const { t } = useTranslation();
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [filteredVideos, setFilteredVideos] = useState<VideoItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,12 +26,12 @@ const OriginalHealthVideosPage = () => {
   const [loading, setLoading] = useState(true);
 
   const categories = [
-    { value: 'all', label: 'Tüm Videolar' },
-    { value: 'beslenme', label: 'Beslenme' },
-    { value: 'egzersiz', label: 'Egzersiz' },
-    { value: 'hastalık', label: 'Hastalık Bilgileri' },
-    { value: 'tedavi', label: 'Tedavi Yöntemleri' },
-    { value: 'önleme', label: 'Hastalık Önleme' }
+    { value: 'all', label: t('videos.catAll', 'Tüm Videolar') },
+    { value: 'beslenme', label: t('videos.catNutrition', 'Beslenme') },
+    { value: 'egzersiz', label: t('videos.catExercise', 'Egzersiz') },
+    { value: 'hastalık', label: t('videos.catDisease', 'Hastalık Bilgileri') },
+    { value: 'tedavi', label: t('videos.catTreatment', 'Tedavi Yöntemleri') },
+    { value: 'önleme', label: t('videos.catPrevention', 'Hastalık Önleme') }
   ];
 
   useEffect(() => {
@@ -154,7 +155,7 @@ const OriginalHealthVideosPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            Sağlık Videoları
+            {t('videos.title', 'Sağlık Videoları')}
           </motion.h1>
           <motion.p 
             className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto"
@@ -162,7 +163,7 @@ const OriginalHealthVideosPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            Uzman doktorlarımızdan sağlık konularında faydalı video içerikler
+            {t('videos.subtitle', 'Uzman doktorlarımızdan sağlık konularında faydalı video içerikler')}
           </motion.p>
         </div>
       </section>
@@ -175,7 +176,7 @@ const OriginalHealthVideosPage = () => {
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Video ara..."
+                placeholder={t('videos.searchPlaceholder', 'Video ara...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -253,9 +254,9 @@ const OriginalHealthVideosPage = () => {
           {filteredVideos.length === 0 && (
             <div className="text-center py-12">
               <div className="text-gray-400 text-6xl mb-4">🎥</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Video bulunamadı</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('videos.notFound', 'Video bulunamadı')}</h3>
               <p className="text-gray-500">
-                Arama kriterlerinize uygun video bulunamadı. Lütfen farklı anahtar kelimeler deneyin.
+                {t('videos.noResultsDesc', 'Arama kriterlerinize uygun video bulunamadı. Lütfen farklı anahtar kelimeler deneyin.')}
               </p>
             </div>
           )}
@@ -266,16 +267,16 @@ const OriginalHealthVideosPage = () => {
       <section className="py-16 bg-primary text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">
-            Daha Fazla Sağlık İçeriği
+            {t('videos.moreContent', 'Daha Fazla Sağlık İçeriği')}
           </h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Sağlık rehberimizde daha fazla faydalı makale ve içerik bulabilirsiniz
+            {t('videos.moreContentDesc', 'Sağlık rehberimizde daha fazla faydalı makale ve içerik bulabilirsiniz')}
           </p>
           <a
             href="/saglik-rehberi"
             className="inline-block bg-white text-primary px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors"
           >
-            Sağlık Rehberine Git
+            {t('videos.goToGuide', 'Sağlık Rehberine Git')}
           </a>
         </div>
       </section>

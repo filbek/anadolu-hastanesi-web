@@ -1,17 +1,15 @@
 import { supabase, HealthArticle } from '../lib/supabase';
+import { createAuditLog } from './auditLogService';
 
 export async function getHealthArticles(): Promise<HealthArticle[]> {
   try {
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Makaleler yüklenirken zaman aşımı oluştu.')), 15000)
+      setTimeout(() => reject(new Error('Makaleler yüklenirken zaman aşımı oluştu.')), 20000)
     );
 
     const fetchPromise = supabase
       .from('health_articles')
-      .select(`
-        *,
-        authors:author_id(id, name, slug, title, image)
-      `)
+      .select('*')
       .order('date', { ascending: false });
 
     const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
@@ -31,10 +29,7 @@ export async function getHealthArticles(): Promise<HealthArticle[]> {
 export async function getHealthArticlesByCategory(category: string): Promise<HealthArticle[]> {
   const { data, error } = await supabase
     .from('health_articles')
-    .select(`
-      *,
-      authors:author_id(id, name, slug, title, image)
-    `)
+    .select('*')
     .eq('category', category)
     .order('date', { ascending: false });
 
@@ -49,10 +44,7 @@ export async function getHealthArticlesByCategory(category: string): Promise<Hea
 export async function getHealthArticlesByType(type: string): Promise<HealthArticle[]> {
   const { data, error } = await supabase
     .from('health_articles')
-    .select(`
-      *,
-      authors:author_id(id, name, slug, title, image)
-    `)
+    .select('*')
     .eq('type', type)
     .order('date', { ascending: false });
 
@@ -67,10 +59,7 @@ export async function getHealthArticlesByType(type: string): Promise<HealthArtic
 export async function getHealthArticleBySlug(slug: string): Promise<HealthArticle | null> {
   const { data, error } = await supabase
     .from('health_articles')
-    .select(`
-      *,
-      authors:author_id(id, name, slug, title, image)
-    `)
+    .select('*')
     .eq('slug', slug)
     .single();
 
@@ -99,6 +88,7 @@ export async function createHealthArticle(article: Omit<HealthArticle, 'id' | 'c
     return { error, data: null };
   }
 
+  await createAuditLog({ action: 'CREATE', entity_type: 'health_articles', entity_id: data[0].id, details: { title: article.title, slug: article.slug } });
   return { data, error: null };
 }
 
@@ -114,6 +104,7 @@ export async function updateHealthArticle(id: number, updates: Partial<HealthArt
     return { error, data: null };
   }
 
+  await createAuditLog({ action: 'UPDATE', entity_type: 'health_articles', entity_id: id, details: updates });
   return { data, error: null };
 }
 
@@ -128,6 +119,7 @@ export async function deleteHealthArticle(id: number) {
     return { error };
   }
 
+  await createAuditLog({ action: 'DELETE', entity_type: 'health_articles', entity_id: id, details: {} });
   return { error: null };
 }
 

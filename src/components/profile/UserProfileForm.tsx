@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSupabase } from '../../contexts/SupabaseContext';
 import { UserProfile } from '../../lib/supabase';
 
 const UserProfileForm = () => {
+  const { t } = useTranslation();
   const { userProfile, updateProfile, uploadAvatar } = useSupabase();
   const [profile, setProfile] = useState<Partial<UserProfile>>({
     full_name: '',
@@ -57,10 +59,10 @@ const UserProfileForm = () => {
     try {
       // Upload avatar if selected
       if (avatarFile) {
-        const { url, error: uploadError } = await uploadAvatar(avatarFile);
+        const { url: _url, error: uploadError } = await uploadAvatar(avatarFile);
         
         if (uploadError) {
-          throw new Error('Avatar yüklenirken bir hata oluştu.');
+          throw new Error(t('profile.avatarUploadError','Avatar yüklenirken bir hata oluştu.'));
         }
       }
 
@@ -73,12 +75,12 @@ const UserProfileForm = () => {
 
       setMessage({
         type: 'success',
-        text: 'Profil başarıyla güncellendi.',
+        text: t('profile.updateSuccess','Profil başarıyla güncellendi.'),
       });
     } catch (error: any) {
       setMessage({
         type: 'error',
-        text: error.message || 'Profil güncellenirken bir hata oluştu.',
+        text: error.message || t('profile.updateError','Profil güncellenirken bir hata oluştu.'),
       });
     } finally {
       setLoading(false);
@@ -88,14 +90,14 @@ const UserProfileForm = () => {
   if (!userProfile) {
     return (
       <div className="card p-6">
-        <p className="text-center text-text-light">Lütfen giriş yapın.</p>
+        <p className="text-center text-text-light">{t('profile.pleaseSignIn','Lütfen giriş yapın.')}</p>
       </div>
     );
   }
 
   return (
     <div className="card p-6">
-      <h2 className="text-2xl font-semibold text-primary mb-6">Profil Bilgilerim</h2>
+      <h2 className="text-2xl font-semibold text-primary mb-6">{t('profile.myProfile','Profil Bilgilerim')}</h2>
       
       {message && (
         <div
@@ -130,13 +132,13 @@ const UserProfileForm = () => {
               className="hidden"
               onChange={handleAvatarChange}
             />
-            Profil Fotoğrafı Değiştir
+            {t('profile.changeAvatar','Profil Fotoğrafı Değiştir')}
           </label>
         </div>
         
         <div>
           <label htmlFor="full_name" className="block text-sm font-medium text-text mb-1">
-            Ad Soyad
+            {t('profile.fullName','Ad Soyad')}
           </label>
           <input
             type="text"
@@ -151,7 +153,7 @@ const UserProfileForm = () => {
         
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-text mb-1">
-            E-posta
+            {t('profile.email','E-posta')}
           </label>
           <input
             type="email"
@@ -161,12 +163,12 @@ const UserProfileForm = () => {
             className="input-field bg-neutral"
             disabled
           />
-          <p className="text-xs text-text-light mt-1">E-posta adresi değiştirilemez.</p>
+          <p className="text-xs text-text-light mt-1">{t('profile.emailNotEditable','E-posta adresi değiştirilemez.')}</p>
         </div>
         
         <div>
           <label htmlFor="phone" className="block text-sm font-medium text-text mb-1">
-            Telefon
+            {t('profile.phone','Telefon')}
           </label>
           <input
             type="tel"
@@ -184,7 +186,7 @@ const UserProfileForm = () => {
             className="btn btn-primary"
             disabled={loading}
           >
-            {loading ? 'Kaydediliyor...' : 'Kaydet'}
+            {loading ? t('profile.saving','Kaydediliyor...') : t('profile.save','Kaydet')}
           </button>
         </div>
       </form>

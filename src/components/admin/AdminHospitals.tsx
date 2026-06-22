@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Link, useLocation } from 'react-router-dom';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaPhone, FaEnvelope, FaClock, FaHome } from 'react-icons/fa';
 import { getHospitals, deleteHospital as deleteHospitalService } from '../../services/hospitalService';
 import type { Hospital } from '../../lib/supabase';
 
 const AdminHospitals = () => {
+  const { t } = useTranslation();
+  const location = useLocation();
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchHospitals();
-  }, []);
+  }, [location.pathname]);
 
   const fetchHospitals = async () => {
     try {
@@ -25,18 +28,18 @@ const AdminHospitals = () => {
     }
   };
 
-  const deleteHospital = async (id: number) => {
-    if (!confirm('Bu hastaneyi silmek istediğinizden emin misiniz?')) return;
+  const deleteHospital = async (id: number | string) => {
+    if (!confirm(t('admin.confirmDeleteHospital', 'Bu hastaneyi silmek istediğinizden emin misiniz?'))) return;
 
     try {
       const { error } = await deleteHospitalService(id);
       if (error) throw error;
 
       setHospitals(hospitals.filter(hospital => hospital.id !== id));
-      alert('Hastane başarıyla silindi!');
+      alert(t('admin.hospitalDeleted', 'Hastane başarıyla silindi!'));
     } catch (error) {
       console.error('Error deleting hospital:', error);
-      alert('Hastane silinirken hata oluştu!');
+      alert(t('admin.hospitalDeleteError', 'Hastane silinirken hata oluştu!'));
     }
   };
 
@@ -56,13 +59,13 @@ const AdminHospitals = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-primary">Hastane Yönetimi</h1>
+        <h1 className="text-2xl font-semibold text-primary">{t('admin.hospitals.title', 'Hastane Yönetimi')}</h1>
         <Link
           to="/admin/hospitals/new"
           className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center"
         >
           <FaPlus className="mr-2" />
-          Yeni Hastane
+          {t('admin.hospitals.new', 'Yeni Hastane')}
         </Link>
       </div>
 
@@ -72,7 +75,7 @@ const AdminHospitals = () => {
           <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Hastane ara..."
+            placeholder={t('admin.hospitals.searchPlaceholder', 'Hastane ara...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -109,7 +112,7 @@ const AdminHospitals = () => {
               {hospital.display_on_homepage && (
                 <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full flex items-center shadow-sm">
                   <FaHome className="mr-1" size={10} />
-                  Ana Sayfa
+                  {t('admin.homepage', 'Ana Sayfa')}
                 </span>
               )}
             </h3>
@@ -142,7 +145,7 @@ const AdminHospitals = () => {
             </div>
 
             <div className="mt-4 text-xs text-gray-500">
-              Oluşturulma: {new Date(hospital.created_at).toLocaleDateString('tr-TR')}
+              {t('admin.createdAt', 'Oluşturulma')}: {new Date(hospital.created_at).toLocaleDateString('tr-TR')}
             </div>
           </div>
         ))}
@@ -151,18 +154,18 @@ const AdminHospitals = () => {
       {filteredHospitals.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">🏥</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Hastane bulunamadı</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.hospitals.notFound', 'Hastane bulunamadı')}</h3>
           <p className="text-gray-500 mb-4">
             {searchTerm
-              ? 'Arama kriterlerinize uygun hastane bulunamadı.'
-              : 'Henüz hiç hastane eklenmemiş.'}
+              ? t('admin.searchNoResults', 'Arama kriterlerinize uygun hastane bulunamadı.')
+              : t('admin.hospitals.empty', 'Henüz hiç hastane eklenmemiş.')}
           </p>
           <Link
             to="/admin/hospitals/new"
             className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors inline-flex items-center"
           >
             <FaPlus className="mr-2" />
-            İlk Hastaneyi Ekle
+            {t('admin.hospitals.addFirst', 'İlk Hastaneyi Ekle')}
           </Link>
         </div>
       )}

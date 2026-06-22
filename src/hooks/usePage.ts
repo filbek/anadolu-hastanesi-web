@@ -59,7 +59,7 @@ export const usePage = (slug: string) => {
 
       // Add a timeout to prevent hanging the whole home page
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Sayfa verisi yüklenirken zaman aşımı oluştu.')), 15000)
+        setTimeout(() => reject(new Error('Sayfa verisi yüklenirken zaman aşımı oluştu.')), 8000)
       );
 
       // Fetch page basic data with timeout

@@ -110,3 +110,6 @@ temp/
 *.pem
 .env*
 !.env.example
+
+# Claude Code yerel ayarları (API anahtarları içerebilir)
+.claude/

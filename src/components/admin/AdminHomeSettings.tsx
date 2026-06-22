@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     FaSave, FaHome, FaSpinner, FaEye, FaEyeSlash,
     FaGripVertical, FaEdit, FaCheck, FaTimes
@@ -19,25 +20,26 @@ interface PageSection {
     updated_at: string;
 }
 
-const SECTION_LABELS: Record<string, string> = {
-    'hero_banner': 'Hero Banner (Giriş Görseli)',
-    'hospital_branches': 'Hastanelerimiz',
-    'departments_list': 'Tıbbi Bölümler',
-    'doctors_list': 'Uzman Doktorlar',
-    'health_guide': 'Sağlık Rehberi',
-    'testimonials_slider': 'Hasta Yorumları',
-    'health_tourism': 'Sağlık Turizmi',
-    'stats': 'istatistikler',
-    'features': 'Özellikler'
-};
-
 const AdminHomeSettings = () => {
+    const { t } = useTranslation();
     const [sections, setSections] = useState<PageSection[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editFormData, setEditFormData] = useState<Partial<PageSection>>({});
+
+    const SECTION_LABELS: Record<string, string> = {
+        'hero_banner': t('admin.homeSettings.heroBanner', 'Hero Banner (Giriş Görseli)'),
+        'hospital_branches': t('admin.homeSettings.hospitals', 'Hastanelerimiz'),
+        'departments_list': t('admin.homeSettings.departments', 'Tıbbi Bölümler'),
+        'doctors_list': t('admin.homeSettings.doctors', 'Uzman Doktorlar'),
+        'health_guide': t('admin.homeSettings.healthGuide', 'Sağlık Rehberi'),
+        'testimonials_slider': t('admin.homeSettings.testimonials', 'Hasta Yorumları'),
+        'health_tourism': t('admin.homeSettings.healthTourism', 'Sağlık Turizmi'),
+        'stats': t('admin.homeSettings.stats', 'İstatistikler'),
+        'features': t('admin.homeSettings.features', 'Özellikler')
+    };
 
     useEffect(() => {
         fetchHomeSections();
@@ -56,7 +58,7 @@ const AdminHomeSettings = () => {
             setSections(data || []);
         } catch (error: any) {
             console.error('Error fetching home sections:', error);
-            setMessage({ type: 'error', text: 'Bölümler yüklenirken bir hata oluştu.' });
+            setMessage({ type: 'error', text: t('admin.homeSettings.loadError', 'Bölümler yüklenirken bir hata oluştu.') });
         } finally {
             setLoading(false);
         }
@@ -84,10 +86,10 @@ const AdminHomeSettings = () => {
                 if (error) throw error;
             }
 
-            setMessage({ type: 'success', text: 'Sıralama başarıyla kaydedildi!' });
+            setMessage({ type: 'success', text: t('admin.homeSettings.orderSaved', 'Sıralama başarıyla kaydedildi!') });
         } catch (error: any) {
             console.error('Error saving order:', error);
-            setMessage({ type: 'error', text: 'Sıralama kaydedilirken hata oluştu.' });
+            setMessage({ type: 'error', text: t('admin.homeSettings.orderSaveError', 'Sıralama kaydedilirken hata oluştu.') });
         } finally {
             setSaving(false);
         }
@@ -103,10 +105,10 @@ const AdminHomeSettings = () => {
             if (error) throw error;
 
             setSections(sections.map(s => s.id === id ? { ...s, is_visible: !currentStatus } : s));
-            setMessage({ type: 'success', text: 'Görünürlük güncellendi.' });
+            setMessage({ type: 'success', text: t('admin.homeSettings.visibilityUpdated', 'Görünürlük güncellendi.') });
         } catch (error: any) {
             console.error('Error toggling visibility:', error);
-            setMessage({ type: 'error', text: 'Görünürlük güncellenirken hata oluştu.' });
+            setMessage({ type: 'error', text: t('admin.homeSettings.visibilityError', 'Görünürlük güncellenirken hata oluştu.') });
         }
     };
 
@@ -140,10 +142,10 @@ const AdminHomeSettings = () => {
 
             setSections(sections.map(s => s.id === id ? { ...s, ...editFormData } : s));
             setEditingId(null);
-            setMessage({ type: 'success', text: 'Bölüm başarıyla güncellendi!' });
+            setMessage({ type: 'success', text: t('admin.homeSettings.sectionSaved', 'Bölüm başarıyla güncellendi!') });
         } catch (error: any) {
             console.error('Error saving section:', error);
-            setMessage({ type: 'error', text: 'Güncellenirken hata oluştu.' });
+            setMessage({ type: 'error', text: t('admin.updateError', 'Güncellenirken hata oluştu.') });
         } finally {
             setSaving(false);
         }
@@ -162,9 +164,9 @@ const AdminHomeSettings = () => {
             <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-gray-100 shadow-sm sticky top-0 z-20">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800 flex items-center">
-                        <FaHome className="mr-3 text-primary" /> Ana Sayfa Modül Yönetimi
+                        <FaHome className="mr-3 text-primary" /> {t('admin.homeSettings.title', 'Ana Sayfa Modül Yönetimi')}
                     </h1>
-                    <p className="text-sm text-gray-500 mt-1">Görünürlüğü değiştirin ve sürükleyerek sıralayın.</p>
+                    <p className="text-sm text-gray-500 mt-1">{t('admin.homeSettings.description', 'Görünürlüğü değiştirin ve sürükleyerek sıralayın.')}</p>
                 </div>
                 <div className="flex gap-3">
                     <button
@@ -173,7 +175,7 @@ const AdminHomeSettings = () => {
                         className="bg-primary text-white px-6 py-2 rounded-xl hover:bg-primary-dark transition-all flex items-center shadow-lg shadow-primary/20 disabled:opacity-50"
                     >
                         {saving ? <FaSpinner className="mr-2 animate-spin" /> : <FaSave className="mr-2" />}
-                        Sıralamayı Kaydet
+                        {t('admin.homeSettings.saveOrder', 'Sıralamayı Kaydet')}
                     </button>
                 </div>
             </div>
@@ -193,7 +195,7 @@ const AdminHomeSettings = () => {
 
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-gray-100 bg-gray-50/50">
-                    <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest">AKTİF MODÜLLER</h2>
+                    <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest">{t('admin.homeSettings.activeModules', 'AKTİF MODÜLLER')}</h2>
                 </div>
 
                 <Reorder.Group axis="y" values={sections} onReorder={handleReorder} className="divide-y divide-gray-100">
@@ -215,12 +217,12 @@ const AdminHomeSettings = () => {
                                         </span>
                                         {!section.is_visible && (
                                             <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
-                                                GİZLİ
+                                                {t('admin.hidden', 'GİZLİ')}
                                             </span>
                                         )}
                                     </div>
                                     <div className="text-xs text-gray-400 mt-0.5">
-                                        Modül Tipi: <span className="font-mono">{section.section_type}</span>
+                                        {t('admin.homeSettings.moduleType', 'Modül Tipi')}: <span className="font-mono">{section.section_type}</span>
                                     </div>
                                 </div>
 
@@ -228,14 +230,14 @@ const AdminHomeSettings = () => {
                                     <button
                                         onClick={() => startEditing(section)}
                                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                        title="Düzenle"
+                                        title={t('admin.edit', 'Düzenle')}
                                     >
                                         <FaEdit />
                                     </button>
                                     <button
                                         onClick={() => toggleVisibility(section.id, section.is_visible)}
                                         className={`p-2 rounded-lg transition-colors ${section.is_visible ? 'text-green-600 hover:bg-green-50' : 'text-gray-400 hover:bg-gray-100'}`}
-                                        title={section.is_visible ? 'Gizle' : 'Göster'}
+                                        title={section.is_visible ? t('admin.hide', 'Gizle') : t('admin.show', 'Göster')}
                                     >
                                         {section.is_visible ? <FaEye /> : <FaEyeSlash />}
                                     </button>
@@ -251,7 +253,7 @@ const AdminHomeSettings = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Başlık</label>
+                                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">{t('admin.label.title', 'Başlık')}</label>
                                                 <input
                                                     type="text"
                                                     value={editFormData.title || ''}
@@ -260,7 +262,7 @@ const AdminHomeSettings = () => {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Alt Başlık</label>
+                                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">{t('admin.label.subtitle', 'Alt Başlık')}</label>
                                                 <textarea
                                                     value={editFormData.subtitle || ''}
                                                     onChange={(e) => setEditFormData({ ...editFormData, subtitle: e.target.value })}
@@ -271,7 +273,7 @@ const AdminHomeSettings = () => {
                                         </div>
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Görsel URL</label>
+                                                <label className="block text-xs font-bold text-gray-400 uppercase mb-2">{t('admin.label.imageUrl', 'Görsel URL')}</label>
                                                 <input
                                                     type="text"
                                                     value={editFormData.image_url || ''}
@@ -281,7 +283,7 @@ const AdminHomeSettings = () => {
                                             </div>
                                             {section.section_type === 'stats' && (
                                                 <div>
-                                                    <label className="block text-xs font-bold text-gray-400 uppercase mb-2">İçerik (JSON - İstatistikler)</label>
+                                                    <label className="block text-xs font-bold text-gray-400 uppercase mb-2">{t('admin.label.contentJson', 'İçerik (JSON - İstatistikler)')}</label>
                                                     <textarea
                                                         value={typeof editFormData.content === 'object' ? JSON.stringify(editFormData.content, null, 2) : editFormData.content}
                                                         onChange={(e) => {
@@ -304,7 +306,7 @@ const AdminHomeSettings = () => {
                                             onClick={cancelEditing}
                                             className="bg-white text-gray-600 px-6 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all font-bold"
                                         >
-                                            İptal
+                                            {t('admin.cancel', 'İptal')}
                                         </button>
                                         <button
                                             onClick={() => saveSection(section.id)}
@@ -312,7 +314,7 @@ const AdminHomeSettings = () => {
                                             className="bg-primary text-white px-6 py-2 rounded-xl hover:bg-primary-dark transition-all flex items-center shadow-lg shadow-primary/20 disabled:opacity-50 font-bold"
                                         >
                                             {saving ? <FaSpinner className="mr-2 animate-spin" /> : <FaCheck className="mr-2" />}
-                                            Güncelle
+                                            {t('admin.update', 'Güncelle')}
                                         </button>
                                     </div>
                                 </motion.div>
@@ -323,7 +325,7 @@ const AdminHomeSettings = () => {
 
                 {sections.length === 0 && (
                     <div className="p-20 text-center text-gray-400 italic">
-                        Hiçbir modül bulunamadı.
+                        {t('admin.homeSettings.noModules', 'Hiçbir modül bulunamadı.')}
                     </div>
                 )}
             </div>
@@ -331,11 +333,11 @@ const AdminHomeSettings = () => {
             <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl flex gap-4 text-blue-800">
                 <div className="text-2xl mt-1">💡</div>
                 <div>
-                    <h4 className="font-bold text-lg mb-1">Nasıl Kullanılır?</h4>
+                    <h4 className="font-bold text-lg mb-1">{t('admin.homeSettings.howToUse', 'Nasıl Kullanılır?')}</h4>
                     <ul className="text-sm space-y-2 list-disc ml-4 opacity-90">
-                        <li>Sıralamayı değiştirmek için modülleri sol taraftaki tutamaçtan tutup yukarı/aşağı sürükleyin.</li>
-                        <li>Sıralama değişikliklerinin aktif olması için <b>"Sıralamayı Kaydet"</b> butonuna basmanız gerekir.</li>
-                        <li>Görünürlük ve içerik düzenlemeleri anında kaydedilir ve ön belleği temizlemeden hemen yansır.</li>
+                        <li>{t('admin.homeSettings.howToUse1', 'Sıralamayı değiştirmek için modülleri sol taraftaki tutamaçtan tutup yukarı/aşağı sürükleyin.')}</li>
+                        <li>{t('admin.homeSettings.howToUse2', 'Sıralama değişikliklerinin aktif olması için "Sıralamayı Kaydet" butonuna basmanız gerekir.')}</li>
+                        <li>{t('admin.homeSettings.howToUse3', 'Görünürlük ve içerik düzenlemeleri anında kaydedilir ve ön belleği temizlemeden hemen yansır.')}</li>
                     </ul>
                 </div>
             </div>

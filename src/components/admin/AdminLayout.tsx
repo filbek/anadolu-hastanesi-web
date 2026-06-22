@@ -4,8 +4,10 @@ import { useSupabase } from '../../contexts/SupabaseContext';
 import {
   FaHospital, FaStethoscope, FaUserMd, FaNewspaper, FaUsers,
   FaSignOutAlt, FaTachometerAlt, FaBars, FaTimes, FaCog,
-  FaImages, FaFileAlt, FaPhone, FaInfoCircle, FaGlobe,
-  FaDatabase, FaVideo, FaAward, FaFilePdf, FaChevronRight
+  FaImages, FaFileAlt, FaPhone, FaGlobe, FaEnvelope,
+  FaDatabase, FaVideo, FaAward, FaFilePdf, FaChevronRight,
+  FaSlideshare, FaComments, FaChartBar, FaCertificate, FaClipboardList, FaHistory, FaUserTie,
+  FaBaby
 } from 'react-icons/fa';
 
 const AdminLayout = () => {
@@ -28,12 +30,17 @@ const AdminLayout = () => {
       label: 'SAYFA YÖNETİMİ',
       items: [
         { path: '/admin/home-settings', icon: FaTachometerAlt, label: 'Ana Sayfa' },
+        { path: '/admin/hero-slides', icon: FaSlideshare, label: 'Hero Slider' },
         { path: '/admin/hospitals', icon: FaHospital, label: 'Hastaneler' },
         { path: '/admin/departments', icon: FaStethoscope, label: 'Bölümler' },
         { path: '/admin/doctors', icon: FaUserMd, label: 'Doktorlar' },
         { path: '/admin/articles', icon: FaNewspaper, label: 'Sağlık Rehberi' },
+        { path: '/admin/testimonials', icon: FaComments, label: 'Hasta Yorumları' },
+        { path: '/admin/news', icon: FaNewspaper, label: 'Haberler' },
         { path: '/admin/health-tourism', icon: FaGlobe, label: 'Sağlık Turizmi' },
         { path: '/admin/contact-info', icon: FaPhone, label: 'İletişim' },
+        { path: '/admin/management-team', icon: FaUserTie, label: 'Yönetim Ekibi' },
+        { path: '/admin/gebe-okulu', icon: FaBaby, label: 'Gebe Okulu' },
       ]
     },
     {
@@ -48,6 +55,8 @@ const AdminLayout = () => {
       label: 'HASTA HİZMETLERİ',
       items: [
         { path: '/admin/patient-info', icon: FaFilePdf, label: 'Hasta Bilgilendirme' },
+        { path: '/admin/patient-feedback', icon: FaClipboardList, label: 'Geri Bildirimler' },
+        { path: '/admin/second-opinion', icon: FaEnvelope, label: 'İkinci Görüş Başvuruları' },
         { path: '/admin/quality-certificates', icon: FaAward, label: 'Kalite Sertifikaları' },
       ]
     },
@@ -55,18 +64,22 @@ const AdminLayout = () => {
       label: 'SİSTEM',
       items: [
         { path: '/admin/users', icon: FaUsers, label: 'Kullanıcılar' },
+        { path: '/admin/site-stats', icon: FaChartBar, label: 'İstatistikler' },
+        { path: '/admin/accreditations', icon: FaCertificate, label: 'Akreditasyonlar' },
+        { path: '/admin/translations', icon: FaGlobe, label: 'Otomatik Çeviri' },
         { path: '/admin/seo', icon: FaGlobe, label: 'SEO Ayarları' },
         { path: '/admin/settings', icon: FaCog, label: 'Site Ayarları' },
+        { path: '/admin/audit-logs', icon: FaHistory, label: 'Aktivite Logları' },
         { path: '/admin/test-connection', icon: FaDatabase, label: 'Bağlantı Testi' },
       ]
     }
   ];
 
   return (
-    <div className="flex h-screen bg-admin-bg overflow-hidden font-sans">
+    <div className="flex h-screen bg-slate-100 overflow-hidden font-sans">
       {/* Sidebar */}
       <aside
-        className={`bg-admin-sidebar text-slate-300 w-72 flex-shrink-0 transition-all duration-300 ease-in-out border-r border-white/5 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:-ml-72'
+        className={`bg-[#0F1F3A] text-slate-300 w-72 flex-shrink-0 transition-all duration-300 ease-in-out border-r border-white/5 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:-ml-72'
           } fixed lg:relative h-full z-50 shadow-2xl`}
       >
         <div className="flex flex-col h-full">
@@ -78,7 +91,7 @@ const AdminLayout = () => {
               </div>
               <div className="flex flex-col">
                 <span className="text-white font-bold tracking-tight text-lg leading-none">ANADOLU</span>
-                <span className="text-primary text-xs font-semibold tracking-widest mt-0.5">ADMIN</span>
+                <span className="text-ocean-400 text-xs font-semibold tracking-widest mt-0.5">ADMIN</span>
               </div>
             </Link>
             <button className="lg:hidden text-slate-400 hover:text-white" onClick={toggleSidebar}>
@@ -90,7 +103,7 @@ const AdminLayout = () => {
           <nav className="flex-1 overflow-y-auto px-4 py-2 custom-scrollbar">
             {navGroups.map((group, gIdx) => (
               <div key={gIdx} className="mb-8">
-                <h3 className="px-4 text-[11px] font-bold text-slate-500 uppercase tracking-[2px] mb-3">
+                <h3 className="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-[2px] mb-3">
                   {group.label}
                 </h3>
                 <ul className="space-y-1">

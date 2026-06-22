@@ -1,99 +1,63 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
+import { useTranslation } from 'react-i18next'
+import { FaCalendarAlt, FaEye, FaUser, FaTags, FaShare, FaFacebookF, FaTwitter, FaLinkedinIn, FaWhatsapp, FaArrowRight, FaCalendarCheck } from 'react-icons/fa'
 import { motion } from 'framer-motion'
-import { FaCalendarAlt, FaEye, FaUser, FaTags, FaShare, FaFacebookF, FaTwitter, FaLinkedinIn, FaWhatsapp } from 'react-icons/fa'
-
-// Mock data for a single article
-const articleData = {
-  id: 1,
-  title: 'Kalp Sağlığınızı Korumak İçin 10 Öneri',
-  slug: 'kalp-sagliginizi-korumak-icin-10-oneri',
-  category: 'Kardiyoloji',
-  image: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
-  date: '15 Eylül 2023',
-  views: 1245,
-  author: 'Prof. Dr. Ahmet Yılmaz',
-  authorSlug: 'prof-dr-ahmet-yilmaz',
-  authorTitle: 'Kardiyoloji Uzmanı',
-  authorImage: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80',
-  tags: ['Kalp Sağlığı', 'Beslenme', 'Egzersiz', 'Sağlıklı Yaşam'],
-  content: `
-    <p>Kalp sağlığı, genel sağlığımızın en önemli bileşenlerinden biridir. Kalp ve damar hastalıkları, dünya genelinde en yaygın ölüm nedenlerinden biri olmaya devam etmektedir. Ancak, doğru yaşam tarzı seçimleri ve alışkanlıklar ile kalp sağlığınızı korumak mümkündür.</p>
-    
-    <h2>1. Dengeli Beslenin</h2>
-    <p>Kalp sağlığı için Akdeniz tipi beslenme önerilmektedir. Bu beslenme şekli, zeytinyağı, balık, sebze, meyve, tam tahıllar ve kuruyemişler gibi kalp dostu besinleri içerir. Doymuş yağlar, trans yağlar ve aşırı tuz tüketiminden kaçınmak önemlidir.</p>
-    
-    <h2>2. Düzenli Egzersiz Yapın</h2>
-    <p>Haftada en az 150 dakika orta yoğunlukta aerobik egzersiz (yürüyüş, yüzme, bisiklet) veya 75 dakika yüksek yoğunlukta egzersiz yapmak kalp sağlığınızı destekler. Ayrıca, haftada en az iki gün kas güçlendirici egzersizler yapmanız önerilir.</p>
-    
-    <h2>3. Sigarayı Bırakın</h2>
-    <p>Sigara içmek, kalp hastalığı riskini önemli ölçüde artırır. Sigara içiyorsanız, bırakmak için profesyonel destek alabilirsiniz. Sigarayı bıraktıktan sonra, kalp hastalığı riskiniz zamanla azalacaktır.</p>
-    
-    <h2>4. Alkolü Sınırlayın</h2>
-    <p>Aşırı alkol tüketimi, kalp sağlığınızı olumsuz etkileyebilir. Erkekler için günde en fazla iki, kadınlar için bir standart içki önerilmektedir. Ancak, alkol tüketmiyorsanız, kalp sağlığı için alkole başlamanız önerilmez.</p>
-    
-    <h2>5. Sağlıklı Kilonuzu Koruyun</h2>
-    <p>Fazla kilo ve obezite, kalp hastalığı riskini artırır. Sağlıklı bir vücut kitle indeksi (BMI) ve bel çevresi ölçüsü hedefleyin. Dengeli beslenme ve düzenli egzersiz, kilo kontrolünde yardımcı olacaktır.</p>
-    
-    <h2>6. Stresi Yönetin</h2>
-    <p>Kronik stres, kalp sağlığınızı olumsuz etkileyebilir. Meditasyon, derin nefes alma egzersizleri, yoga veya hobi edinmek gibi stres yönetim teknikleri uygulayın. Yeterli uyku da stres yönetiminde önemlidir.</p>
-    
-    <h2>7. Kan Basıncınızı Kontrol Edin</h2>
-    <p>Yüksek tansiyon, kalp hastalığı için önemli bir risk faktörüdür. Düzenli olarak kan basıncınızı ölçtürün ve yüksekse, doktorunuzun önerdiği tedaviyi uygulayın. Tuz tüketimini azaltmak, düzenli egzersiz yapmak ve stresi yönetmek, kan basıncını kontrol etmeye yardımcı olabilir.</p>
-    
-    <h2>8. Kolesterol Seviyelerinizi Takip Edin</h2>
-    <p>Yüksek LDL (kötü) kolesterol ve düşük HDL (iyi) kolesterol, kalp hastalığı riskini artırır. Düzenli olarak kolesterol seviyelerinizi kontrol ettirin ve gerekirse doktorunuzun önerdiği tedaviyi uygulayın.</p>
-    
-    <h2>9. Diyabet Riskinizi Azaltın</h2>
-    <p>Diyabet, kalp hastalığı riskini artırır. Sağlıklı beslenme, düzenli egzersiz ve kilo kontrolü ile diyabet riskinizi azaltabilirsiniz. Diyabetiniz varsa, kan şekerinizi kontrol altında tutmak için doktorunuzun önerilerini uygulayın.</p>
-    
-    <h2>10. Düzenli Sağlık Kontrolleri Yaptırın</h2>
-    <p>Düzenli sağlık kontrolleri, kalp hastalığı risk faktörlerini erken tespit etmeye yardımcı olur. Yaşınıza ve risk faktörlerinize bağlı olarak, doktorunuzun önerdiği sıklıkta sağlık kontrollerinizi yaptırın.</p>
-    
-    <p>Kalp sağlığınızı korumak için bu önerileri günlük yaşamınıza dahil etmek, kalp hastalığı riskinizi azaltacak ve genel sağlığınızı iyileştirecektir. Unutmayın, küçük değişiklikler bile büyük fark yaratabilir.</p>
-  `,
-  relatedArticles: [
-    {
-      id: 4,
-      title: 'Hipertansiyon Nedir ve Nasıl Kontrol Edilir?',
-      slug: 'hipertansiyon-nedir-ve-nasil-kontrol-edilir',
-      category: 'Kardiyoloji',
-      image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      date: '28 Ağustos 2023',
-    },
-    {
-      id: 6,
-      title: 'Sağlıklı Beslenme Rehberi',
-      slug: 'saglikli-beslenme-rehberi',
-      category: 'Beslenme',
-      image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      date: '15 Ağustos 2023',
-    },
-    {
-      id: 7,
-      title: 'Stres Yönetimi Teknikleri',
-      slug: 'stres-yonetimi-teknikleri',
-      category: 'Psikoloji',
-      image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-      date: '10 Ağustos 2023',
-    },
-  ],
-};
+import AutoTranslate from '../components/common/AutoTranslate'
+import SecondOpinionBanner from '../components/common/SecondOpinionBanner'
+import { getHealthArticleBySlug, getHealthArticles, getArticleImageUrl } from '../services'
+import { getDepartmentByName } from '../services/departmentService'
+import { useDoctorsByDepartment } from '../hooks/useDoctors'
+import type { HealthArticle, Department } from '../lib/supabase'
 
 const HealthArticlePage = () => {
+  const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
-  const [article, setArticle] = useState<typeof articleData | null>(null);
+  const [article, setArticle] = useState<HealthArticle | null>(null);
+  const [relatedArticles, setRelatedArticles] = useState<HealthArticle[]>([]);
+  const [relatedDepartment, setRelatedDepartment] = useState<Department | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real application, you would fetch the article data from an API
-    // For this example, we'll use the mock data
-    setLoading(true);
-    setTimeout(() => {
-      setArticle(articleData);
-      setLoading(false);
-    }, 500);
+    const fetchArticle = async () => {
+      setLoading(true);
+      try {
+        if (!slug) {
+          setLoading(false);
+          return;
+        }
+        const data = await getHealthArticleBySlug(slug);
+        if (data) {
+          setArticle(data);
+          // Fetch related department by category name
+          const dept = await getDepartmentByName(data.category);
+          if (dept) setRelatedDepartment(dept);
+          // Fetch related articles (same category, exclude current)
+          const allArticles = await getHealthArticles();
+          const related = allArticles
+            .filter(a => a.id !== data.id && a.category === data.category)
+            .slice(0, 3);
+          // If not enough same-category articles, fill with others
+          if (related.length < 3) {
+            const others = allArticles
+              .filter(a => a.id !== data.id && !related.find(r => r.id === a.id))
+              .slice(0, 3 - related.length);
+            setRelatedArticles([...related, ...others]);
+          } else {
+            setRelatedArticles(related);
+          }
+        } else {
+          setArticle(null);
+        }
+      } catch (error) {
+        console.error('Error fetching article:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticle();
   }, [slug]);
 
   if (loading) {
@@ -107,16 +71,22 @@ const HealthArticlePage = () => {
   if (!article) {
     return (
       <div className="container-custom py-20 text-center">
-        <h2 className="text-2xl font-bold mb-4">Makale Bulunamadı</h2>
-        <p className="mb-8">Aradığınız makale bulunamadı. Lütfen tüm makalelerimizi görüntüleyin.</p>
+        <h2 className="text-2xl font-bold mb-4">{t('healthArticle.notFound', 'Makale Bulunamadı')}</h2>
+        <p className="mb-8">{t('healthArticle.notFoundDesc', 'Aradığınız makale bulunamadı. Lütfen tüm makalelerimizi görüntüleyin.')}</p>
         <Link to="/saglik-rehberi" className="btn btn-primary">
-          Tüm Makaleler
+          {t('healthArticle.allArticles', 'Tüm Makaleler')}
         </Link>
       </div>
     );
   }
 
   const shareUrl = window.location.href;
+  const authorName = article.author_name || 'Anadolu Hastaneleri';
+  const authorTitle = article.author_title || 'Uzman Kadro';
+  const authorImage = article.author_image || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=300&q=80';
+  const displayDate = article.date
+    ? new Date(article.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '';
 
   return (
     <>
@@ -131,32 +101,31 @@ const HealthArticlePage = () => {
             {/* Article Header */}
             <div className="mb-8">
               <div className="bg-primary/10 text-primary text-sm font-medium px-4 py-1 rounded-full inline-block mb-4">
-                {article.category}
+                <AutoTranslate text={article.category} translations={article.translations} field="category" />
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4">{article.title}</h1>
+              <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+                <AutoTranslate text={article.title} translations={article.translations} field="title" />
+              </h1>
               <div className="flex flex-wrap items-center text-text-light text-sm gap-4 mb-6">
                 <div className="flex items-center">
                   <FaCalendarAlt className="mr-2" />
-                  <span>{article.date}</span>
+                  <span>{displayDate}</span>
                 </div>
                 <div className="flex items-center">
                   <FaEye className="mr-2" />
-                  <span>{article.views} görüntülenme</span>
+                  <span>{article.views || 0} {t('common.views', 'görüntülenme')}</span>
                 </div>
                 <div className="flex items-center">
                   <FaUser className="mr-2" />
-                  <Link to={`/doktorlar/${article.authorSlug}`} className="hover:text-primary transition-colors">
-                    {article.author}
-                  </Link>
+                  <span>{authorName}</span>
                 </div>
               </div>
               <div className="relative h-96 rounded-xl overflow-hidden mb-8">
                 <img
-                  src={article.image}
+                  src={getArticleImageUrl(article.image, article.category)}
                   alt={article.title}
                   className="w-full h-full object-cover"
                   loading="lazy"
-                  crossOrigin="anonymous"
                 />
               </div>
             </div>
@@ -170,23 +139,25 @@ const HealthArticlePage = () => {
                 />
 
                 {/* Tags */}
-                <div className="flex flex-wrap items-center gap-2 mb-8">
-                  <FaTags className="text-primary" />
-                  {article.tags.map((tag, index) => (
-                    <Link
-                      key={index}
-                      to={`/saglik-rehberi?tag=${tag}`}
-                      className="bg-neutral px-3 py-1 rounded-full text-sm text-text-light hover:bg-primary/10 hover:text-primary transition-colors"
-                    >
-                      {tag}
-                    </Link>
-                  ))}
-                </div>
+                {article.tags && article.tags.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2 mb-8">
+                    <FaTags className="text-primary" />
+                    {article.tags.map((tag, index) => (
+                      <Link
+                        key={index}
+                        to={`/saglik-rehberi?tag=${tag}`}
+                        className="bg-neutral px-3 py-1 rounded-full text-sm text-text-light hover:bg-primary/10 hover:text-primary transition-colors"
+                      >
+                        <AutoTranslate text={tag} />
+                      </Link>
+                    ))}
+                  </div>
+                )}
 
                 {/* Share */}
                 <div className="border-t border-b border-gray-200 py-6 mb-8">
                   <h3 className="font-semibold mb-4 flex items-center">
-                    <FaShare className="mr-2 text-primary" /> Bu Makaleyi Paylaşın
+                    <FaShare className="mr-2 text-primary" /> {t('healthArticle.share', 'Bu Makaleyi Paylaşın')}
                   </h3>
                   <div className="flex gap-3">
                     <a
@@ -194,7 +165,7 @@ const HealthArticlePage = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-10 h-10 rounded-full bg-[#3b5998] text-white flex items-center justify-center hover:opacity-90 transition-opacity"
-                      aria-label="Facebook'ta Paylaş"
+                      aria-label={t('healthArticle.shareFacebook', "Facebook'ta Paylaş")}
                     >
                       <FaFacebookF />
                     </a>
@@ -203,7 +174,7 @@ const HealthArticlePage = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-10 h-10 rounded-full bg-[#1da1f2] text-white flex items-center justify-center hover:opacity-90 transition-opacity"
-                      aria-label="Twitter'da Paylaş"
+                      aria-label={t('healthArticle.shareTwitter', "Twitter'da Paylaş")}
                     >
                       <FaTwitter />
                     </a>
@@ -212,7 +183,7 @@ const HealthArticlePage = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-10 h-10 rounded-full bg-[#0077b5] text-white flex items-center justify-center hover:opacity-90 transition-opacity"
-                      aria-label="LinkedIn'de Paylaş"
+                      aria-label={t('healthArticle.shareLinkedIn', "LinkedIn'de Paylaş")}
                     >
                       <FaLinkedinIn />
                     </a>
@@ -221,7 +192,7 @@ const HealthArticlePage = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-10 h-10 rounded-full bg-[#25d366] text-white flex items-center justify-center hover:opacity-90 transition-opacity"
-                      aria-label="WhatsApp'ta Paylaş"
+                      aria-label={t('healthArticle.shareWhatsApp', "WhatsApp'ta Paylaş")}
                     >
                       <FaWhatsapp />
                     </a>
@@ -232,191 +203,79 @@ const HealthArticlePage = () => {
                 <div className="bg-neutral rounded-xl p-6 mb-8">
                   <div className="flex items-center">
                     <img
-                      src={article.authorImage}
-                      alt={article.author}
+                      src={authorImage}
+                      alt={authorName}
                       className="w-16 h-16 rounded-full object-cover mr-4"
                       loading="lazy"
-                      crossOrigin="anonymous"
                     />
                     <div>
-                      <h3 className="font-semibold">{article.author}</h3>
-                      <p className="text-text-light text-sm">{article.authorTitle}</p>
+                      <h3 className="font-semibold">{authorName}</h3>
+                      <p className="text-text-light text-sm">{authorTitle}</p>
                     </div>
-                  </div>
-                  <div className="mt-4">
-                    <Link
-                      to={`/doktorlar/${article.authorSlug}`}
-                      className="text-primary font-medium hover:text-primary-dark transition-colors"
-                    >
-                      Profili Görüntüle
-                    </Link>
                   </div>
                 </div>
 
                 {/* Related Articles */}
-                <div>
-                  <h3 className="text-xl font-semibold text-primary mb-6">İlgili Makaleler</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                    {article.relatedArticles.map((relatedArticle) => (
-                      <Link
-                        key={relatedArticle.id}
-                        to={`/saglik-rehberi/${relatedArticle.slug}`}
-                        className="card overflow-hidden group"
-                      >
-                        <div className="relative h-40 -mx-6 -mt-6 mb-4 overflow-hidden">
-                          <img
-                            src={relatedArticle.image}
-                            alt={relatedArticle.title}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                            loading="lazy"
-                            crossOrigin="anonymous"
-                          />
-                          <div className="absolute top-2 left-2 bg-accent text-white text-xs font-medium px-2 py-1 rounded-full">
-                            {relatedArticle.category}
+                {relatedArticles.length > 0 && (
+                  <div>
+                    <h3 className="text-xl font-semibold text-primary mb-6">{t('healthArticle.relatedArticles', 'İlgili Makaleler')}</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                      {relatedArticles.map((relatedArticle) => (
+                        <Link
+                          key={relatedArticle.id}
+                          to={`/saglik-rehberi/${relatedArticle.slug}`}
+                          className="card overflow-hidden group"
+                        >
+                          <div className="relative h-40 -mx-6 -mt-6 mb-4 overflow-hidden">
+                            <img
+                              src={getArticleImageUrl(relatedArticle.image, relatedArticle.category)}
+                              alt={relatedArticle.title}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                              loading="lazy"
+                            />
+                            <div className="absolute top-2 left-2 bg-accent text-white text-xs font-medium px-2 py-1 rounded-full">
+                              {relatedArticle.category}
+                            </div>
                           </div>
-                        </div>
-                        <h4 className="font-medium mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                          {relatedArticle.title}
-                        </h4>
-                        <p className="text-xs text-text-light">
-                          <FaCalendarAlt className="inline mr-1" /> {relatedArticle.date}
-                        </p>
-                      </Link>
-                    ))}
+                          <h4 className="font-medium mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                            <AutoTranslate text={relatedArticle.title} />
+                          </h4>
+                          <p className="text-xs text-text-light">
+                            <FaCalendarAlt className="inline mr-1" /> {relatedArticle.date}
+                          </p>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Sidebar */}
               <div className="md:col-span-1">
                 <div className="sticky top-24">
+                  {/* Department Doctors */}
+                  {relatedDepartment && (
+                    <div className="card mb-6">
+                      <h3 className="text-lg font-semibold text-primary mb-4">
+                        <AutoTranslate text={relatedDepartment.name} /> {t('common.doctors', 'Doktorları')}
+                      </h3>
+                      <DepartmentDoctorsList departmentId={relatedDepartment.id} departmentSlug={relatedDepartment.slug} />
+                    </div>
+                  )}
+
                   {/* Categories */}
                   <div className="card mb-6">
-                    <h3 className="text-lg font-semibold text-primary mb-4">Kategoriler</h3>
+                    <h3 className="text-lg font-semibold text-primary mb-4">{t('common.categories', 'Kategoriler')}</h3>
                     <ul className="space-y-2">
-                      <li>
-                        <Link to="/saglik-rehberi?category=Kardiyoloji" className="flex items-center text-text-light hover:text-primary transition-colors">
-                          <i className="bi bi-heart-pulse-fill text-primary mr-2"></i>
-                          <span>Kardiyoloji</span>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/saglik-rehberi?category=Nöroloji" className="flex items-center text-text-light hover:text-primary transition-colors">
-                          <i className="bi bi-brain text-primary mr-2"></i>
-                          <span>Nöroloji</span>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/saglik-rehberi?category=Ortopedi" className="flex items-center text-text-light hover:text-primary transition-colors">
-                          <i className="bi bi-person-standing text-primary mr-2"></i>
-                          <span>Ortopedi</span>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/saglik-rehberi?category=Beslenme" className="flex items-center text-text-light hover:text-primary transition-colors">
-                          <i className="bi bi-apple text-primary mr-2"></i>
-                          <span>Beslenme</span>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/saglik-rehberi?category=Psikoloji" className="flex items-center text-text-light hover:text-primary transition-colors">
-                          <i className="bi bi-emoji-smile text-primary mr-2"></i>
-                          <span>Psikoloji</span>
-                        </Link>
-                      </li>
+                      {['Kardiyoloji', 'Nöroloji', 'Ortopedi', 'Beslenme', 'Psikoloji'].map(cat => (
+                        <li key={cat}>
+                          <Link to={`/saglik-rehberi?category=${cat}`} className="flex items-center text-text-light hover:text-primary transition-colors">
+                            <i className="bi bi-dot text-primary mr-2"></i>
+                            <AutoTranslate text={cat} />
+                          </Link>
+                        </li>
+                      ))}
                     </ul>
-                  </div>
-
-                  {/* Popular Articles */}
-                  <div className="card mb-6">
-                    <h3 className="text-lg font-semibold text-primary mb-4">Popüler Makaleler</h3>
-                    <ul className="space-y-4">
-                      <li>
-                        <Link to="/saglik-rehberi/saglikli-beslenme-rehberi" className="flex items-start group">
-                          <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 mr-3">
-                            <img
-                              src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80"
-                              alt="Sağlıklı Beslenme Rehberi"
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                              crossOrigin="anonymous"
-                            />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-medium group-hover:text-primary transition-colors line-clamp-2">
-                              Sağlıklı Beslenme Rehberi
-                            </h4>
-                            <p className="text-xs text-text-light mt-1">15 Ağustos 2023</p>
-                          </div>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/saglik-rehberi/stres-yonetimi-teknikleri" className="flex items-start group">
-                          <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 mr-3">
-                            <img
-                              src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80"
-                              alt="Stres Yönetimi Teknikleri"
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                              crossOrigin="anonymous"
-                            />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-medium group-hover:text-primary transition-colors line-clamp-2">
-                              Stres Yönetimi Teknikleri
-                            </h4>
-                            <p className="text-xs text-text-light mt-1">10 Ağustos 2023</p>
-                          </div>
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/saglik-rehberi/cocuklarda-bagisiklik-sistemini-guclendirme-yollari" className="flex items-start group">
-                          <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 mr-3">
-                            <img
-                              src="https://images.unsplash.com/photo-1516627145497-ae6968895b74?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80"
-                              alt="Çocuklarda Bağışıklık Sistemini Güçlendirme Yolları"
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                              crossOrigin="anonymous"
-                            />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-medium group-hover:text-primary transition-colors line-clamp-2">
-                              Çocuklarda Bağışıklık Sistemini Güçlendirme Yolları
-                            </h4>
-                            <p className="text-xs text-text-light mt-1">10 Eylül 2023</p>
-                          </div>
-                        </Link>
-                      </li>
-                    </ul>
-                  </div>
-
-                  {/* Tags */}
-                  <div className="card">
-                    <h3 className="text-lg font-semibold text-primary mb-4">Etiketler</h3>
-                    <div className="flex flex-wrap gap-2">
-                      <Link to="/saglik-rehberi?tag=Kalp Sağlığı" className="bg-neutral px-3 py-1 rounded-full text-sm text-text-light hover:bg-primary/10 hover:text-primary transition-colors">
-                        Kalp Sağlığı
-                      </Link>
-                      <Link to="/saglik-rehberi?tag=Beslenme" className="bg-neutral px-3 py-1 rounded-full text-sm text-text-light hover:bg-primary/10 hover:text-primary transition-colors">
-                        Beslenme
-                      </Link>
-                      <Link to="/saglik-rehberi?tag=Egzersiz" className="bg-neutral px-3 py-1 rounded-full text-sm text-text-light hover:bg-primary/10 hover:text-primary transition-colors">
-                        Egzersiz
-                      </Link>
-                      <Link to="/saglik-rehberi?tag=Sağlıklı Yaşam" className="bg-neutral px-3 py-1 rounded-full text-sm text-text-light hover:bg-primary/10 hover:text-primary transition-colors">
-                        Sağlıklı Yaşam
-                      </Link>
-                      <Link to="/saglik-rehberi?tag=Stres" className="bg-neutral px-3 py-1 rounded-full text-sm text-text-light hover:bg-primary/10 hover:text-primary transition-colors">
-                        Stres
-                      </Link>
-                      <Link to="/saglik-rehberi?tag=Uyku" className="bg-neutral px-3 py-1 rounded-full text-sm text-text-light hover:bg-primary/10 hover:text-primary transition-colors">
-                        Uyku
-                      </Link>
-                      <Link to="/saglik-rehberi?tag=Bağışıklık" className="bg-neutral px-3 py-1 rounded-full text-sm text-text-light hover:bg-primary/10 hover:text-primary transition-colors">
-                        Bağışıklık
-                      </Link>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -424,7 +283,85 @@ const HealthArticlePage = () => {
           </div>
         </div>
       </div>
+
+      <SecondOpinionBanner />
     </>
+  );
+};
+
+const DepartmentDoctorsList = ({ departmentId, departmentSlug }: { departmentId: number; departmentSlug?: string }) => {
+  const { t } = useTranslation();
+  const { data: doctors = [], isLoading } = useDoctorsByDepartment(departmentId);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center gap-3 animate-pulse">
+            <div className="w-12 h-12 rounded-full bg-neutral-200" />
+            <div className="flex-1 space-y-1">
+              <div className="h-3 bg-neutral-200 rounded w-24" />
+              <div className="h-2 bg-neutral-200 rounded w-16" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (doctors.length === 0) {
+    return (
+      <p className="text-sm text-neutral-500">{t('common.noDoctors', 'Bu bölümde henüz doktor bulunmamaktadır.')}</p>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {doctors.slice(0, 5).map((doctor) => (
+        <motion.div
+          key={doctor.id}
+          initial={false}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="flex items-center gap-3 p-2 rounded-xl hover:bg-surface transition-colors group"
+        >
+          <Link to={`/doktorlar/${doctor.slug}`} className="shrink-0">
+            <img
+              src={doctor.image}
+              alt={doctor.name}
+              className="w-12 h-12 rounded-full object-cover object-top border border-neutral-100 group-hover:border-ocean-200 transition-colors"
+              loading="lazy"
+            />
+          </Link>
+          <div className="flex-1 min-w-0">
+            <Link
+              to={`/doktorlar/${doctor.slug}`}
+              className="block text-sm font-semibold text-primary-600 truncate group-hover:text-ocean-600 transition-colors"
+            >
+              {doctor.name}
+            </Link>
+            <p className="text-xs text-neutral-500 truncate">{doctor.title}</p>
+          </div>
+          <a
+            href="https://anadoluhastaneleri.kendineiyibak.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 w-8 h-8 rounded-full bg-ocean-50 text-ocean-600 flex items-center justify-center hover:bg-ocean-100 transition-colors"
+            title={t('home.appointment', 'Randevu Al')}
+          >
+            <FaCalendarCheck className="text-xs" />
+          </a>
+        </motion.div>
+      ))}
+      {doctors.length > 5 && (
+        <Link
+          to={departmentSlug ? `/bolumler/${departmentSlug}` : '/doktorlar'}
+          className="flex items-center justify-center gap-1.5 text-sm font-medium text-ocean-600 hover:text-ocean-700 transition-colors pt-2 border-t border-neutral-100"
+        >
+          {t('common.allDoctors', 'Tüm Doktorları Gör')} <FaArrowRight className="text-xs" />
+        </Link>
+      )}
+    </div>
   );
 };
 

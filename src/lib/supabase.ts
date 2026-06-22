@@ -18,20 +18,32 @@ export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
 });
 
 // Database types
+//
+// `translations` alanı: Türkçeden otomatik üretilen diğer dil çevirileri.
+// Yapı: { en: { name: "...", description: "..." }, ar: { ... } }
+// Bkz. src/services/translationService.ts ve src/sql/translations_migration.sql
+export type Translations = Partial<Record<'en' | 'ar', Record<string, any>>>;
+
 export type Hospital = {
-  id: number;
+  id: number | string;
   name: string;
   slug: string;
   description: string;
   address: string;
   phone: string;
   email: string;
+  website?: string;
   working_hours: string;
   emergency_hours: string;
+  emergency_phone?: string;
+  transportation_info?: string;
   images: string[];
   display_on_homepage?: boolean;
   is_active?: boolean;
   image_url?: string;
+  logo_url?: string;
+  latitude?: string;
+  longitude?: string;
   display_order: number;
   meta_title?: string;
   meta_description?: string;
@@ -39,7 +51,9 @@ export type Hospital = {
   hero_subtitle?: string;
   map_url?: string;
   is_published?: boolean;
+  translations?: Translations;
   created_at: string;
+  updated_at?: string;
 };
 
 export type Department = {
@@ -59,6 +73,7 @@ export type Department = {
   images?: string[];
   treatments?: any[]; // JSONB data
   equipment?: any[]; // JSONB data
+  translations?: Translations;
   created_at: string;
 };
 
@@ -72,6 +87,10 @@ export type Doctor = {
   image: string;
   education: string;
   experience: string;
+  about?: string;
+  specialties?: string[];
+  is_active?: boolean;
+  translations?: Translations;
   created_at: string;
 };
 
@@ -83,10 +102,18 @@ export type HealthArticle = {
   image: string;
   date: string;
   views: number;
-  author_id: number;
+  author_id?: number;
+  author_name?: string;
+  author_title?: string;
+  author_image?: string;
   content: string;
   tags: string[];
   type: 'article' | 'video' | 'pdf';
+  is_published?: boolean;
+  excerpt?: string;
+  read_time?: string;
+  related_article_ids?: number[];
+  translations?: Translations;
   created_at: string;
 };
 
@@ -99,6 +126,20 @@ export type UserCredentials = {
 export type NewUser = UserCredentials & {
   full_name: string;
   phone?: string;
+};
+
+export type ManagementTeamMember = {
+  id: number;
+  name: string;
+  title: string;
+  role: 'board' | 'chief_physician' | 'assistant_chief' | 'health_care_manager' | 'it_unit' | 'general_manager_deputy' | 'financial_affairs_manager' | 'hospitality_services_manager' | 'quality_management_manager' | 'administrative';
+  department?: string;
+  doctor_id?: number | null;
+  image?: string;
+  display_order?: number;
+  is_active?: boolean;
+  created_at?: string;
+  doctor?: Doctor | null;
 };
 
 export type UserProfile = {

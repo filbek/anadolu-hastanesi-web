@@ -1,39 +1,74 @@
-import { supabase } from '../lib/supabase';
-import { 
-  createHospital, 
-  createDepartment, 
-  createDoctor, 
-  createHealthArticle 
-} from '../services';
+import { createHospital, createDepartment } from '../services';
 
-// Sample data for seeding the database
 const hospitals = [
   {
-    name: 'Anadolu Merkez Hastanesi',
-    slug: 'anadolu-merkez-hastanesi',
-    description: 'Modern teknoloji ve uzman kadrosuyla hizmet veren ana hastanemiz.',
-    address: 'Atatürk Bulvarı No:123, Şişli, İstanbul',
-    phone: '0212 123 45 67',
-    email: 'info@anadolumerkezhastanesi.com',
-    working_hours: 'Pazartesi - Cumartesi: 08:00 - 20:00, Pazar: 08:00 - 18:00',
-    emergency_hours: '24 saat hizmet vermektedir.',
+    name: 'Silivri Anadolu Hastanesi',
+    slug: 'silivri-anadolu-hastanesi',
+    description: 'Silivri ve çevresine modern tıp altyapısı ve uzman kadrosuyla kapsamlı sağlık hizmeti sunuyoruz.',
+    address: 'Alibey Mah. Atatürk Bulvarı No:42, Silivri / İstanbul',
+    phone: '0212 728 10 00',
+    email: 'silivri@anadoluhastaneleri.com',
+    working_hours: 'Pazartesi - Cumartesi: 08:00 - 20:00, Pazar: 09:00 - 18:00',
+    emergency_hours: '7/24 Acil Servis hizmet vermektedir.',
     images: [
-      'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=80',
     ],
+    display_on_homepage: true,
+    is_active: true,
+    display_order: 1,
+    meta_title: 'Silivri Anadolu Hastanesi | Anadolu Hastaneleri Grubu',
+    meta_description: 'Silivri Anadolu Hastanesi, modern teknoloji ve uzman kadrosuyla Silivri bölgesinde kaliteli sağlık hizmeti sunmaktadır.',
+    hero_title: 'Silivri Anadolu Hastanesi',
+    hero_subtitle: 'Modern Tıp, Güvenilir Hizmet',
+    map_url: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3007.386654996314!2d28.22231557684703!3d41.08239781485642!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14b515f472bcc11d%3A0xbd91d09240f204c5!2sMimar%20Sinan%2C%20%C3%96zel%20Silivri%20Anadolu%20Hst.%2C%2034570%20Silivri%2F%C4%B0stanbul%2C%20T%C3%BCrkiye!5e0!3m2!1str!2sus!4v1777931672976!5m2!1str!2sus',
+    is_published: true,
   },
   {
-    name: 'Anadolu Avrupa Hastanesi',
-    slug: 'anadolu-avrupa-hastanesi',
-    description: 'Avrupa yakasında bulunan modern ve tam donanımlı hastanemiz.',
-    address: 'Bağdat Caddesi No:456, Kadıköy, İstanbul',
-    phone: '0216 987 65 43',
-    email: 'info@anadoluavrupahastanesi.com',
-    working_hours: 'Pazartesi - Cumartesi: 08:00 - 20:00, Pazar: 08:00 - 18:00',
-    emergency_hours: '24 saat hizmet vermektedir.',
+    name: 'Avcılar Anadolu Hastanesi',
+    slug: 'avcilar-anadolu-hastanesi',
+    description: 'Avcılar ve çevre ilçelere yönelik geniş poliklinik kadrosu ve ileri tanı-tedavi altyapısıyla hizmet veriyoruz.',
+    address: 'Mustafa Kemal Paşa Firuzköy Bulvarı, Kayabaşı Sk. No:1/3, 34775 Avcılar/İstanbul',
+    phone: '0212 422 30 00',
+    email: 'avcilar@anadoluhastaneleri.com',
+    working_hours: 'Pazartesi - Cumartesi: 08:00 - 21:00, Pazar: 09:00 - 18:00',
+    emergency_hours: '7/24 Acil Servis hizmet vermektedir.',
     images: [
-      'https://images.unsplash.com/photo-1629909613654-28e377c37b09?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=1200&q=80',
     ],
+    display_on_homepage: true,
+    is_active: true,
+    display_order: 2,
+    meta_title: 'Avcılar Anadolu Hastanesi | Anadolu Hastaneleri Grubu',
+    meta_description: 'Avcılar Anadolu Hastanesi, alanında uzman doktorları ve modern ekipmanlarıyla Avcılar bölgesinde sağlığınız için çalışmaktadır.',
+    hero_title: 'Avcılar Anadolu Hastanesi',
+    hero_subtitle: 'Uzman Kadro, İleri Teknoloji',
+    map_url: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3010.8978427865204!2d28.703618176844707!3d41.00560911958805!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14caa0efa5046773%3A0xbec8de447c5d125b!2s%C3%96zel%20Avc%C4%B1lar%20Anadolu%20Hastanesi!5e0!3m2!1str!2sus!4v1777931645665!5m2!1str!2sus',
+    is_published: true,
+  },
+  {
+    name: 'Ereğli Anadolu Hastanesi',
+    slug: 'eregli-anadolu-hastanesi',
+    description: "Zonguldak Ereğli'de bölge halkına kapsamlı sağlık hizmeti sunan, tam donanımlı hastanemiz.",
+    address: 'Müftü Mah. Atatürk Cad. No:88, Ereğli / Zonguldak',
+    phone: '0372 316 20 00',
+    email: 'eregli@anadoluhastaneleri.com',
+    working_hours: 'Pazartesi - Cumartesi: 08:00 - 20:00, Pazar: 09:00 - 17:00',
+    emergency_hours: '7/24 Acil Servis hizmet vermektedir.',
+    images: [
+      'https://images.unsplash.com/photo-1551190822-a9333d879b1f?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=1200&q=80',
+    ],
+    display_on_homepage: true,
+    is_active: true,
+    display_order: 3,
+    meta_title: 'Ereğli Anadolu Hastanesi | Anadolu Hastaneleri Grubu',
+    meta_description: 'Ereğli Anadolu Hastanesi, Zonguldak Ereğli bölgesinde modern tıbbi hizmetler sunmaktadır.',
+    hero_title: 'Ereğli Anadolu Hastanesi',
+    hero_subtitle: 'Bölgenizde Güvenilir Sağlık',
+    map_url: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2998.5307934101097!2d31.425652492333697!3d41.275551028969225!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x409c5b4ae9271d45%3A0xb1c933e05f6a15d6!2s%C3%96zel%20Ere%C4%9Fli%20Anadolu%20Hastanesi!5e0!3m2!1str!2sus!4v1777931601704!5m2!1str!2sus',
+    is_published: true,
   },
 ];
 
@@ -42,54 +77,237 @@ const departments = [
     name: 'Kardiyoloji',
     slug: 'kardiyoloji',
     icon: 'bi-heart-pulse-fill',
-    description: 'Kalp ve damar hastalıklarının tanı ve tedavisi',
+    description: 'Kalp ve damar hastalıklarının tanı, tedavi ve takibinde uzman ekibimizle yanınızdayız.',
     category: 'dahili',
+    long_description: 'Kardiyoloji bölümümüz; koroner arter hastalıkları, kalp yetmezliği, hipertansiyon, aritmiler ve kapak hastalıklarının tanı ve tedavisinde ileri teknoloji kullanmaktadır. EKG, ekokardiografi, Holter monitörizasyon ve kardiyak stres testleri sunulmaktadır.',
+    meta_title: 'Kardiyoloji | Anadolu Hastaneleri Grubu',
+    meta_description: 'Anadolu Hastaneleri Grubu Kardiyoloji bölümü kalp hastalıklarında uzman tanı ve tedavi hizmetleri sunmaktadır.',
+    hero_title: 'Kardiyoloji Bölümü',
+    hero_subtitle: 'Kalp Sağlığınız Bizim Önceliğimiz',
+    is_published: true,
+    display_order: 1,
   },
   {
     name: 'Nöroloji',
     slug: 'noroloji',
     icon: 'bi-brain',
-    description: 'Sinir sistemi hastalıklarının tanı ve tedavisi',
+    description: 'Sinir sistemi hastalıklarının tanı ve tedavisinde deneyimli nöroloji uzmanlarımız hizmetinizde.',
     category: 'dahili',
+    long_description: 'Nöroloji bölümümüz; baş ağrısı, migren, epilepsi, inme, Parkinson, Alzheimer ve multipl skleroz hastalıklarının tanı ve tedavisinde uzmanlaşmıştır. EEG, EMG ve ileri görüntüleme hizmetleri mevcuttur.',
+    meta_title: 'Nöroloji | Anadolu Hastaneleri Grubu',
+    meta_description: 'Anadolu Hastaneleri Grubu Nöroloji bölümünde sinir sistemi hastalıklarınız için uzman tanı ve tedavi.',
+    hero_title: 'Nöroloji Bölümü',
+    hero_subtitle: 'Sinir Sistemi Sağlığınız İçin Uzman Ekip',
+    is_published: true,
+    display_order: 2,
   },
   {
-    name: 'Ortopedi',
-    slug: 'ortopedi',
+    name: 'Ortopedi ve Travmatoloji',
+    slug: 'ortopedi-ve-travmatoloji',
     icon: 'bi-person-standing',
-    description: 'Kemik, kas ve eklem hastalıklarının tanı ve tedavisi',
+    description: 'Kemik, eklem ve kas hastalıklarının cerrahi ve cerrahi dışı tedavisinde uzman kadromuzla hizmetinizdeyiz.',
     category: 'cerrahi',
+    long_description: 'Ortopedi ve Travmatoloji bölümümüz; kırıklar, eklem sorunları, omurga hastalıkları, spor yaralanmaları ve dejeneratif eklem hastalıklarının tedavisinde faaliyet göstermektedir. Artroskopik cerrahi ve eklem protezi alanlarında uzmanlaşmıştır.',
+    meta_title: 'Ortopedi ve Travmatoloji | Anadolu Hastaneleri Grubu',
+    meta_description: 'Kemik ve eklem sorunlarınız için Anadolu Hastaneleri Grubu Ortopedi bölümünden destek alın.',
+    hero_title: 'Ortopedi ve Travmatoloji',
+    hero_subtitle: 'Hareket Özgürlüğünüzü Geri Kazanın',
+    is_published: true,
+    display_order: 3,
+  },
+  {
+    name: 'Genel Cerrahi',
+    slug: 'genel-cerrahi',
+    icon: 'bi-scissors',
+    description: 'Abdominal ve genel cerrahi operasyonlarda laparoskopik ve açık cerrahi yöntemleriyle hizmet veriyoruz.',
+    category: 'cerrahi',
+    long_description: 'Genel Cerrahi bölümümüz; safra kesesi, apandisit, fıtık, tiroid, kolon-rektum ve meme cerrahilerinde laparoskopik ve açık cerrahi uygulamaktadır. Günübirlik cerrahi hizmetleri de sunulmaktadır.',
+    meta_title: 'Genel Cerrahi | Anadolu Hastaneleri Grubu',
+    meta_description: 'Anadolu Hastaneleri Grubu Genel Cerrahi bölümü modern cerrahi yöntemlerle güvenli operasyonlar gerçekleştirmektedir.',
+    hero_title: 'Genel Cerrahi Bölümü',
+    hero_subtitle: 'Modern Cerrahi, Hızlı İyileşme',
+    is_published: true,
+    display_order: 4,
+  },
+  {
+    name: 'Dahiliye (İç Hastalıkları)',
+    slug: 'dahiliye',
+    icon: 'bi-activity',
+    description: 'İç hastalıklarının tanı ve tedavisinde bütüncül yaklaşımımızla yanınızdayız.',
+    category: 'dahili',
+    long_description: 'Dahiliye bölümümüz; diyabet, hipertansiyon, tiroid hastalıkları, anemi, böbrek ve karaciğer hastalıkları ile genel sağlık kontrollerinde uzman hizmet sunmaktadır. Kronik hastalık yönetimi de önceliklerimiz arasındadır.',
+    meta_title: 'Dahiliye | Anadolu Hastaneleri Grubu',
+    meta_description: 'İç hastalıklarınız için Anadolu Hastaneleri Grubu Dahiliye bölümünden uzman yardım alın.',
+    hero_title: 'Dahiliye Bölümü',
+    hero_subtitle: 'Genel Sağlığınız İçin Kapsamlı Hizmet',
+    is_published: true,
+    display_order: 5,
+  },
+  {
+    name: 'Pediatri (Çocuk Sağlığı)',
+    slug: 'pediatri',
+    icon: 'bi-people-fill',
+    description: 'Çocuklarınızın sağlıklı büyümesi için pediatri uzmanlarımız her zaman yanınızda.',
+    category: 'dahili',
+    long_description: 'Pediatri bölümümüz; yenidoğandan ergenliğe kadar her yaş grubunda çocuk sağlığı ve hastalıkları konusunda uzman hizmet sunmaktadır. Aşılama, gelişim takibi ve çocuk beslenme danışmanlığı hizmetleri verilmektedir.',
+    meta_title: 'Pediatri | Anadolu Hastaneleri Grubu',
+    meta_description: 'Çocuğunuzun sağlığı için Anadolu Hastaneleri Grubu Pediatri bölümü yanınızdadır.',
+    hero_title: 'Pediatri Bölümü',
+    hero_subtitle: 'Minik Kalpler Bizim Önceliğimiz',
+    is_published: true,
+    display_order: 6,
+  },
+  {
+    name: 'Kadın Hastalıkları ve Doğum',
+    slug: 'kadin-hastaliklari-ve-dogum',
+    icon: 'bi-gender-female',
+    description: 'Kadın sağlığı ve doğum alanında deneyimli uzman ekibimizle güvenli ve konforlu hizmet sunuyoruz.',
+    category: 'cerrahi',
+    long_description: 'Kadın Hastalıkları ve Doğum bölümümüz; gebelik takibi, normal ve sezaryen doğum, jinekolojik hastalıklar, infertilite ve menopoz yönetimi konularında kapsamlı hizmet sunmaktadır.',
+    meta_title: 'Kadın Hastalıkları ve Doğum | Anadolu Hastaneleri Grubu',
+    meta_description: 'Kadın sağlığı ve doğum hizmetleri için Anadolu Hastaneleri Grubu yanınızdadır.',
+    hero_title: 'Kadın Hastalıkları ve Doğum',
+    hero_subtitle: 'Sağlıklı Yarınlar İçin Güvenli Ellerdeyiz',
+    is_published: true,
+    display_order: 7,
+  },
+  {
+    name: 'Göz Hastalıkları',
+    slug: 'goz-hastaliklari',
+    icon: 'bi-eye-fill',
+    description: 'Görme bozukluklarından retina hastalıklarına kadar göz sağlığınız için modern tanı ve tedavi yöntemleri.',
+    category: 'cerrahi',
+    long_description: 'Göz Hastalıkları bölümümüz; katarakt, glokom, şaşılık, retina hastalıkları ve refraktif cerrahi alanlarında uzman hizmet sunmaktadır. Fundus kamerası, OCT ve görme alanı analizi kullanılmaktadır.',
+    meta_title: 'Göz Hastalıkları | Anadolu Hastaneleri Grubu',
+    meta_description: 'Göz sağlığınız için Anadolu Hastaneleri Grubu Göz Hastalıkları bölümünden destek alın.',
+    hero_title: 'Göz Hastalıkları Bölümü',
+    hero_subtitle: 'Görme Sağlığınızı Koruyoruz',
+    is_published: true,
+    display_order: 8,
+  },
+  {
+    name: 'Kulak Burun Boğaz',
+    slug: 'kulak-burun-bogaz',
+    icon: 'bi-ear-fill',
+    description: 'KBB hastalıklarının tanı ve cerrahi tedavisinde uzman kadromuzla hizmetinizdeyiz.',
+    category: 'cerrahi',
+    long_description: 'Kulak Burun Boğaz bölümümüz; işitme kaybı, sinüzit, bademcik ve geniz eti hastalıkları, boyun kitleleri ve uyku apnesi tedavisinde uzmanlaşmıştır. Endoskopik sinüs cerrahisi uygulanmaktadır.',
+    meta_title: 'Kulak Burun Boğaz | Anadolu Hastaneleri Grubu',
+    meta_description: 'KBB sorunlarınız için Anadolu Hastaneleri Grubu uzman ekibinden yardım alın.',
+    hero_title: 'Kulak Burun Boğaz Bölümü',
+    hero_subtitle: 'İşitme ve Nefes Almanın Uzmanları',
+    is_published: true,
+    display_order: 9,
+  },
+  {
+    name: 'Üroloji',
+    slug: 'uroloji',
+    icon: 'bi-droplet-fill',
+    description: 'İdrar yolları ve üreme organı hastalıklarının tanı ve tedavisinde deneyimli uzman ekibimiz.',
+    category: 'cerrahi',
+    long_description: 'Üroloji bölümümüz; böbrek taşı, prostat hastalıkları, mesane sorunları ve erkek üreme sistemi hastalıklarının tedavisinde laparoskopik ve endoskopik yöntemler uygulamaktadır.',
+    meta_title: 'Üroloji | Anadolu Hastaneleri Grubu',
+    meta_description: 'Üroloji hastalıklarınız için Anadolu Hastaneleri Grubu Üroloji bölümünü tercih edin.',
+    hero_title: 'Üroloji Bölümü',
+    hero_subtitle: 'Ürolojik Sağlığınız İçin Uzman Yaklaşım',
+    is_published: true,
+    display_order: 10,
+  },
+  {
+    name: 'Dermatoloji',
+    slug: 'dermatoloji',
+    icon: 'bi-person-check-fill',
+    description: 'Cilt, saç ve tırnak hastalıklarının tanı ve tedavisinde estetik dermatoloji hizmetleriyle yanınızdayız.',
+    category: 'dahili',
+    long_description: 'Dermatoloji bölümümüz; egzama, sedef hastalığı, akne, cilt kanserleri, saç dökülmesi ve tırnak hastalıklarının yanı sıra lazer tedavileri gibi estetik dermatoloji hizmetleri sunmaktadır.',
+    meta_title: 'Dermatoloji | Anadolu Hastaneleri Grubu',
+    meta_description: 'Cilt sağlığınız için Anadolu Hastaneleri Grubu Dermatoloji bölümünden destek alın.',
+    hero_title: 'Dermatoloji Bölümü',
+    hero_subtitle: 'Sağlıklı ve Güzel Bir Cilt İçin',
+    is_published: true,
+    display_order: 11,
+  },
+  {
+    name: 'Radyoloji',
+    slug: 'radyoloji',
+    icon: 'bi-radioactive',
+    description: 'Röntgen, ultrason, MR ve BT görüntüleme hizmetleriyle doğru tanı için yüksek teknoloji.',
+    category: 'teshis',
+    long_description: 'Radyoloji bölümümüz; dijital röntgen, ultrasonografi, bilgisayarlı tomografi (BT), manyetik rezonans görüntüleme (MR) ve mamografi hizmetleri sunmaktadır. Deneyimli uzmanlarımız ayrıntılı raporlama ile diğer bölümlere destek olmaktadır.',
+    meta_title: 'Radyoloji | Anadolu Hastaneleri Grubu',
+    meta_description: 'İleri görüntüleme hizmetleri için Anadolu Hastaneleri Grubu Radyoloji bölümünü tercih edin.',
+    hero_title: 'Radyoloji Bölümü',
+    hero_subtitle: 'Doğru Tanı İçin İleri Görüntüleme',
+    is_published: true,
+    display_order: 12,
+  },
+  {
+    name: 'Laboratuvar',
+    slug: 'laboratuvar',
+    icon: 'bi-flask-fill',
+    description: 'Kan, idrar ve doku analizlerinde ISO standartlarında güvenilir sonuçlar sunuyoruz.',
+    category: 'teshis',
+    long_description: 'Laboratuvar bölümümüz; biyokimya, hematoloji, mikrobiyoloji, patoloji ve hormon testleri dahil kapsamlı hizmetler sunmaktadır. Modern otomasyon sistemleri ve kalite kontrol süreçleriyle güvenilir sonuçlar sağlanmaktadır.',
+    meta_title: 'Laboratuvar | Anadolu Hastaneleri Grubu',
+    meta_description: 'Güvenilir laboratuvar testleri için Anadolu Hastaneleri Grubu Laboratuvar bölümünü tercih edin.',
+    hero_title: 'Laboratuvar Bölümü',
+    hero_subtitle: 'Güvenilir Sonuçlar, Doğru Tanı',
+    is_published: true,
+    display_order: 13,
+  },
+  {
+    name: 'Fizik Tedavi ve Rehabilitasyon',
+    slug: 'fizik-tedavi-ve-rehabilitasyon',
+    icon: 'bi-person-walking',
+    description: 'Hareket kısıtlılığı ve ağrı sorunlarında kanıta dayalı fizik tedavi yöntemleriyle iyileşmenizi destekliyoruz.',
+    category: 'dahili',
+    long_description: 'Fizik Tedavi ve Rehabilitasyon bölümümüz; felç rehabilitasyonu, ortopedik rehabilitasyon, spor yaralanmaları tedavisi ve kronik ağrı yönetimi konularında hizmet vermektedir. Elektroterapi ve manuel terapi uygulanmaktadır.',
+    meta_title: 'Fizik Tedavi ve Rehabilitasyon | Anadolu Hastaneleri Grubu',
+    meta_description: 'Hareket kısıtlılığı ve ağrı sorunlarınız için Anadolu Hastaneleri Grubu Fizik Tedavi bölümünden destek alın.',
+    hero_title: 'Fizik Tedavi ve Rehabilitasyon',
+    hero_subtitle: 'Hareket Edin, Yaşayın',
+    is_published: true,
+    display_order: 14,
+  },
+  {
+    name: 'Psikiyatri',
+    slug: 'psikiyatri',
+    icon: 'bi-emoji-smile-fill',
+    description: 'Ruh sağlığı ve psikiyatrik bozuklukların tanı ve tedavisinde gizlilik ilkesiyle hizmet veriyoruz.',
+    category: 'dahili',
+    long_description: 'Psikiyatri bölümümüz; depresyon, anksiyete, bipolar bozukluk, OKB ve madde bağımlılığı tedavisinde uzman hizmet sunmaktadır. Bireysel terapi ve ilaç yönetimi uygulanmaktadır.',
+    meta_title: 'Psikiyatri | Anadolu Hastaneleri Grubu',
+    meta_description: 'Ruh sağlığınız için Anadolu Hastaneleri Grubu Psikiyatri bölümünden destek alın.',
+    hero_title: 'Psikiyatri Bölümü',
+    hero_subtitle: 'Ruh Sağlığınız İçin Güvenli Alan',
+    is_published: true,
+    display_order: 15,
   },
 ];
 
-// This function can be called to seed the database with initial data
-export async function seedDatabase() {
-  try {
-    console.log('Seeding database...');
-    
-    // Insert hospitals
-    for (const hospital of hospitals) {
-      const { data, error } = await createHospital(hospital);
-      if (error) {
-        console.error(`Error creating hospital ${hospital.name}:`, error);
-      } else {
-        console.log(`Created hospital: ${hospital.name}`);
-      }
+export async function seedDatabase(): Promise<{ success: boolean; message: string }> {
+  const results = { hospitals: 0, departments: 0, errors: 0 };
+
+  for (const hospital of hospitals) {
+    const { error } = await createHospital(hospital as any);
+    if (error) {
+      console.error(`Hastane oluşturulamadı: ${hospital.name}`, error);
+      results.errors++;
+    } else {
+      results.hospitals++;
     }
-    
-    // Insert departments
-    for (const department of departments) {
-      const { data, error } = await createDepartment(department);
-      if (error) {
-        console.error(`Error creating department ${department.name}:`, error);
-      } else {
-        console.log(`Created department: ${department.name}`);
-      }
-    }
-    
-    console.log('Database seeded successfully');
-    return true;
-  } catch (error) {
-    console.error('Error seeding database:', error);
-    return false;
   }
+
+  for (const department of departments) {
+    const { error } = await createDepartment(department as any);
+    if (error) {
+      console.error(`Bölüm oluşturulamadı: ${department.name}`, error);
+      results.errors++;
+    } else {
+      results.departments++;
+    }
+  }
+
+  const message = `${results.hospitals} hastane ve ${results.departments} bölüm eklendi.${results.errors > 0 ? ` ${results.errors} hata oluştu.` : ''}`;
+  return { success: results.errors === 0, message };
 }

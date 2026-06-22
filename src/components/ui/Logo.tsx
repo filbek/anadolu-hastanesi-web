@@ -1,37 +1,53 @@
 import { useState, useEffect } from 'react'
+import { supabase } from '../../lib/supabase'
 
 interface LogoProps {
   variant?: 'default' | 'white'
   clickable?: boolean
+  size?: 'default' | 'large'
 }
 
-const Logo = ({ variant = 'default', clickable = true }: LogoProps) => {
+const Logo = ({ variant = 'default', clickable = true, size = 'default' }: LogoProps) => {
   const [customLogo, setCustomLogo] = useState<string>('')
-  const textColor = variant === 'white' ? 'text-white' : 'text-primary'
+  const isLarge = size === 'large'
+  const isWhite = variant === 'white'
+
+  const defaultLogo = "https://www.anadoluhastaneleri.com/img/anadolu-hastanesi-logo.png"
 
   useEffect(() => {
-    // Load custom logo from localStorage or API
-    const savedLogo = localStorage.getItem('site_logo_url')
-    if (savedLogo) {
-      setCustomLogo(savedLogo)
+    const fetchLogo = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('site_settings')
+          .select('logo_url')
+          .single()
+
+        if (error) throw error
+        if (data?.logo_url) {
+          setCustomLogo(data.logo_url)
+        }
+      } catch (err) {
+        // Supabase erişiminde hata olursa localStorage'dan dene
+        const cachedLogo = localStorage.getItem('site_logo_url')
+        if (cachedLogo) {
+          setCustomLogo(cachedLogo)
+        }
+        console.error('Logo fetch error:', err)
+      }
     }
+
+    fetchLogo()
   }, [])
 
-  const logoContent = customLogo ? (
+  const logoContent = (
     <img
-      src={customLogo}
+      src={customLogo || defaultLogo}
       alt="Anadolu Hastaneleri"
-      className="h-full w-auto object-contain max-h-14"
-      onError={() => setCustomLogo('')} // Fallback to default if image fails
+      className={`h-full w-auto object-contain ${isLarge ? 'max-h-16' : 'max-h-12'} ${isWhite && !customLogo ? 'brightness-0 invert' : ''}`}
+      referrerPolicy="no-referrer"
+      crossOrigin="anonymous"
+      onError={() => setCustomLogo('')}
     />
-  ) : (
-    <div className="flex items-center">
-      <i className={`bi bi-hospital text-2xl ${variant === 'white' ? 'text-white' : 'text-accent'} mr-2`}></i>
-      <div className="flex flex-col">
-        <span className={`font-bold text-xl leading-tight ${textColor}`}>Anadolu</span>
-        <span className={`font-medium text-sm leading-tight ${textColor} opacity-90`}>Hastaneleri</span>
-      </div>
-    </div>
   )
 
   if (!clickable) {

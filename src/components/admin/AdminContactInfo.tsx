@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FaSave, FaPhone, FaMapMarkerAlt, FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
 
@@ -20,6 +21,7 @@ interface ContactInfo {
 }
 
 const AdminContactInfo = () => {
+  const { t } = useTranslation();
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
     main_phone: '+90 212 123 45 67',
     emergency_phone: '+90 212 123 45 68',
@@ -93,10 +95,10 @@ const AdminContactInfo = () => {
         setContactInfo(data);
       }
 
-      alert('İletişim bilgileri başarıyla kaydedildi!');
+      alert(t('admin.contactInfo.saved', 'İletişim bilgileri başarıyla kaydedildi!'));
     } catch (error) {
       console.error('Error saving contact info:', error);
-      alert('İletişim bilgileri kaydedilirken hata oluştu!');
+      alert(t('admin.contactInfo.saveError', 'İletişim bilgileri kaydedilirken hata oluştu!'));
     } finally {
       setSaving(false);
     }
@@ -120,14 +122,14 @@ const AdminContactInfo = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-primary">İletişim Bilgileri</h1>
+        <h1 className="text-2xl font-semibold text-primary">{t('admin.contactInfo.title', 'İletişim Bilgileri')}</h1>
         <button
           onClick={saveContactInfo}
           disabled={saving}
           className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center disabled:opacity-50"
         >
           <FaSave className="mr-2" />
-          {saving ? 'Kaydediliyor...' : 'Kaydet'}
+          {saving ? t('admin.saving', 'Kaydediliyor...') : t('admin.save', 'Kaydet')}
         </button>
       </div>
 
@@ -136,13 +138,13 @@ const AdminContactInfo = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
             <FaPhone className="mr-2" />
-            Temel İletişim
+            {t('admin.contactInfo.basicContact', 'Temel İletişim')}
           </h2>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Ana Telefon
+                {t('admin.label.mainPhone', 'Ana Telefon')}
               </label>
               <input
                 type="text"
@@ -154,7 +156,7 @@ const AdminContactInfo = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Acil Telefon
+                {t('admin.label.emergencyPhone', 'Acil Telefon')}
               </label>
               <input
                 type="text"
@@ -166,7 +168,7 @@ const AdminContactInfo = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                E-posta
+                {t('admin.label.email', 'E-posta')}
               </label>
               <input
                 type="email"
@@ -178,7 +180,7 @@ const AdminContactInfo = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                WhatsApp
+                {t('admin.label.whatsapp', 'WhatsApp')}
               </label>
               <input
                 type="text"
@@ -194,13 +196,13 @@ const AdminContactInfo = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
             <FaMapMarkerAlt className="mr-2" />
-            Adres ve Saatler
+            {t('admin.contactInfo.addressAndHours', 'Adres ve Saatler')}
           </h2>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Adres
+                {t('admin.label.address', 'Adres')}
               </label>
               <textarea
                 value={contactInfo.address}
@@ -212,7 +214,7 @@ const AdminContactInfo = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Çalışma Saatleri
+                {t('admin.label.workingHours', 'Çalışma Saatleri')}
               </label>
               <textarea
                 value={contactInfo.working_hours}
@@ -224,7 +226,7 @@ const AdminContactInfo = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Acil Servis Saatleri
+                {t('admin.label.emergencyHours', 'Acil Servis Saatleri')}
               </label>
               <input
                 type="text"
@@ -239,7 +241,7 @@ const AdminContactInfo = () => {
         {/* Sosyal Medya */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-lg font-semibold text-primary mb-4">
-            Sosyal Medya
+            {t('admin.contactInfo.socialMedia', 'Sosyal Medya')}
           </h2>
 
           <div className="space-y-4">
@@ -305,7 +307,7 @@ const AdminContactInfo = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Google Maps Embed Kodu
+              {t('admin.label.googleMapsEmbed', 'Google Maps Embed Kodu')}
             </label>
             <textarea
               value={contactInfo.google_maps_embed}
@@ -315,7 +317,7 @@ const AdminContactInfo = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             />
             <p className="text-sm text-gray-500 mt-1">
-              Google Maps'ten "Embed a map" seçeneğini kullanarak iframe kodunu buraya yapıştırın.
+              {t('admin.contactInfo.googleMapsHelp', 'Google Maps\'ten "Embed a map" seçeneğini kullanarak iframe kodunu buraya yapıştırın.')}
             </p>
           </div>
         </div>
@@ -323,23 +325,23 @@ const AdminContactInfo = () => {
 
       {/* Preview */}
       <div className="mt-8 bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Önizleme</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">{t('admin.preview', 'Önizleme')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
           <div>
-            <h4 className="font-medium text-gray-700 mb-2">Telefon Bilgileri</h4>
-            <p className="text-gray-600">Ana: {contactInfo.main_phone}</p>
-            <p className="text-gray-600">Acil: {contactInfo.emergency_phone}</p>
+            <h4 className="font-medium text-gray-700 mb-2">{t('admin.label.phoneInfo', 'Telefon Bilgileri')}</h4>
+            <p className="text-gray-600">{t('admin.label.main', 'Ana')}: {contactInfo.main_phone}</p>
+            <p className="text-gray-600">{t('admin.label.emergency', 'Acil')}: {contactInfo.emergency_phone}</p>
             <p className="text-gray-600">WhatsApp: {contactInfo.whatsapp}</p>
           </div>
           <div>
-            <h4 className="font-medium text-gray-700 mb-2">İletişim</h4>
+            <h4 className="font-medium text-gray-700 mb-2">{t('admin.label.contact', 'İletişim')}</h4>
             <p className="text-gray-600">{contactInfo.email}</p>
             <p className="text-gray-600 whitespace-pre-line">{contactInfo.address}</p>
           </div>
           <div>
-            <h4 className="font-medium text-gray-700 mb-2">Çalışma Saatleri</h4>
+            <h4 className="font-medium text-gray-700 mb-2">{t('admin.label.workingHours', 'Çalışma Saatleri')}</h4>
             <p className="text-gray-600 whitespace-pre-line">{contactInfo.working_hours}</p>
-            <p className="text-gray-600">Acil: {contactInfo.emergency_hours}</p>
+            <p className="text-gray-600">{t('admin.label.emergency', 'Acil')}: {contactInfo.emergency_hours}</p>
           </div>
         </div>
       </div>

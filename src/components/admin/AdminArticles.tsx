@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaEye, FaFileAlt, FaVideo, FaFilePdf } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
 import type { HealthArticle } from '../../lib/supabase';
 
 const AdminArticles = () => {
+  const { t } = useTranslation();
   const [articles, setArticles] = useState<HealthArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,7 +35,7 @@ const AdminArticles = () => {
   };
 
   const deleteArticle = async (id: number) => {
-    if (!confirm('Bu makaleyi silmek istediğinizden emin misiniz?')) return;
+    if (!confirm(t('admin.confirmDeleteArticle', 'Bu makaleyi silmek istediğinizden emin misiniz?'))) return;
 
     try {
       const { error } = await supabase
@@ -44,10 +46,10 @@ const AdminArticles = () => {
       if (error) throw error;
 
       setArticles(articles.filter(article => article.id !== id));
-      alert('Makale başarıyla silindi!');
+      alert(t('admin.articleDeleted', 'Makale başarıyla silindi!'));
     } catch (error) {
       console.error('Error deleting article:', error);
-      alert('Makale silinirken hata oluştu!');
+      alert(t('admin.articleDeleteError', 'Makale silinirken hata oluştu!'));
     }
   };
 
@@ -89,9 +91,9 @@ const AdminArticles = () => {
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'video': return 'Video';
-      case 'pdf': return 'PDF';
-      default: return 'Makale';
+      case 'video': return t('admin.type.video', 'Video');
+      case 'pdf': return t('admin.type.pdf', 'PDF');
+      default: return t('admin.type.article', 'Makale');
     }
   };
 
@@ -106,13 +108,13 @@ const AdminArticles = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-primary">Makale Yönetimi</h1>
+        <h1 className="text-2xl font-semibold text-primary">{t('admin.articles.title', 'Makale Yönetimi')}</h1>
         <Link
           to="/admin/articles/new"
           className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center"
         >
           <FaPlus className="mr-2" />
-          Yeni Makale
+          {t('admin.articles.new', 'Yeni Makale')}
         </Link>
       </div>
 
@@ -123,7 +125,7 @@ const AdminArticles = () => {
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Makale ara..."
+              placeholder={t('admin.articles.searchPlaceholder', 'Makale ara...')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -134,7 +136,7 @@ const AdminArticles = () => {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           >
-            <option value="all">Tüm Kategoriler</option>
+            <option value="all">{t('admin.allCategories', 'Tüm Kategoriler')}</option>
             {categories.filter(cat => cat !== 'all').map(category => (
               <option key={category} value={category}>
                 {category}
@@ -146,7 +148,7 @@ const AdminArticles = () => {
             onChange={(e) => setSelectedType(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           >
-            <option value="all">Tüm Türler</option>
+            <option value="all">{t('admin.allTypes', 'Tüm Türler')}</option>
             {types.filter(type => type !== 'all').map(type => (
               <option key={type} value={type}>
                 {getTypeLabel(type)}
@@ -221,7 +223,7 @@ const AdminArticles = () => {
                 <button
                   onClick={() => updateViews(article.id, article.views || 0)}
                   className="text-primary hover:text-primary-dark transition-colors"
-                  title="Görüntüleme sayısını artır"
+                  title={t('admin.articles.increaseViews', 'Görüntüleme sayısını artır')}
                 >
                   <FaEye />
                 </button>
@@ -239,7 +241,7 @@ const AdminArticles = () => {
                   ))}
                   {article.tags.length > 3 && (
                     <span className="text-xs text-gray-500">
-                      +{article.tags.length - 3} daha
+                      +{article.tags.length - 3} {t('admin.more', 'daha')}
                     </span>
                   )}
                 </div>
@@ -252,18 +254,18 @@ const AdminArticles = () => {
       {filteredArticles.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">📰</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Makale bulunamadı</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.articles.notFound', 'Makale bulunamadı')}</h3>
           <p className="text-gray-500 mb-4">
             {searchTerm || selectedCategory !== 'all' || selectedType !== 'all'
-              ? 'Arama kriterlerinize uygun makale bulunamadı.'
-              : 'Henüz hiç makale eklenmemiş.'}
+              ? t('admin.searchNoResults', 'Arama kriterlerinize uygun makale bulunamadı.')
+              : t('admin.articles.empty', 'Henüz hiç makale eklenmemiş.')}
           </p>
           <Link
             to="/admin/articles/new"
             className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors inline-flex items-center"
           >
             <FaPlus className="mr-2" />
-            İlk Makaleyi Ekle
+            {t('admin.articles.addFirst', 'İlk Makaleyi Ekle')}
           </Link>
         </div>
       )}

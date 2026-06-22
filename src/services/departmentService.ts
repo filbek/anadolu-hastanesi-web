@@ -1,9 +1,10 @@
 import { supabase, Department } from '../lib/supabase';
+import { createAuditLog } from './auditLogService';
 
 export async function getDepartments(options: { onlyPublished?: boolean } = {}): Promise<Department[]> {
   try {
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Bölümler yüklenirken zaman aşımı oluştu.')), 15000)
+      setTimeout(() => reject(new Error('Bölümler yüklenirken zaman aşımı oluştu.')), 20000)
     );
 
     let query = supabase
@@ -19,10 +20,11 @@ export async function getDepartments(options: { onlyPublished?: boolean } = {}):
     const { data, error } = await Promise.race([query, timeoutPromise]) as any;
 
     if (error) {
-      console.error('Error fetching departments:', error);
+      console.error('🔴 [departmentService] Supabase error:', error.code, error.message, error.hint);
       return [];
     }
 
+    console.log(`✅ [departmentService] Fetched ${data?.length ?? 0} departments`);
     return (data as Department[]) || [];
   } catch (err) {
     console.error('Fetch departments timeout or exception:', err);
@@ -45,6 +47,21 @@ export async function getDepartmentBySlug(slug: string): Promise<Department | nu
   return data as Department;
 }
 
+export async function getDepartmentByName(name: string): Promise<Department | null> {
+  const { data, error } = await supabase
+    .from('departments')
+    .select('*')
+    .ilike('name', name)
+    .single();
+
+  if (error) {
+    console.error(`Error fetching department with name ${name}:`, error);
+    return null;
+  }
+
+  return data as Department;
+}
+
 export async function createDepartment(department: Omit<Department, 'id' | 'created_at'>) {
   const { data, error } = await supabase
     .from('departments')
@@ -56,6 +73,7 @@ export async function createDepartment(department: Omit<Department, 'id' | 'crea
     return { error, data: null };
   }
 
+  await createAuditLog({ action: 'CREATE', entity_type: 'departments', entity_id: data[0].id, details: { name: department.name } });
   return { data, error: null };
 }
 
@@ -71,6 +89,7 @@ export async function updateDepartment(id: number, updates: Partial<Department>)
     return { error, data: null };
   }
 
+  await createAuditLog({ action: 'UPDATE', entity_type: 'departments', entity_id: id, details: updates });
   return { data, error: null };
 }
 
@@ -85,6 +104,7 @@ export async function deleteDepartment(id: number) {
     return { error };
   }
 
+  await createAuditLog({ action: 'DELETE', entity_type: 'departments', entity_id: id, details: {} });
   return { error: null };
 }
 
@@ -95,7 +115,7 @@ export async function uploadDepartmentImage(file: File): Promise<{ url: string |
     const filePath = `department-images/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('hospital-images') // Reusing the same bucket for simplicity, or should I create a new one?
+      .from('hospital-images')
       .upload(filePath, file);
 
     if (uploadError) {

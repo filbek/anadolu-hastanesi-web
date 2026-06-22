@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaDownload, FaFileAlt, FaSave } from 'react-icons/fa';
 
 interface PatientDocument {
@@ -15,6 +16,7 @@ interface PatientDocument {
 }
 
 const AdminPatientInfo = () => {
+  const { t } = useTranslation();
   const [documents, setDocuments] = useState<PatientDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,13 +34,13 @@ const AdminPatientInfo = () => {
   });
 
   const categories = [
-    { value: 'all', label: 'Tüm Kategoriler' },
-    { value: 'ameliyat', label: 'Ameliyat Öncesi/Sonrası' },
-    { value: 'taburcu', label: 'Taburcu Bilgileri' },
-    { value: 'tedavi', label: 'Tedavi Süreçleri' },
-    { value: 'beslenme', label: 'Beslenme Rehberleri' },
-    { value: 'ilaç', label: 'İlaç Kullanımı' },
-    { value: 'genel', label: 'Genel Bilgiler' }
+    { value: 'all', label: t('admin.patientInfo.allCategories', 'Tüm Kategoriler') },
+    { value: 'ameliyat', label: t('admin.patientInfo.categorySurgery', 'Ameliyat Öncesi/Sonrası') },
+    { value: 'taburcu', label: t('admin.patientInfo.categoryDischarge', 'Taburcu Bilgileri') },
+    { value: 'tedavi', label: t('admin.patientInfo.categoryTreatment', 'Tedavi Süreçleri') },
+    { value: 'beslenme', label: t('admin.patientInfo.categoryNutrition', 'Beslenme Rehberleri') },
+    { value: 'ilaç', label: t('admin.patientInfo.categoryMedication', 'İlaç Kullanımı') },
+    { value: 'genel', label: t('admin.patientInfo.categoryGeneral', 'Genel Bilgiler') }
   ];
 
   useEffect(() => {
@@ -172,22 +174,22 @@ const AdminPatientInfo = () => {
         display_order: documents.length + 1
       });
 
-      alert(editingDocument ? 'Belge güncellendi!' : 'Belge eklendi!');
+      alert(editingDocument ? t('admin.documentUpdated', 'Belge güncellendi!') : t('admin.documentAdded', 'Belge eklendi!'));
     } catch (error) {
       console.error('Error saving document:', error);
-      alert('Belge kaydedilirken hata oluştu!');
+      alert(t('admin.documentSaveError', 'Belge kaydedilirken hata oluştu!'));
     }
   };
 
   const deleteDocument = async (id: number) => {
-    if (!confirm('Bu belgeyi silmek istediğinizden emin misiniz?')) return;
+    if (!confirm(t('admin.confirmDeleteDocument', 'Bu belgeyi silmek istediğinizden emin misiniz?'))) return;
 
     try {
       setDocuments(documents.filter(doc => doc.id !== id));
-      alert('Belge silindi!');
+      alert(t('admin.documentDeleted', 'Belge silindi!'));
     } catch (error) {
       console.error('Error deleting document:', error);
-      alert('Belge silinirken hata oluştu!');
+      alert(t('admin.documentDeleteError', 'Belge silinirken hata oluştu!'));
     }
   };
 
@@ -223,7 +225,7 @@ const AdminPatientInfo = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-primary">Hasta Bilgilendirme Belgeleri</h1>
+        <h1 className="text-2xl font-semibold text-primary">{t('admin.patientInfo.title', 'Hasta Bilgilendirme Belgeleri')}</h1>
         <button
           onClick={() => {
             setShowForm(true);
@@ -241,7 +243,7 @@ const AdminPatientInfo = () => {
           className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center"
         >
           <FaPlus className="mr-2" />
-          Yeni Belge
+          {t('admin.patientInfo.new', 'Yeni Belge')}
         </button>
       </div>
 
@@ -252,7 +254,7 @@ const AdminPatientInfo = () => {
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Belge ara..."
+              placeholder={t('admin.patientInfo.searchPlaceholder', 'Belge ara...')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -279,22 +281,22 @@ const AdminPatientInfo = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Belge
+                  {t('admin.label.document', 'Belge')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Kategori
+                  {t('admin.label.category', 'Kategori')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Boyut
+                  {t('admin.label.size', 'Boyut')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Durum
+                  {t('admin.label.status', 'Durum')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sıra
+                  {t('admin.label.order', 'Sıra')}
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  İşlemler
+                  {t('admin.label.actions', 'İşlemler')}
                 </th>
               </tr>
             </thead>
@@ -323,7 +325,7 @@ const AdminPatientInfo = () => {
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
                       }`}>
-                      {document.is_published ? 'Yayında' : 'Taslak'}
+                      {document.is_published ? t('admin.published', 'Yayında') : t('admin.draft', 'Taslak')}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -333,21 +335,21 @@ const AdminPatientInfo = () => {
                     <button
                       onClick={() => window.open(document.file_url, '_blank')}
                       className="text-green-600 hover:text-green-800 transition-colors"
-                      title="İndir"
+                      title={t('admin.download', 'İndir')}
                     >
                       <FaDownload />
                     </button>
                     <button
                       onClick={() => editDocument(document)}
                       className="text-blue-600 hover:text-blue-800 transition-colors"
-                      title="Düzenle"
+                      title={t('admin.edit', 'Düzenle')}
                     >
                       <FaEdit />
                     </button>
                     <button
                       onClick={() => deleteDocument(document.id)}
                       className="text-red-600 hover:text-red-800 transition-colors"
-                      title="Sil"
+                      title={t('admin.delete', 'Sil')}
                     >
                       <FaTrash />
                     </button>
@@ -362,18 +364,18 @@ const AdminPatientInfo = () => {
       {filteredDocuments.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">📄</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Belge bulunamadı</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.patientInfo.notFound', 'Belge bulunamadı')}</h3>
           <p className="text-gray-500 mb-4">
             {searchTerm || selectedCategory !== 'all'
-              ? 'Arama kriterlerinize uygun belge bulunamadı.'
-              : 'Henüz hiç belge eklenmemiş.'}
+              ? t('admin.searchNoResults', 'Arama kriterlerinize uygun belge bulunamadı.')
+              : t('admin.patientInfo.empty', 'Henüz hiç belge eklenmemiş.')}
           </p>
           <button
             onClick={() => setShowForm(true)}
             className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors inline-flex items-center"
           >
             <FaPlus className="mr-2" />
-            İlk Belgeyi Ekle
+            {t('admin.patientInfo.addFirst', 'İlk Belgeyi Ekle')}
           </button>
         </div>
       )}
@@ -383,13 +385,13 @@ const AdminPatientInfo = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-semibold mb-4">
-              {editingDocument ? 'Belge Düzenle' : 'Yeni Belge'}
+              {editingDocument ? t('admin.patientInfo.edit', 'Belge Düzenle') : t('admin.patientInfo.new', 'Yeni Belge')}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Belge Başlığı
+                  {t('admin.label.documentTitle', 'Belge Başlığı')}
                 </label>
                 <input
                   type="text"
@@ -402,7 +404,7 @@ const AdminPatientInfo = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Açıklama
+                  {t('admin.label.description', 'Açıklama')}
                 </label>
                 <textarea
                   value={formData.description}
@@ -416,7 +418,7 @@ const AdminPatientInfo = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Kategori
+                    {t('admin.label.category', 'Kategori')}
                   </label>
                   <select
                     value={formData.category}
@@ -433,7 +435,7 @@ const AdminPatientInfo = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Dosya Boyutu
+                    {t('admin.label.fileSize', 'Dosya Boyutu')}
                   </label>
                   <input
                     type="text"
@@ -448,7 +450,7 @@ const AdminPatientInfo = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Dosya URL
+                  {t('admin.label.fileUrl', 'Dosya URL')}
                 </label>
                 <input
                   type="url"
@@ -463,7 +465,7 @@ const AdminPatientInfo = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Görüntüleme Sırası
+                    {t('admin.label.displayOrder', 'Görüntüleme Sırası')}
                   </label>
                   <input
                     type="number"
@@ -484,7 +486,7 @@ const AdminPatientInfo = () => {
                     className="mr-2"
                   />
                   <label htmlFor="is_published" className="text-sm font-medium text-gray-700">
-                    Yayında
+                    {t('admin.label.published', 'Yayında')}
                   </label>
                 </div>
               </div>
@@ -495,14 +497,14 @@ const AdminPatientInfo = () => {
                   onClick={() => setShowForm(false)}
                   className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  İptal
+                  {t('admin.cancel', 'İptal')}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark flex items-center"
                 >
                   <FaSave className="mr-2" />
-                  {editingDocument ? 'Güncelle' : 'Oluştur'}
+                  {editingDocument ? t('admin.update', 'Güncelle') : t('admin.create', 'Oluştur')}
                 </button>
               </div>
             </form>

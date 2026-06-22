@@ -1,9 +1,10 @@
 import { supabase, Doctor } from '../lib/supabase';
+import { createAuditLog } from './auditLogService';
 
 export async function getDoctors(): Promise<Doctor[]> {
   try {
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Doktorlar yüklenirken zaman aşımı oluştu.')), 15000)
+      setTimeout(() => reject(new Error('Doktorlar yüklenirken zaman aşımı oluştu.')), 8000)
     );
 
     const fetchPromise = supabase
@@ -13,6 +14,7 @@ export async function getDoctors(): Promise<Doctor[]> {
         departments:department_id(name, slug),
         hospitals:hospital_id(name, slug)
       `)
+      .eq('is_active', true)
       .order('name');
 
     const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
@@ -38,6 +40,7 @@ export async function getDoctorsByDepartment(departmentId: number): Promise<Doct
       hospitals:hospital_id(name, slug)
     `)
     .eq('department_id', departmentId)
+    .eq('is_active', true)
     .order('name');
 
   if (error) {
@@ -57,6 +60,7 @@ export async function getDoctorsByHospital(hospitalId: number): Promise<Doctor[]
       hospitals:hospital_id(name, slug)
     `)
     .eq('hospital_id', hospitalId)
+    .eq('is_active', true)
     .order('name');
 
   if (error) {
@@ -76,6 +80,7 @@ export async function getDoctorBySlug(slug: string): Promise<Doctor | null> {
       hospitals:hospital_id(name, slug)
     `)
     .eq('slug', slug)
+    .eq('is_active', true)
     .single();
 
   if (error) {
@@ -96,7 +101,9 @@ export async function createDoctor(doctor: Omit<Doctor, 'id' | 'created_at'>) {
     console.error('Error creating doctor:', error);
     return { error, data: null };
   }
-
+  if (data && data[0]) {
+    await createAuditLog({ action: 'CREATE', entity_type: 'doctors', entity_id: data[0].id, details: { name: doctor.name, slug: doctor.slug } });
+  }
   return { data, error: null };
 }
 
@@ -111,7 +118,7 @@ export async function updateDoctor(id: number, updates: Partial<Doctor>) {
     console.error(`Error updating doctor with id ${id}:`, error);
     return { error, data: null };
   }
-
+  await createAuditLog({ action: 'UPDATE', entity_type: 'doctors', entity_id: id, details: updates });
   return { data, error: null };
 }
 
@@ -125,7 +132,7 @@ export async function deleteDoctor(id: number) {
     console.error(`Error deleting doctor with id ${id}:`, error);
     return { error };
   }
-
+  await createAuditLog({ action: 'DELETE', entity_type: 'doctors', entity_id: id, details: {} });
   return { error: null };
 }
 

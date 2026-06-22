@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaUser } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaUser, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
 import type { Doctor, Department, Hospital } from '../../lib/supabase';
 
@@ -10,6 +11,7 @@ interface DoctorWithRelations extends Doctor {
 }
 
 const AdminDoctors = () => {
+  const { t } = useTranslation();
   const [doctors, setDoctors] = useState<DoctorWithRelations[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
@@ -65,7 +67,7 @@ const AdminDoctors = () => {
   };
 
   const deleteDoctor = async (id: number) => {
-    if (!confirm('Bu doktoru silmek istediğinizden emin misiniz?')) return;
+    if (!confirm(t('admin.confirmDeleteDoctor', 'Bu doktoru silmek istediğinizden emin misiniz?'))) return;
 
     try {
       const { error } = await supabase
@@ -76,10 +78,32 @@ const AdminDoctors = () => {
       if (error) throw error;
 
       setDoctors(doctors.filter(doctor => doctor.id !== id));
-      alert('Doktor başarıyla silindi!');
+      alert(t('admin.doctorDeleted', 'Doktor başarıyla silindi!'));
     } catch (error) {
       console.error('Error deleting doctor:', error);
-      alert('Doktor silinirken hata oluştu!');
+      alert(t('admin.doctorDeleteError', 'Doktor silinirken hata oluştu!'));
+    }
+  };
+
+  const toggleDoctorStatus = async (id: number, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('doctors')
+        .update({ is_active: !currentStatus })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Supabase error details:', error);
+        alert(t('admin.doctorStatusError', 'Durum güncellenirken hata oluştu!') + '\n' + (error.message || ''));
+        return;
+      }
+
+      setDoctors(doctors.map(doctor =>
+        doctor.id === id ? { ...doctor, is_active: !currentStatus } : doctor
+      ));
+    } catch (error: any) {
+      console.error('Error toggling doctor status:', error);
+      alert(t('admin.doctorStatusError', 'Durum güncellenirken hata oluştu!') + '\n' + (error?.message || ''));
     }
   };
 
@@ -102,13 +126,13 @@ const AdminDoctors = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-primary">Doktor Yönetimi</h1>
+        <h1 className="text-2xl font-semibold text-primary">{t('admin.doctors.title', 'Doktor Yönetimi')}</h1>
         <Link
           to="/admin/doctors/new"
           className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center"
         >
           <FaPlus className="mr-2" />
-          Yeni Doktor
+          {t('admin.doctors.new', 'Yeni Doktor')}
         </Link>
       </div>
 
@@ -119,7 +143,7 @@ const AdminDoctors = () => {
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Doktor ara..."
+              placeholder={t('admin.doctors.searchPlaceholder', 'Doktor ara...')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -130,7 +154,7 @@ const AdminDoctors = () => {
             onChange={(e) => setSelectedDepartment(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           >
-            <option value="all">Tüm Bölümler</option>
+            <option value="all">{t('admin.allDepartments', 'Tüm Bölümler')}</option>
             {departments.map(dept => (
               <option key={dept.id} value={dept.id.toString()}>
                 {dept.name}
@@ -142,7 +166,7 @@ const AdminDoctors = () => {
             onChange={(e) => setSelectedHospital(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           >
-            <option value="all">Tüm Hastaneler</option>
+            <option value="all">{t('admin.allHospitals', 'Tüm Hastaneler')}</option>
             {hospitals.map(hospital => (
               <option key={hospital.id} value={hospital.id.toString()}>
                 {hospital.name}
@@ -168,7 +192,14 @@ const AdminDoctors = () => {
                   <FaUser className="text-primary text-2xl" />
                 )}
               </div>
-              <div className="flex space-x-2">
+              <div className="flex space-x-2 items-center">
+                <button
+                  onClick={() => toggleDoctorStatus(doctor.id, !!doctor.is_active)}
+                  className={`transition-colors ${doctor.is_active !== false ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600'}`}
+                  title={doctor.is_active !== false ? t('admin.deactivate', 'Pasif yap') : t('admin.activate', 'Aktif yap')}
+                >
+                  {doctor.is_active !== false ? <FaEye /> : <FaEyeSlash />}
+                </button>
                 <Link
                   to={`/admin/doctors/edit/${doctor.id}`}
                   className="text-blue-600 hover:text-blue-800 transition-colors"
@@ -184,7 +215,12 @@ const AdminDoctors = () => {
               </div>
             </div>
 
-            <h3 className="text-lg font-semibold text-primary mb-1">{doctor.name}</h3>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-lg font-semibold text-primary">{doctor.name}</h3>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${doctor.is_active !== false ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                {doctor.is_active !== false ? t('admin.active', 'Aktif') : t('admin.inactive', 'Pasif')}
+              </span>
+            </div>
             {doctor.title && (
               <p className="text-gray-600 text-sm mb-2">{doctor.title}</p>
             )}
@@ -204,12 +240,12 @@ const AdminDoctors = () => {
 
             {doctor.education && (
               <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                <strong>Eğitim:</strong> {doctor.education}
+                <strong>{t('admin.label.education', 'Eğitim')}:</strong> {doctor.education}
               </p>
             )}
 
             <div className="text-xs text-gray-500">
-              Oluşturulma: {new Date(doctor.created_at).toLocaleDateString('tr-TR')}
+              {t('admin.createdAt', 'Oluşturulma')}: {new Date(doctor.created_at).toLocaleDateString('tr-TR')}
             </div>
           </div>
         ))}
@@ -218,18 +254,18 @@ const AdminDoctors = () => {
       {filteredDoctors.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">👨‍⚕️</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Doktor bulunamadı</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.doctors.notFound', 'Doktor bulunamadı')}</h3>
           <p className="text-gray-500 mb-4">
             {searchTerm || selectedDepartment !== 'all' || selectedHospital !== 'all'
-              ? 'Arama kriterlerinize uygun doktor bulunamadı.'
-              : 'Henüz hiç doktor eklenmemiş.'}
+              ? t('admin.searchNoResults', 'Arama kriterlerinize uygun doktor bulunamadı.')
+              : t('admin.doctors.empty', 'Henüz hiç doktor eklenmemiş.')}
           </p>
           <Link
             to="/admin/doctors/new"
             className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors inline-flex items-center"
           >
             <FaPlus className="mr-2" />
-            İlk Doktoru Ekle
+            {t('admin.doctors.addFirst', 'İlk Doktoru Ekle')}
           </Link>
         </div>
       )}

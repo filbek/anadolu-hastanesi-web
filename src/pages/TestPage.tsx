@@ -1,7 +1,8 @@
-import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 
 const TestPage = () => {
+  const { t } = useTranslation();
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -15,14 +16,14 @@ const TestPage = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Environment Variables Test</h1>
+        <h1 className="text-3xl font-bold mb-8">{t('test.envTitle', 'Environment Variables Test')}</h1>
 
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Environment Variables (from .env)</h2>
+          <h2 className="text-xl font-semibold mb-4">{t('test.envFrom', 'Environment Variables (from .env)')}</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                VITE_SUPABASE_URL:
+                {t('test.urlLabel', 'VITE_SUPABASE_URL:')}
               </label>
               <div className="bg-gray-50 p-3 rounded border">
                 <code className="text-sm">{supabaseUrl || 'NOT SET'}</code>
@@ -31,7 +32,7 @@ const TestPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                VITE_SUPABASE_ANON_KEY (first 50 chars):
+                {t('test.keyLabel', 'VITE_SUPABASE_ANON_KEY (first 50 chars):')}
               </label>
               <div className="bg-gray-50 p-3 rounded border">
                 <code className="text-sm">{supabaseKey?.substring(0, 50) || 'NOT SET'}...</code>
@@ -41,11 +42,11 @@ const TestPage = () => {
         </div>
 
         <div className="bg-blue-50 rounded-lg shadow-md p-6 mb-6 border border-blue-200">
-          <h2 className="text-xl font-semibold mb-4 text-blue-800">Actually Used Values (Hard-coded)</h2>
+          <h2 className="text-xl font-semibold mb-4 text-blue-800">{t('test.usedValues', 'Actually Used Values (Hard-coded)')}</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-blue-700 mb-2">
-                Actual Supabase URL:
+                {t('test.actualUrl', 'Actual Supabase URL:')}
               </label>
               <div className="bg-blue-100 p-3 rounded border border-blue-300">
                 <code className="text-sm text-blue-900">{actualUrl}</code>
@@ -54,7 +55,7 @@ const TestPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-blue-700 mb-2">
-                Supabase Client URL (from client object):
+                {t('test.clientUrl', 'Supabase Client URL (from client object):')}
               </label>
               <div className="bg-blue-100 p-3 rounded border border-blue-300">
                 <code className="text-sm text-blue-900">{clientUrl || 'Not available'}</code>
@@ -63,7 +64,7 @@ const TestPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-blue-700 mb-2">
-                Actual Key (first 50 chars):
+                {t('test.actualKey', 'Actual Key (first 50 chars):')}
               </label>
               <div className="bg-blue-100 p-3 rounded border border-blue-300">
                 <code className="text-sm text-blue-900">{actualKey.substring(0, 50)}...</code>
@@ -73,11 +74,11 @@ const TestPage = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Expected Values</h2>
+          <h2 className="text-xl font-semibold mb-4">{t('test.expected', 'Expected Values')}</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Expected URL:
+                {t('test.expectedUrl', 'Expected URL:')}
               </label>
               <div className="bg-green-50 p-3 rounded border border-green-200">
                 <code className="text-sm text-green-800">https://cfwwcxqpyxktikizjjxx.supabase.co</code>
@@ -86,7 +87,7 @@ const TestPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Expected Key (first 50 chars):
+                {t('test.expectedKey', 'Expected Key (first 50 chars):')}
               </label>
               <div className="bg-green-50 p-3 rounded border border-green-200">
                 <code className="text-sm text-green-800">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh...</code>
@@ -98,11 +99,10 @@ const TestPage = () => {
         <div className="mt-6">
           <div className="bg-green-100 border border-green-400 text-green-700 p-4 rounded-lg">
             <h3 className="font-semibold">
-              ✅ Using Hard-coded Configuration
+              {t('test.usingHardcoded', '✅ Using Hard-coded Configuration')}
             </h3>
             <p className="mt-2">
-              The app is now using hard-coded Supabase configuration to bypass environment variable issues.
-              This should resolve the CORS error you were experiencing.
+              {t('test.hardcodedDesc', 'The app is now using hard-coded Supabase configuration to bypass environment variable issues. This should resolve the CORS error you were experiencing.')}
             </p>
           </div>
         </div>

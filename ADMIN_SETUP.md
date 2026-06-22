@@ -1,5 +1,33 @@
 # 🔐 Admin Panel Kurulum Rehberi
 
+---
+
+## Supabase Bağlantı Bilgileri
+
+> Bu proje daha önce iki ayrı Supabase veritabanına bağlıydı. 2026-04-20 itibarıyla **tek veritabanına** indirgendi.
+
+| Alan | Değer |
+|------|-------|
+| **Proje URL** | `https://cfwwcxqpyxktikizjjxx.supabase.co` |
+| **Proje ID** | `cfwwcxqpyxktikizjjxx` |
+| **Dashboard** | https://supabase.com/dashboard/project/cfwwcxqpyxktikizjjxx |
+| **SQL Editor** | https://supabase.com/dashboard/project/cfwwcxqpyxktikizjjxx/sql/new |
+| **Admin Kullanıcı E-posta** | `bekir.filizdag@anadoluhastaneleri.com` |
+
+### Ortam Değişkenleri (`.env.local`)
+```
+VITE_SUPABASE_URL=https://cfwwcxqpyxktikizjjxx.supabase.co
+VITE_SUPABASE_ANON_KEY=<.env.local dosyasına bakın>
+```
+
+### Veritabanı İlk Kurulum
+Tabloları ve örnek verileri oluşturmak için:
+1. Yukarıdaki SQL Editor linkine gidin
+2. Proje kökündeki `setup_database.sql` dosyasının içeriğini yapıştırın
+3. Çalıştırın — 3 hastane ve 15 bölüm otomatik eklenir
+
+---
+
 ## Admin Giriş Bilgileri
 
 ### Giriş Sayfası

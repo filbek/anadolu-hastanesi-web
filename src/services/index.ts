@@ -98,6 +98,40 @@ export const getValidImageUrl = (url: string | null | undefined, type: 'hospital
   }
 };
 
+export const getArticleImageUrl = (url: string | null | undefined, category?: string): string => {
+  if (url) {
+    try {
+      new URL(url);
+      return url;
+    } catch (e) {
+      // invalid URL, fall through to fallback
+    }
+  }
+
+  const cat = (category || '').toLowerCase();
+  if (cat.includes('kalp') || cat.includes('kardiyo')) {
+    return 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+  }
+  if (cat.includes('stres') || cat.includes('psiko') || cat.includes('ruh') || cat.includes('zihin') || cat.includes('psiki')) {
+    return 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+  }
+  if (cat.includes('spor') || cat.includes('egzersiz') || cat.includes('fizik') || cat.includes('rehab')) {
+    return 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+  }
+  if (cat.includes('gebe') || cat.includes('kadın') || cat.includes('doğum') || cat.includes('jineko')) {
+    return 'https://images.unsplash.com/photo-1531983412531-1f49a365ffed?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+  }
+  if (cat.includes('çocuk') || cat.includes('pediatri') || cat.includes('ateş')) {
+    return 'https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+  }
+  if (cat.includes('beslenme') || cat.includes('diyet') || cat.includes('kemik')) {
+    return 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+  }
+
+  // General medical / health guide fallback
+  return 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+};
+
 // Pagination helper
 export interface PaginationParams {
   page: number;

@@ -73,8 +73,6 @@ export function useForm<T>(initialValues: T) {
 }
 
 // Custom hook for modal state
-import { useCallback } from 'react';
-
 export function useModal() {
   const [isOpen, setIsOpen] = useState(false);
   

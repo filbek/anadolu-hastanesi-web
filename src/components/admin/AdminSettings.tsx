@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaSave, FaGlobe, FaPhone, FaExternalLinkAlt, FaUpload, FaImage, FaTrash, FaEye } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
+import { FaSave, FaGlobe, FaPhone, FaExternalLinkAlt, FaUpload, FaImage, FaTrash, FaEye, FaEnvelope } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
 
 interface SiteSettings {
@@ -22,10 +23,12 @@ interface SiteSettings {
   meta_description: string;
   logo_url: string;
   favicon_url: string;
+  second_opinion_email: string;
   updated_at?: string;
 }
 
 const AdminSettings = () => {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<SiteSettings>({
     site_name: 'Anadolu Hastaneleri Grubu',
     site_description: 'Sağlığınız için en iyi hizmet, en son teknoloji ve uzman kadro.',
@@ -45,6 +48,7 @@ const AdminSettings = () => {
     meta_description: 'Modern tıbbi teknolojiler ve uzman kadrosuyla hizmet veren öncü sağlık kuruluşu. Randevu almak için hemen iletişime geçin.',
     logo_url: '',
     favicon_url: '',
+    second_opinion_email: 'info@anadoluhastaneleri.com',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -133,10 +137,10 @@ const AdminSettings = () => {
         updateFavicon(settings.favicon_url);
       }
 
-      alert('Ayarlar başarıyla kaydedildi!');
+      alert(t('admin.settings.saved', 'Ayarlar başarıyla kaydedildi!'));
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert('Ayarlar kaydedilirken hata oluştu!');
+      alert(t('admin.settings.saveError', 'Ayarlar kaydedilirken hata oluştu!'));
     } finally {
       setSaving(false);
     }
@@ -148,13 +152,13 @@ const AdminSettings = () => {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Lütfen geçerli bir resim dosyası seçin!');
+      alert(t('admin.settings.invalidImage', 'Lütfen geçerli bir resim dosyası seçin!'));
       return;
     }
 
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
-      alert('Dosya boyutu 2MB\'dan küçük olmalıdır!');
+      alert(t('admin.settings.logoSizeError', 'Dosya boyutu 2MB\'dan küçük olmalıdır!'));
       return;
     }
 
@@ -175,7 +179,7 @@ const AdminSettings = () => {
 
     } catch (error) {
       console.error('Error uploading logo:', error);
-      alert('Logo yüklenirken hata oluştu!');
+      alert(t('admin.settings.logoUploadError', 'Logo yüklenirken hata oluştu!'));
     } finally {
       setUploadingLogo(false);
     }
@@ -187,13 +191,13 @@ const AdminSettings = () => {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Lütfen geçerli bir resim dosyası seçin!');
+      alert(t('admin.settings.invalidImage', 'Lütfen geçerli bir resim dosyası seçin!'));
       return;
     }
 
     // Validate file size (max 1MB)
     if (file.size > 1024 * 1024) {
-      alert('Favicon dosya boyutu 1MB\'dan küçük olmalıdır!');
+      alert(t('admin.settings.faviconSizeError', 'Favicon dosya boyutu 1MB\'dan küçük olmalıdır!'));
       return;
     }
 
@@ -211,7 +215,7 @@ const AdminSettings = () => {
 
     } catch (error) {
       console.error('Error uploading favicon:', error);
-      alert('Favicon yüklenirken hata oluştu!');
+      alert(t('admin.settings.faviconUploadError', 'Favicon yüklenirken hata oluştu!'));
     } finally {
       setUploadingFavicon(false);
     }
@@ -266,14 +270,14 @@ const AdminSettings = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-primary">Site Ayarları</h1>
+        <h1 className="text-2xl font-semibold text-primary">{t('admin.settings.title', 'Site Ayarları')}</h1>
         <button
           onClick={saveSettings}
           disabled={saving}
           className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center disabled:opacity-50"
         >
           <FaSave className="mr-2" />
-          {saving ? 'Kaydediliyor...' : 'Kaydet'}
+          {saving ? t('admin.saving', 'Kaydediliyor...') : t('admin.save', 'Kaydet')}
         </button>
       </div>
 
@@ -282,13 +286,13 @@ const AdminSettings = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
             <FaGlobe className="mr-2" />
-            Genel Bilgiler
+            {t('admin.settings.generalInfo', 'Genel Bilgiler')}
           </h2>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Site Adı
+                {t('admin.label.siteName', 'Site Adı')}
               </label>
               <input
                 type="text"
@@ -300,7 +304,7 @@ const AdminSettings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Site Açıklaması
+                {t('admin.label.siteDescription', 'Site Açıklaması')}
               </label>
               <textarea
                 value={settings.site_description}
@@ -312,13 +316,13 @@ const AdminSettings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Anahtar Kelimeler
+                {t('admin.label.keywords', 'Anahtar Kelimeler')}
               </label>
               <input
                 type="text"
                 value={settings.site_keywords}
                 onChange={(e) => handleInputChange('site_keywords', e.target.value)}
-                placeholder="virgülle ayırın"
+                placeholder={t('admin.label.keywordsPlaceholder', 'virgülle ayırın')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
@@ -329,13 +333,13 @@ const AdminSettings = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
             <FaPhone className="mr-2" />
-            İletişim Bilgileri
+            {t('admin.settings.contactInfo', 'İletişim Bilgileri')}
           </h2>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Telefon
+                {t('admin.label.phone', 'Telefon')}
               </label>
               <input
                 type="text"
@@ -347,7 +351,7 @@ const AdminSettings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                E-posta
+                {t('admin.label.email', 'E-posta')}
               </label>
               <input
                 type="email"
@@ -359,7 +363,7 @@ const AdminSettings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Adres
+                {t('admin.label.address', 'Adres')}
               </label>
               <textarea
                 value={settings.contact_address}
@@ -371,7 +375,7 @@ const AdminSettings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Acil Telefon
+                {t('admin.label.emergencyPhone', 'Acil Telefon')}
               </label>
               <input
                 type="text"
@@ -383,7 +387,7 @@ const AdminSettings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Çalışma Saatleri
+                {t('admin.label.workingHours', 'Çalışma Saatleri')}
               </label>
               <input
                 type="text"
@@ -395,17 +399,43 @@ const AdminSettings = () => {
           </div>
         </div>
 
+        {/* Form Bildirim Ayarları */}
+        <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-primary">
+          <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
+            <FaEnvelope className="mr-2" />
+            Form Bildirim Ayarları
+          </h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                İkinci Görüş Formu Email Adresi
+              </label>
+              <input
+                type="email"
+                value={settings.second_opinion_email}
+                onChange={(e) => handleInputChange('second_opinion_email', e.target.value)}
+                placeholder="ornek@mail.com"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Anasayfadaki ikinci görüş formu doldurulduğunda başvuru bilgilerinin gönderileceği email adresi.
+                Bu adres değiştirildiğinde yeni başvurular yeni adrese yönlendirilecektir.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Randevu Sistemi */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
             <FaExternalLinkAlt className="mr-2" />
-            Randevu Sistemi
+            {t('admin.settings.appointmentSystem', 'Randevu Sistemi')}
           </h2>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Randevu URL'si
+                {t('admin.label.appointmentUrl', 'Randevu URL\'si')}
               </label>
               <input
                 type="url"
@@ -415,7 +445,7 @@ const AdminSettings = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
               <p className="text-sm text-gray-500 mt-1">
-                Randevu Al butonuna tıklandığında açılacak sayfa
+                {t('admin.settings.appointmentUrlHint', 'Randevu Al butonuna tıklandığında açılacak sayfa')}
               </p>
             </div>
           </div>
@@ -425,14 +455,14 @@ const AdminSettings = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-lg font-semibold text-primary mb-4 flex items-center">
             <FaImage className="mr-2" />
-            Logo ve Görsel Yönetimi
+            {t('admin.settings.logoManagement', 'Logo ve Görsel Yönetimi')}
           </h2>
 
           <div className="space-y-6">
             {/* Ana Logo */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Ana Logo
+                {t('admin.label.mainLogo', 'Ana Logo')}
               </label>
               <div className="space-y-3">
                 {/* Logo Preview */}
@@ -444,7 +474,7 @@ const AdminSettings = () => {
                       className="h-16 w-auto object-contain"
                     />
                     <div className="flex-1">
-                      <p className="text-sm text-gray-600">Mevcut Logo</p>
+                      <p className="text-sm text-gray-600">{t('admin.settings.currentLogo', 'Mevcut Logo')}</p>
                       <div className="flex space-x-2 mt-2">
                         <button
                           type="button"
@@ -452,7 +482,7 @@ const AdminSettings = () => {
                           className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
                         >
                           <FaEye className="mr-1" />
-                          Görüntüle
+                          {t('admin.view', 'Görüntüle')}
                         </button>
                         <button
                           type="button"
@@ -460,7 +490,7 @@ const AdminSettings = () => {
                           className="text-red-600 hover:text-red-800 text-sm flex items-center"
                         >
                           <FaTrash className="mr-1" />
-                          Kaldır
+                          {t('admin.remove', 'Kaldır')}
                         </button>
                       </div>
                     </div>
@@ -485,12 +515,12 @@ const AdminSettings = () => {
                     {uploadingLogo ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Yükleniyor...
+                        {t('admin.uploading', 'Yükleniyor...')}
                       </>
                     ) : (
                       <>
                         <FaUpload className="mr-2" />
-                        Logo Yükle
+                        {t('admin.settings.uploadLogo', 'Logo Yükle')}
                       </>
                     )}
                   </button>
@@ -502,7 +532,7 @@ const AdminSettings = () => {
                 {/* Logo URL Input */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Veya Logo URL'si Girin
+                    {t('admin.settings.orLogoUrl', 'Veya Logo URL\'si Girin')}
                   </label>
                   <input
                     type="url"
@@ -518,7 +548,7 @@ const AdminSettings = () => {
             {/* Favicon */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Favicon (Site İkonu)
+                {t('admin.label.favicon', 'Favicon (Site İkonu)')}
               </label>
               <div className="space-y-3">
                 {/* Favicon Preview */}
@@ -530,7 +560,7 @@ const AdminSettings = () => {
                       className="h-8 w-8 object-contain"
                     />
                     <div className="flex-1">
-                      <p className="text-sm text-gray-600">Mevcut Favicon</p>
+                      <p className="text-sm text-gray-600">{t('admin.settings.currentFavicon', 'Mevcut Favicon')}</p>
                       <div className="flex space-x-2 mt-2">
                         <button
                           type="button"
@@ -538,7 +568,7 @@ const AdminSettings = () => {
                           className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
                         >
                           <FaEye className="mr-1" />
-                          Görüntüle
+                          {t('admin.view', 'Görüntüle')}
                         </button>
                         <button
                           type="button"
@@ -546,7 +576,7 @@ const AdminSettings = () => {
                           className="text-red-600 hover:text-red-800 text-sm flex items-center"
                         >
                           <FaTrash className="mr-1" />
-                          Kaldır
+                          {t('admin.remove', 'Kaldır')}
                         </button>
                       </div>
                     </div>
@@ -571,12 +601,12 @@ const AdminSettings = () => {
                     {uploadingFavicon ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Yükleniyor...
+                        {t('admin.uploading', 'Yükleniyor...')}
                       </>
                     ) : (
                       <>
                         <FaUpload className="mr-2" />
-                        Favicon Yükle
+                        {t('admin.settings.uploadFavicon', 'Favicon Yükle')}
                       </>
                     )}
                   </button>
@@ -588,7 +618,7 @@ const AdminSettings = () => {
                 {/* Favicon URL Input */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Veya Favicon URL'si Girin
+                    {t('admin.settings.orFaviconUrl', 'Veya Favicon URL\'si Girin')}
                   </label>
                   <input
                     type="url"
@@ -603,13 +633,13 @@ const AdminSettings = () => {
 
             {/* Logo Kullanım Bilgileri */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-blue-800 mb-2">💡 Logo Kullanım İpuçları</h3>
+              <h3 className="text-sm font-medium text-blue-800 mb-2">💡 {t('admin.settings.logoTips', 'Logo Kullanım İpuçları')}</h3>
               <ul className="text-sm text-blue-700 space-y-1">
-                <li>• Ana logo için şeffaf arka planlı PNG formatı önerilir</li>
-                <li>• Logo boyutu 200x60px civarında olmalıdır</li>
-                <li>• Favicon için 32x32px veya 16x16px boyutları idealdir</li>
-                <li>• Yüklenen logolar otomatik olarak kaydedilir</li>
-                <li>• Logo değişiklikleri site genelinde anında yansır</li>
+                <li>{t('admin.settings.logoTip1', '• Ana logo için şeffaf arka planlı PNG formatı önerilir')}</li>
+                <li>{t('admin.settings.logoTip2', '• Logo boyutu 200x60px civarında olmalıdır')}</li>
+                <li>{t('admin.settings.logoTip3', '• Favicon için 32x32px veya 16x16px boyutları idealdir')}</li>
+                <li>{t('admin.settings.logoTip4', '• Yüklenen logolar otomatik olarak kaydedilir')}</li>
+                <li>{t('admin.settings.logoTip5', '• Logo değişiklikleri site genelinde anında yansır')}</li>
               </ul>
             </div>
           </div>
@@ -618,13 +648,13 @@ const AdminSettings = () => {
         {/* SEO Ayarları */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-lg font-semibold text-primary mb-4">
-            SEO Ayarları
+            {t('admin.seo.title', 'SEO Ayarları')}
           </h2>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Meta Başlık
+                {t('admin.label.metaTitle', 'Meta Başlık')}
               </label>
               <input
                 type="text"
@@ -636,7 +666,7 @@ const AdminSettings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Meta Açıklama
+                {t('admin.label.metaDescription', 'Meta Açıklama')}
               </label>
               <textarea
                 value={settings.meta_description}
@@ -648,7 +678,7 @@ const AdminSettings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Google Analytics ID
+                {t('admin.label.googleAnalyticsId', 'Google Analytics ID')}
               </label>
               <input
                 type="text"

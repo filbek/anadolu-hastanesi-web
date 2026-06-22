@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useSupabase } from '../contexts/SupabaseContext';
 import { FaEye, FaEyeSlash, FaLock, FaUser } from 'react-icons/fa';
-import DevAdminBypass from '../components/admin/DevAdminBypass';
-import SuperAdminFix from '../components/admin/SuperAdminFix';
+
 
 const AdminLoginPage = () => {
+  const { t } = useTranslation();
   const { signIn, user, userProfile, loading } = useSupabase();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -42,7 +43,7 @@ const AdminLoginPage = () => {
       console.log('📋 AdminLogin received:', { data, error });
 
       if (error) {
-        setError('Giriş bilgileri hatalı. Lütfen tekrar deneyin.');
+        setError(t('login.errorInvalid', 'Giriş bilgileri hatalı. Lütfen tekrar deneyin.'));
       } else if (data?.user) {
         console.log('✅ Login successful, checking if admin user');
 
@@ -55,7 +56,7 @@ const AdminLoginPage = () => {
         console.log('⚠️ No user data in response');
       }
     } catch (err) {
-      setError('Bir hata oluştu. Lütfen tekrar deneyin.');
+      setError(t('login.errorGeneric', 'Bir hata oluştu. Lütfen tekrar deneyin.'));
     } finally {
       setIsLoading(false);
     }
@@ -80,8 +81,7 @@ const AdminLoginPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
       <div className="max-w-md w-full mx-4">
         {/* Development Tools */}
-        <SuperAdminFix />
-        <DevAdminBypass />
+
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Header */}
@@ -89,8 +89,8 @@ const AdminLoginPage = () => {
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <FaLock className="text-primary text-2xl" />
             </div>
-            <h1 className="text-2xl font-bold text-text mb-2">Admin Girişi</h1>
-            <p className="text-text-light">Anadolu Hastaneleri Grubu Yönetim Paneli</p>
+            <h1 className="text-2xl font-bold text-text mb-2">{t('login.adminTitle', 'Admin Girişi')}</h1>
+            <p className="text-text-light">{t('login.adminSubtitle', 'Anadolu Hastaneleri Grubu Yönetim Paneli')}</p>
           </div>
 
           {/* Error Message */}
@@ -105,7 +105,7 @@ const AdminLoginPage = () => {
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-text mb-2">
-                E-posta Adresi
+                {t('login.emailLabel', 'E-posta Adresi')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -119,7 +119,7 @@ const AdminLoginPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="admin@anadoluhastaneleri.com"
+                  placeholder={t('login.emailPlaceholder', 'admin@anadoluhastaneleri.com')}
                 />
               </div>
             </div>
@@ -127,7 +127,7 @@ const AdminLoginPage = () => {
             {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-text mb-2">
-                Şifre
+                {t('login.passwordLabel', 'Şifre')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -141,7 +141,7 @@ const AdminLoginPage = () => {
                   value={formData.password}
                   onChange={handleChange}
                   className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="••••••••"
+                  placeholder={t('login.passwordPlaceholder', '••••••••')}
                 />
                 <button
                   type="button"
@@ -166,10 +166,10 @@ const AdminLoginPage = () => {
               {isLoading ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Giriş yapılıyor...
+                  {t('login.loggingIn', 'Giriş yapılıyor...')}
                 </div>
               ) : (
-                'Giriş Yap'
+                t('login.submitButton', 'Giriş Yap')
               )}
             </button>
           </form>
@@ -177,7 +177,7 @@ const AdminLoginPage = () => {
           {/* Footer */}
           <div className="mt-8 text-center">
             <p className="text-sm text-text-light">
-              © 2024 Anadolu Hastaneleri Grubu
+              {t('footer.copyright', '© 2024 Anadolu Hastaneleri Grubu')}
             </p>
           </div>
         </div>

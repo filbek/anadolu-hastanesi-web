@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FaSave, FaGlobe, FaSearch, FaCode, FaChartLine } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
 
@@ -22,6 +23,7 @@ interface SEOSettings {
 }
 
 const AdminSEO = () => {
+  const { t } = useTranslation();
   const [seoSettings, setSeoSettings] = useState<SEOSettings>({
     site_title: 'Anadolu Hastaneleri Grubu - Sağlığınız Bizim Önceliğimiz',
     site_description: 'Modern tıbbi teknolojiler ve uzman kadrosuyla hizmet veren öncü sağlık kuruluşu. Randevu almak için hemen iletişime geçin.',
@@ -98,10 +100,10 @@ const AdminSEO = () => {
         setSeoSettings(data);
       }
 
-      alert('SEO ayarları başarıyla kaydedildi!');
+      alert(t('admin.seo.saved', 'SEO ayarları başarıyla kaydedildi!'));
     } catch (error) {
       console.error('Error saving SEO settings:', error);
-      alert('SEO ayarları kaydedilirken hata oluştu!');
+      alert(t('admin.seo.saveError', 'SEO ayarları kaydedilirken hata oluştu!'));
     } finally {
       setSaving(false);
     }
@@ -115,10 +117,10 @@ const AdminSEO = () => {
   };
 
   const tabs = [
-    { id: 'general', label: 'Genel SEO', icon: FaGlobe },
-    { id: 'social', label: 'Sosyal Medya', icon: FaSearch },
-    { id: 'analytics', label: 'Analytics', icon: FaChartLine },
-    { id: 'technical', label: 'Teknik SEO', icon: FaCode }
+    { id: 'general', label: t('admin.seo.general', 'Genel SEO'), icon: FaGlobe },
+    { id: 'social', label: t('admin.seo.social', 'Sosyal Medya'), icon: FaSearch },
+    { id: 'analytics', label: t('admin.seo.analytics', 'Analytics'), icon: FaChartLine },
+    { id: 'technical', label: t('admin.seo.technical', 'Teknik SEO'), icon: FaCode }
   ];
 
   if (loading) {
@@ -132,14 +134,14 @@ const AdminSEO = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-primary">SEO Ayarları</h1>
+        <h1 className="text-2xl font-semibold text-primary">{t('admin.seo.title', 'SEO Ayarları')}</h1>
         <button
           onClick={saveSEOSettings}
           disabled={saving}
           className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center disabled:opacity-50"
         >
           <FaSave className="mr-2" />
-          {saving ? 'Kaydediliyor...' : 'Kaydet'}
+          {saving ? t('admin.saving', 'Kaydediliyor...') : t('admin.save', 'Kaydet')}
         </button>
       </div>
 
@@ -168,7 +170,7 @@ const AdminSEO = () => {
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Site Başlığı (Title)
+                  {t('admin.label.siteTitle', 'Site Başlığı (Title)')}
                 </label>
                 <input
                   type="text"
@@ -177,13 +179,13 @@ const AdminSEO = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Önerilen uzunluk: 50-60 karakter
+                  {t('admin.label.siteTitleHint', 'Önerilen uzunluk: 50-60 karakter')}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Site Açıklaması (Meta Description)
+                  {t('admin.label.siteDescription', 'Site Açıklaması (Meta Description)')}
                 </label>
                 <textarea
                   value={seoSettings.site_description}
@@ -192,26 +194,26 @@ const AdminSEO = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Önerilen uzunluk: 150-160 karakter
+                  {t('admin.label.siteDescriptionHint', 'Önerilen uzunluk: 150-160 karakter')}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Anahtar Kelimeler (Keywords)
+                  {t('admin.label.keywords', 'Anahtar Kelimeler (Keywords)')}
                 </label>
                 <textarea
                   value={seoSettings.site_keywords}
                   onChange={(e) => handleInputChange('site_keywords', e.target.value)}
                   rows={3}
-                  placeholder="virgülle ayırın"
+                  placeholder={t('admin.label.keywordsPlaceholder', 'virgülle ayırın')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Canonical URL
+                  {t('admin.label.canonicalUrl', 'Canonical URL')}
                 </label>
                 <input
                   type="url"
@@ -226,12 +228,12 @@ const AdminSEO = () => {
           {activeTab === 'social' && (
             <div className="space-y-6">
               <div className="border-b border-gray-200 pb-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Open Graph (Facebook)</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('admin.seo.openGraph', 'Open Graph (Facebook)')}</h3>
 
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      OG Başlık
+                      {t('admin.label.ogTitle', 'OG Başlık')}
                     </label>
                     <input
                       type="text"
@@ -243,7 +245,7 @@ const AdminSEO = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      OG Açıklama
+                      {t('admin.label.ogDescription', 'OG Açıklama')}
                     </label>
                     <textarea
                       value={seoSettings.og_description}
@@ -255,7 +257,7 @@ const AdminSEO = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      OG Resim URL
+                      {t('admin.label.ogImage', 'OG Resim URL')}
                     </label>
                     <input
                       type="url"
@@ -264,19 +266,19 @@ const AdminSEO = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                     <p className="text-sm text-gray-500 mt-1">
-                      Önerilen boyut: 1200x630 piksel
+                      {t('admin.label.ogImageHint', 'Önerilen boyut: 1200x630 piksel')}
                     </p>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Twitter Cards</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('admin.seo.twitterCards', 'Twitter Cards')}</h3>
 
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Twitter Başlık
+                      {t('admin.label.twitterTitle', 'Twitter Başlık')}
                     </label>
                     <input
                       type="text"
@@ -288,7 +290,7 @@ const AdminSEO = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Twitter Açıklama
+                      {t('admin.label.twitterDescription', 'Twitter Açıklama')}
                     </label>
                     <textarea
                       value={seoSettings.twitter_description}
@@ -300,7 +302,7 @@ const AdminSEO = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Twitter Resim URL
+                      {t('admin.label.twitterImage', 'Twitter Resim URL')}
                     </label>
                     <input
                       type="url"
@@ -318,7 +320,7 @@ const AdminSEO = () => {
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Google Analytics ID
+                  {t('admin.label.googleAnalyticsId', 'Google Analytics ID')}
                 </label>
                 <input
                   type="text"
@@ -328,13 +330,13 @@ const AdminSEO = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Google Analytics 4 ölçüm kimliği
+                  {t('admin.label.googleAnalyticsHint', 'Google Analytics 4 ölçüm kimliği')}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Google Search Console Doğrulama Kodu
+                  {t('admin.label.googleSearchConsole', 'Google Search Console Doğrulama Kodu')}
                 </label>
                 <input
                   type="text"
@@ -351,7 +353,7 @@ const AdminSEO = () => {
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Robots.txt İçeriği
+                  {t('admin.label.robotsTxt', 'Robots.txt İçeriği')}
                 </label>
                 <textarea
                   value={seoSettings.robots_txt}
@@ -363,7 +365,7 @@ const AdminSEO = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Sitemap URL
+                  {t('admin.label.sitemapUrl', 'Sitemap URL')}
                 </label>
                 <input
                   type="url"
@@ -379,7 +381,7 @@ const AdminSEO = () => {
 
       {/* SEO Preview */}
       <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Google Arama Sonucu Önizlemesi</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">{t('admin.seo.preview', 'Google Arama Sonucu Önizlemesi')}</h3>
         <div className="bg-white p-4 rounded border max-w-2xl">
           <div className="text-blue-600 text-lg hover:underline cursor-pointer">
             {seoSettings.site_title}

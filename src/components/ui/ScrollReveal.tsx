@@ -13,32 +13,34 @@ const ScrollReveal = ({
     children,
     direction = 'up',
     delay = 0,
-    duration = 0.8,
+    duration = 0.5,
     className = ''
 }: ScrollRevealProps) => {
+    const offset = 20
+
     const variants = {
         hidden: {
-            opacity: 0,
-            y: direction === 'up' ? 40 : direction === 'down' ? -40 : 0,
-            x: direction === 'left' ? 40 : direction === 'right' ? -40 : 0,
+            // NO opacity change — element is always visible
+            // Only a subtle position shift so there's no "invisible" flash
+            y: direction === 'up' ? offset : direction === 'down' ? -offset : 0,
+            x: direction === 'left' ? offset : direction === 'right' ? -offset : 0,
         },
         visible: {
-            opacity: 1,
             y: 0,
             x: 0,
             transition: {
                 duration,
                 delay,
-                ease: [0.16, 1, 0.3, 1], // Premium ease-out cubic
+                ease: [0.22, 1, 0.36, 1],
             },
         },
     }
 
     return (
         <motion.div
-            initial="hidden"
+            initial={false}
             whileInView="visible"
-            viewport={{ once: true, margin: '-20%' }}
+            viewport={{ once: true, amount: 0.1 }}
             variants={variants}
             className={className}
         >

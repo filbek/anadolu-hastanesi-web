@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaFileAlt, FaCode } from 'react-icons/fa';
-import { supabase } from '../../lib/supabase';
+import { supabase, type Translations } from '../../lib/supabase';
 import PageContentEditor from './PageContentEditor';
+import TranslationsPanel from './TranslationsPanel';
 
 interface Page {
   id: number;
@@ -17,6 +19,7 @@ interface Page {
   is_published: boolean;
   page_type: 'static' | 'dynamic' | 'landing';
   template: string;
+  translations?: Translations;
   created_at: string;
   updated_at: string;
 }
@@ -33,6 +36,7 @@ interface PageSection {
 }
 
 const AdminPages = () => {
+  const { t } = useTranslation();
   const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -51,7 +55,8 @@ const AdminPages = () => {
     meta_description: '',
     is_published: true,
     page_type: 'static' as 'static' | 'dynamic' | 'landing',
-    template: 'default'
+    template: 'default',
+    translations: {} as Translations
   });
 
   useEffect(() => {
@@ -269,18 +274,19 @@ const AdminPages = () => {
         meta_description: '',
         is_published: true,
         page_type: 'static',
-        template: 'default'
+        template: 'default',
+        translations: {}
       });
 
-      alert(editingPage ? 'Sayfa güncellendi!' : 'Sayfa oluşturuldu!');
+      alert(editingPage ? t('admin.pageUpdated', 'Sayfa güncellendi!') : t('admin.pageCreated', 'Sayfa oluşturuldu!'));
     } catch (error) {
       console.error('Error saving page:', error);
-      alert('Sayfa kaydedilirken hata oluştu!');
+      alert(t('admin.pageSaveError', 'Sayfa kaydedilirken hata oluştu!'));
     }
   };
 
   const deletePage = async (id: number) => {
-    if (!confirm('Bu sayfayı silmek istediğinizden emin misiniz?')) return;
+    if (!confirm(t('admin.confirmDeletePage', 'Bu sayfayı silmek istediğinizden emin misiniz?'))) return;
 
     try {
       const { error } = await supabase
@@ -291,10 +297,10 @@ const AdminPages = () => {
       if (error) throw error;
 
       setPages(pages.filter(page => page.id !== id));
-      alert('Sayfa silindi!');
+      alert(t('admin.pageDeleted', 'Sayfa silindi!'));
     } catch (error) {
       console.error('Error deleting page:', error);
-      alert('Sayfa silinirken hata oluştu!');
+      alert(t('admin.pageDeleteError', 'Sayfa silinirken hata oluştu!'));
     }
   };
 
@@ -311,7 +317,8 @@ const AdminPages = () => {
       meta_description: page.meta_description || '',
       is_published: page.is_published,
       page_type: page.page_type || 'static',
-      template: page.template || 'default'
+      template: page.template || 'default',
+      translations: page.translations || {}
     });
     setShowForm(true);
   };
@@ -332,7 +339,7 @@ const AdminPages = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-primary">Sayfa Yönetimi</h1>
+        <h1 className="text-2xl font-semibold text-primary">{t('admin.pages.title', 'Sayfa Yönetimi')}</h1>
         <button
           onClick={() => {
             setShowForm(true);
@@ -348,13 +355,14 @@ const AdminPages = () => {
               meta_description: '',
               is_published: true,
               page_type: 'static',
-              template: 'default'
+              template: 'default',
+              translations: {}
             });
           }}
           className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center"
         >
           <FaPlus className="mr-2" />
-          Yeni Sayfa
+          {t('admin.pages.new', 'Yeni Sayfa')}
         </button>
       </div>
 
@@ -364,7 +372,7 @@ const AdminPages = () => {
           <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Sayfa ara..."
+            placeholder={t('admin.pages.searchPlaceholder', 'Sayfa ara...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -379,16 +387,16 @@ const AdminPages = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sayfa
+                  {t('admin.label.page', 'Sayfa')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Durum
+                  {t('admin.label.status', 'Durum')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Son Güncelleme
+                  {t('admin.label.lastUpdate', 'Son Güncelleme')}
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  İşlemler
+                  {t('admin.label.actions', 'İşlemler')}
                 </th>
               </tr>
             </thead>
@@ -409,7 +417,7 @@ const AdminPages = () => {
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
                       }`}>
-                      {page.is_published ? 'Yayında' : 'Taslak'}
+                      {page.is_published ? t('admin.published', 'Yayında') : t('admin.draft', 'Taslak')}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -422,21 +430,21 @@ const AdminPages = () => {
                         setShowContentEditor(true);
                       }}
                       className="text-green-600 hover:text-green-800 transition-colors"
-                      title="İçerik Editörü"
+                      title={t('admin.contentEditor', 'İçerik Editörü')}
                     >
                       <FaCode />
                     </button>
                     <button
                       onClick={() => editPage(page)}
                       className="text-blue-600 hover:text-blue-800 transition-colors"
-                      title="Sayfa Ayarları"
+                      title={t('admin.pageSettings', 'Sayfa Ayarları')}
                     >
                       <FaEdit />
                     </button>
                     <button
                       onClick={() => deletePage(page.id)}
                       className="text-red-600 hover:text-red-800 transition-colors"
-                      title="Sil"
+                      title={t('admin.delete', 'Sil')}
                     >
                       <FaTrash />
                     </button>
@@ -453,13 +461,13 @@ const AdminPages = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-semibold mb-4">
-              {editingPage ? 'Sayfa Düzenle' : 'Yeni Sayfa'}
+              {editingPage ? t('admin.pages.edit', 'Sayfa Düzenle') : t('admin.pages.new', 'Yeni Sayfa')}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sayfa Başlığı
+                  {t('admin.label.pageTitle', 'Sayfa Başlığı')}
                 </label>
                 <input
                   type="text"
@@ -473,7 +481,7 @@ const AdminPages = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    URL Slug
+                    {t('admin.label.urlSlug', 'URL Slug')}
                   </label>
                   <input
                     type="text"
@@ -486,49 +494,49 @@ const AdminPages = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Sayfa Tipi
+                    {t('admin.label.pageType', 'Sayfa Tipi')}
                   </label>
                   <select
                     value={formData.page_type}
                     onChange={(e) => setFormData({ ...formData, page_type: e.target.value as any })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
-                    <option value="static">Statik Sayfa</option>
-                    <option value="dynamic">Dinamik Sayfa</option>
-                    <option value="landing">Landing Page</option>
+                    <option value="static">{t('admin.pageType.static', 'Statik Sayfa')}</option>
+                    <option value="dynamic">{t('admin.pageType.dynamic', 'Dinamik Sayfa')}</option>
+                    <option value="landing">{t('admin.pageType.landing', 'Landing Page')}</option>
                   </select>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Hero Başlık
+                  {t('admin.label.heroTitle', 'Hero Başlık')}
                 </label>
                 <input
                   type="text"
                   value={formData.hero_title}
                   onChange={(e) => setFormData({ ...formData, hero_title: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Sayfanın ana başlığı"
+                  placeholder={t('admin.label.heroTitlePlaceholder', 'Sayfanın ana başlığı')}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Hero Alt Başlık
+                  {t('admin.label.heroSubtitle', 'Hero Alt Başlık')}
                 </label>
                 <input
                   type="text"
                   value={formData.hero_subtitle}
                   onChange={(e) => setFormData({ ...formData, hero_subtitle: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Sayfanın alt başlığı"
+                  placeholder={t('admin.label.heroSubtitlePlaceholder', 'Sayfanın alt başlığı')}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Hero Resim URL
+                  {t('admin.label.heroImageUrl', 'Hero Resim URL')}
                 </label>
                 <input
                   type="url"
@@ -541,44 +549,44 @@ const AdminPages = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  İçerik
+                  {t('admin.label.content', 'İçerik')}
                 </label>
                 <textarea
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                   rows={8}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="HTML içerik veya metin"
+                  placeholder={t('admin.label.contentPlaceholder', 'HTML içerik veya metin')}
                   required
                 />
               </div>
 
               <div className="border-t pt-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-3">SEO Ayarları</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-3">{t('admin.seoSettings', 'SEO Ayarları')}</h3>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Meta Başlık
+                    {t('admin.label.metaTitle', 'Meta Başlık')}
                   </label>
                   <input
                     type="text"
                     value={formData.meta_title}
                     onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="SEO için sayfa başlığı"
+                    placeholder={t('admin.label.metaTitlePlaceholder', 'SEO için sayfa başlığı')}
                   />
                 </div>
 
                 <div className="mt-3">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Meta Açıklama
+                    {t('admin.label.metaDescription', 'Meta Açıklama')}
                   </label>
                   <textarea
                     value={formData.meta_description}
                     onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="SEO için sayfa açıklaması (150-160 karakter)"
+                    placeholder={t('admin.label.metaDescriptionPlaceholder', 'SEO için sayfa açıklaması (150-160 karakter)')}
                   />
                 </div>
               </div>
@@ -592,9 +600,24 @@ const AdminPages = () => {
                   className="mr-2"
                 />
                 <label htmlFor="is_published" className="text-sm font-medium text-gray-700">
-                  Yayında
+                  {t('admin.label.published', 'Yayında')}
                 </label>
               </div>
+
+              {/* Çeviriler */}
+              <TranslationsPanel
+                source={formData}
+                value={formData.translations || {}}
+                onChange={(next) => setFormData({ ...formData, translations: next })}
+                fields={[
+                  { key: 'title', label: t('admin.label.pageTitle', 'Sayfa Başlığı'), type: 'text' },
+                  { key: 'hero_title', label: t('admin.label.heroTitle', 'Banner Başlığı'), type: 'text' },
+                  { key: 'hero_subtitle', label: t('admin.label.heroSubtitle', 'Banner Alt Başlığı'), type: 'textarea' },
+                  { key: 'content', label: t('admin.label.content', 'İçerik'), type: 'html' },
+                  { key: 'meta_title', label: t('admin.label.metaTitle', 'Meta Başlık'), type: 'text' },
+                  { key: 'meta_description', label: t('admin.label.metaDescription', 'Meta Açıklama'), type: 'textarea' },
+                ]}
+              />
 
               <div className="flex justify-end space-x-3">
                 <button
@@ -602,13 +625,13 @@ const AdminPages = () => {
                   onClick={() => setShowForm(false)}
                   className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  İptal
+                  {t('admin.cancel', 'İptal')}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
                 >
-                  {editingPage ? 'Güncelle' : 'Oluştur'}
+                  {editingPage ? t('admin.update', 'Güncelle') : t('admin.create', 'Oluştur')}
                 </button>
               </div>
             </form>
@@ -622,7 +645,7 @@ const AdminPages = () => {
           <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
               <h2 className="text-xl font-semibold text-primary">
-                Sayfa İçerik Editörü
+                {t('admin.pageContentEditor', 'Sayfa İçerik Editörü')}
               </h2>
               <button
                 onClick={() => setShowContentEditor(false)}

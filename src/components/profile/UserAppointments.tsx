@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSupabase } from '../../contexts/SupabaseContext';
 
 type Appointment = {
@@ -12,6 +13,7 @@ type Appointment = {
 };
 
 const UserAppointments = () => {
+  const { t } = useTranslation();
   const { user } = useSupabase();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,13 +68,13 @@ const UserAppointments = () => {
   const getStatusBadge = (status: Appointment['status']) => {
     switch (status) {
       case 'pending':
-        return <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Bekliyor</span>;
+        return <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">{t('profile.status.pending','Bekliyor')}</span>;
       case 'confirmed':
-        return <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Onaylandı</span>;
+        return <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{t('profile.status.confirmed','Onaylandı')}</span>;
       case 'completed':
-        return <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Tamamlandı</span>;
+        return <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{t('profile.status.completed','Tamamlandı')}</span>;
       case 'cancelled':
-        return <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">İptal Edildi</span>;
+        return <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">{t('profile.status.cancelled','İptal Edildi')}</span>;
       default:
         return null;
     }
@@ -81,14 +83,14 @@ const UserAppointments = () => {
   if (!user) {
     return (
       <div className="card p-6">
-        <p className="text-center text-text-light">Lütfen giriş yapın.</p>
+        <p className="text-center text-text-light">{t('profile.pleaseSignIn','Lütfen giriş yapın.')}</p>
       </div>
     );
   }
 
   return (
     <div className="card p-6">
-      <h2 className="text-2xl font-semibold text-primary mb-6">Randevularım</h2>
+      <h2 className="text-2xl font-semibold text-primary mb-6">{t('profile.myAppointments','Randevularım')}</h2>
       
       {loading ? (
         <div className="flex justify-center items-center h-40">
@@ -97,14 +99,14 @@ const UserAppointments = () => {
       ) : appointments.length === 0 ? (
         <div className="text-center py-8">
           <i className="bi bi-calendar-x text-4xl text-text-light mb-4"></i>
-          <p className="text-text-light">Henüz randevunuz bulunmamaktadır.</p>
+          <p className="text-text-light">{t('profile.noAppointments','Henüz randevunuz bulunmamaktadır.')}</p>
           <a
             href="https://anadoluhastaneleri.kendineiyibak.app/"
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-primary mt-4"
           >
-            Randevu Al
+            {t('profile.bookAppointment','Randevu Al')}
           </a>
         </div>
       ) : (
@@ -113,22 +115,22 @@ const UserAppointments = () => {
             <thead className="bg-neutral">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-text-light uppercase tracking-wider">
-                  Doktor
+                  {t('profile.table.doctor','Doktor')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-text-light uppercase tracking-wider">
-                  Bölüm
+                  {t('profile.table.department','Bölüm')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-text-light uppercase tracking-wider">
-                  Hastane
+                  {t('profile.table.hospital','Hastane')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-text-light uppercase tracking-wider">
-                  Tarih & Saat
+                  {t('profile.table.dateTime','Tarih & Saat')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-text-light uppercase tracking-wider">
-                  Durum
+                  {t('profile.table.status','Durum')}
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-text-light uppercase tracking-wider">
-                  İşlemler
+                  {t('profile.table.actions','İşlemler')}
                 </th>
               </tr>
             </thead>
@@ -155,7 +157,7 @@ const UserAppointments = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     {appointment.status === 'pending' || appointment.status === 'confirmed' ? (
                       <button className="text-red-600 hover:text-red-900 text-sm font-medium">
-                        İptal Et
+                        {t('profile.cancel','İptal Et')}
                       </button>
                     ) : null}
                   </td>

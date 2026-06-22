@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaSave, FaAward } from 'react-icons/fa';
 
 interface QualityCertificate {
@@ -15,6 +16,7 @@ interface QualityCertificate {
 }
 
 const AdminQualityCertificates = () => {
+  const { t } = useTranslation();
   const [certificates, setCertificates] = useState<QualityCertificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -137,22 +139,22 @@ const AdminQualityCertificates = () => {
         display_order: 1
       });
 
-      alert(editingCertificate ? 'Sertifika güncellendi!' : 'Sertifika eklendi!');
+      alert(editingCertificate ? t('admin.certificateUpdated', 'Sertifika güncellendi!') : t('admin.certificateAdded', 'Sertifika eklendi!'));
     } catch (error) {
       console.error('Error saving certificate:', error);
-      alert('Sertifika kaydedilirken hata oluştu!');
+      alert(t('admin.certificateSaveError', 'Sertifika kaydedilirken hata oluştu!'));
     }
   };
 
   const deleteCertificate = async (id: number) => {
-    if (!confirm('Bu sertifikayı silmek istediğinizden emin misiniz?')) return;
+    if (!confirm(t('admin.confirmDeleteCertificate', 'Bu sertifikayı silmek istediğinizden emin misiniz?'))) return;
 
     try {
       setCertificates(certificates.filter(cert => cert.id !== id));
-      alert('Sertifika silindi!');
+      alert(t('admin.certificateDeleted', 'Sertifika silindi!'));
     } catch (error) {
       console.error('Error deleting certificate:', error);
-      alert('Sertifika silinirken hata oluştu!');
+      alert(t('admin.certificateDeleteError', 'Sertifika silinirken hata oluştu!'));
     }
   };
 
@@ -186,7 +188,7 @@ const AdminQualityCertificates = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-primary">Kalite Sertifikaları</h1>
+        <h1 className="text-2xl font-semibold text-primary">{t('admin.qualityCertificates.title', 'Kalite Sertifikaları')}</h1>
         <button
           onClick={() => {
             setShowForm(true);
@@ -204,7 +206,7 @@ const AdminQualityCertificates = () => {
           className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center"
         >
           <FaPlus className="mr-2" />
-          Yeni Sertifika
+          {t('admin.qualityCertificates.new', 'Yeni Sertifika')}
         </button>
       </div>
 
@@ -214,7 +216,7 @@ const AdminQualityCertificates = () => {
           <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Sertifika ara..."
+            placeholder={t('admin.qualityCertificates.searchPlaceholder', 'Sertifika ara...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -243,7 +245,7 @@ const AdminQualityCertificates = () => {
                   ? 'bg-green-100 text-green-800'
                   : 'bg-red-100 text-red-800'
                   }`}>
-                  {certificate.is_active ? 'Aktif' : 'Pasif'}
+                  {certificate.is_active ? t('admin.active', 'Aktif') : t('admin.passive', 'Pasif')}
                 </span>
               </div>
             </div>
@@ -253,9 +255,9 @@ const AdminQualityCertificates = () => {
               <p className="text-gray-600 text-sm mb-3 line-clamp-2">{certificate.description}</p>
 
               <div className="space-y-1 text-sm text-gray-500 mb-4">
-                <div><strong>Veren Kurum:</strong> {certificate.issuer}</div>
-                <div><strong>Tarih:</strong> {new Date(certificate.issue_date).toLocaleDateString('tr-TR')}</div>
-                <div><strong>Sıra:</strong> {certificate.display_order}</div>
+                <div><strong>{t('admin.label.issuer', 'Veren Kurum')}:</strong> {certificate.issuer}</div>
+                <div><strong>{t('admin.label.date', 'Tarih')}:</strong> {new Date(certificate.issue_date).toLocaleDateString('tr-TR')}</div>
+                <div><strong>{t('admin.label.order', 'Sıra')}:</strong> {certificate.display_order}</div>
               </div>
 
               <div className="flex justify-between items-center">
@@ -280,18 +282,18 @@ const AdminQualityCertificates = () => {
       {filteredCertificates.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">🏆</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Sertifika bulunamadı</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.qualityCertificates.notFound', 'Sertifika bulunamadı')}</h3>
           <p className="text-gray-500 mb-4">
             {searchTerm
-              ? 'Arama kriterlerinize uygun sertifika bulunamadı.'
-              : 'Henüz hiç sertifika eklenmemiş.'}
+              ? t('admin.searchNoResults', 'Arama kriterlerinize uygun sertifika bulunamadı.')
+              : t('admin.qualityCertificates.empty', 'Henüz hiç sertifika eklenmemiş.')}
           </p>
           <button
             onClick={() => setShowForm(true)}
             className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors inline-flex items-center"
           >
             <FaPlus className="mr-2" />
-            İlk Sertifikayı Ekle
+            {t('admin.qualityCertificates.addFirst', 'İlk Sertifikayı Ekle')}
           </button>
         </div>
       )}
@@ -301,13 +303,13 @@ const AdminQualityCertificates = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-semibold mb-4">
-              {editingCertificate ? 'Sertifika Düzenle' : 'Yeni Sertifika'}
+              {editingCertificate ? t('admin.qualityCertificates.edit', 'Sertifika Düzenle') : t('admin.qualityCertificates.new', 'Yeni Sertifika')}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sertifika Adı
+                  {t('admin.label.certificateName', 'Sertifika Adı')}
                 </label>
                 <input
                   type="text"
@@ -320,7 +322,7 @@ const AdminQualityCertificates = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Açıklama
+                  {t('admin.label.description', 'Açıklama')}
                 </label>
                 <textarea
                   value={formData.description}
@@ -334,7 +336,7 @@ const AdminQualityCertificates = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Veren Kurum
+                    {t('admin.label.issuer', 'Veren Kurum')}
                   </label>
                   <input
                     type="text"
@@ -347,7 +349,7 @@ const AdminQualityCertificates = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Veriliş Tarihi
+                    {t('admin.label.issueDate', 'Veriliş Tarihi')}
                   </label>
                   <input
                     type="date"
@@ -361,7 +363,7 @@ const AdminQualityCertificates = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Resim URL
+                  {t('admin.label.imageUrl', 'Resim URL')}
                 </label>
                 <input
                   type="url"
@@ -375,7 +377,7 @@ const AdminQualityCertificates = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Görüntüleme Sırası
+                    {t('admin.label.displayOrder', 'Görüntüleme Sırası')}
                   </label>
                   <input
                     type="number"
@@ -396,7 +398,7 @@ const AdminQualityCertificates = () => {
                     className="mr-2"
                   />
                   <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
-                    Aktif
+                    {t('admin.label.active', 'Aktif')}
                   </label>
                 </div>
               </div>
@@ -407,14 +409,14 @@ const AdminQualityCertificates = () => {
                   onClick={() => setShowForm(false)}
                   className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  İptal
+                  {t('admin.cancel', 'İptal')}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark flex items-center"
                 >
                   <FaSave className="mr-2" />
-                  {editingCertificate ? 'Güncelle' : 'Oluştur'}
+                  {editingCertificate ? t('admin.update', 'Güncelle') : t('admin.create', 'Oluştur')}
                 </button>
               </div>
             </form>

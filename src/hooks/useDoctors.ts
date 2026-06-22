@@ -56,7 +56,7 @@ export function useUpdateDoctor() {
   return useMutation(
     ({ id, updates }: { id: number; updates: Partial<Doctor> }) => updateDoctor(id, updates),
     {
-      onSuccess: (data, variables) => {
+      onSuccess: (_data, variables) => {
         queryClient.invalidateQueries(CACHE_KEYS.DOCTORS);
         
         // If we have the slug, invalidate the detail query as well
