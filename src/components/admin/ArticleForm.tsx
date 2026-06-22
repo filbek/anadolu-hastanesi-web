@@ -75,7 +75,7 @@ const ArticleForm = ({ article, onSave, onCancel }: ArticleFormProps = {}) => {
         .select('id, name, slug')
         .eq('is_published', true)
         .order('name');
-      if (!error) setDepartments(data || []);
+      if (!error) setDepartments((data as unknown as Department[]) || []);
     } catch (e) {
       console.error(e);
     }
@@ -96,7 +96,7 @@ const ArticleForm = ({ article, onSave, onCancel }: ArticleFormProps = {}) => {
         d.slug.toLowerCase() === categoryName.toLowerCase()
       );
       if (dept && data) {
-        setRelatedDoctors(data.filter((doc: Doctor) => doc.department_id === dept.id));
+        setRelatedDoctors((data as unknown as Doctor[]).filter((doc) => doc.department_id === dept.id));
       } else {
         setRelatedDoctors([]);
       }

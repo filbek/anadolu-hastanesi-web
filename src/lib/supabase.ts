@@ -110,6 +110,7 @@ export type HealthArticle = {
   tags: string[];
   type: 'article' | 'video' | 'pdf';
   is_published?: boolean;
+  is_featured?: boolean;
   excerpt?: string;
   read_time?: string;
   related_article_ids?: number[];
