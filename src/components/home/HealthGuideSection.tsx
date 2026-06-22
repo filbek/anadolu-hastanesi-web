@@ -1,101 +1,127 @@
 import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useInView } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import SectionTitle from '../ui/SectionTitle'
-import { FaCalendarAlt, FaEye } from 'react-icons/fa'
-
+import { FaArrowRight, FaClock } from 'react-icons/fa'
+import AutoTranslate from '../common/AutoTranslate'
 import { useHealthArticles } from '../../hooks/useHealthArticles'
+import { getArticleImageUrl } from '../../services'
+
+const fallbackArticles = [
+  {
+    id: 1,
+    title: 'Kalp Sağlığınızı Korumak İçin 10 Öneri',
+    slug: 'kalp-sagliginizi-korumak-icin-10-oneri',
+    category: 'Kardiyoloji',
+    image: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=800&q=80',
+    date: '2023-09-15',
+    views: 1245,
+    excerpt: 'Kalp sağlığınızı korumak için beslenme, egzersiz and yaşam tarzı önerileri.',
+    type: 'article',
+    content: '',
+  },
+  {
+    id: 2,
+    title: 'Çocuklarda Bağışıklık Sistemini Güçlendirme Yolları',
+    slug: 'cocuklarda-bagisiklik-sistemini-guclendirme-yollari',
+    category: 'Çocuk Sağlığı',
+    image: 'https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&w=800&q=80',
+    date: '2023-09-10',
+    views: 987,
+    excerpt: 'Çocuğunuzun bağışıklık sistemini güçlendirmek için beslenme and yaşam tarzı önerileri.',
+    type: 'article',
+    content: '',
+  },
+  {
+    id: 3,
+    title: 'Sağlıkli Kemikler İçin Beslenme Önerileri',
+    slug: 'saglikli-kemikler-icin-beslenme-onerileri',
+    category: 'Ortopedi',
+    image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=800&q=80',
+    date: '2023-09-05',
+    views: 756,
+    excerpt: 'Kemik sağlığınızı korumak için beslenme and yaşam tarzı önerileri.',
+    type: 'article',
+    content: '',
+  },
+]
 
 const HealthGuideSection = () => {
-  const { data: articles, isLoading } = useHealthArticles();
+  const { t } = useTranslation()
   const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, amount: 0.2 })
+  const isInView = useInView(ref, { once: true, amount: 0.1 })
+  const { data: dbArticles = [] } = useHealthArticles()
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 },
-    },
-  }
+  const displayArticles = dbArticles.length > 0 ? dbArticles.slice(0, 3) : fallbackArticles
 
   return (
-    <section className="py-20">
+    <section className="py-20 md:py-28 bg-surface">
       <div className="container-custom">
         <SectionTitle
-          title="Sağlık Rehberi"
-          subtitle="Sağlıklı bir yaşam için uzmanlarımızın hazırladığı bilgilendirici içerikler."
+          label={t('home.guideLabel', 'Bilgilendirme')}
+          title={t('home.guideTitle', 'Sağlık Rehberi')}
+          subtitle={t('home.guideSubtitle', 'Sağlıklı yaşam ipuçları, hastalıklar hakkında bilgiler and uzman görüşleri.')}
         />
 
-        <motion.div
-          ref={ref}
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
-          className="grid grid-cols-1 md:grid-cols-3 gap-8"
-        >
-          {isLoading ? (
-            Array(3).fill(0).map((_, i) => (
-              <div key={i} className="bg-gray-100 animate-pulse rounded-2xl h-[400px]"></div>
-            ))
-          ) : (
-            articles?.slice(0, 3).map((article) => (
-              <motion.div
+          <motion.div
+            ref={ref}
+            initial={false}
+            animate={isInView ? 'visible' : 'hidden'}
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.1 } },
+            }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12"
+          >
+            {displayArticles.map((article) => (
+              <motion.article
                 key={article.id}
-                variants={itemVariants}
-                className="card overflow-hidden group"
+                variants={{
+                  hidden: { opacity: 1, y: 20 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+                }}
+                className="group bg-white rounded-2xl overflow-hidden border border-neutral-100 hover:border-ocean-200 hover:shadow-hover transition-all duration-300"
               >
-                <div className="relative h-48 -mx-6 -mt-6 mb-6 overflow-hidden">
-                  <img
-                    src={article.image || 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=800&q=80'}
-                    alt={article.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    loading="lazy"
-                    crossOrigin="anonymous"
-                  />
-                  <div className="absolute top-4 left-4 bg-accent text-white text-xs font-medium px-3 py-1 rounded-full">
-                    {article.category}
+                <Link to={`/saglik-rehberi/${article.slug}`} className="block">
+                  <div className="relative h-48 overflow-hidden">
+                    <img
+                      src={getArticleImageUrl(article.image, article.category)}
+                      alt={article.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
-                </div>
-                <div className="flex items-center justify-between text-xs text-text-light mb-3">
-                  <div className="flex items-center">
-                    <FaCalendarAlt className="mr-1" />
-                    <span>{new Date(article.date).toLocaleDateString('tr-TR')}</span>
+                  <div className="p-5">
+                    <div className="flex items-center gap-2 text-xs text-neutral-500 mb-2">
+                      <span className="px-2 py-0.5 rounded-full bg-ocean-50 text-ocean-600 font-medium">
+                        <AutoTranslate text={article.category || t('home.defaultCategory', 'Sağlık')} />
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <FaClock className="text-[10px]" />
+                        <AutoTranslate text={(article as any).read_time || t('home.defaultReadTime', '5 dk')} />
+                      </span>
+                    </div>
+                    <h3 className="font-display font-semibold text-primary-600 text-lg mb-2 group-hover:text-ocean-600 transition-colors line-clamp-2">
+                      <AutoTranslate text={article.title} />
+                    </h3>
+                    <p className="text-sm text-neutral-500 line-clamp-2 mb-3">
+                      <AutoTranslate text={(article as any).excerpt || (article as any).content?.substring(0, 120) + '...'} />
+                    </p>
+                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-ocean-500 group-hover:text-ocean-600 transition-colors">
+                      {t('home.readMore', 'Devamını Oku')}
+                      <FaArrowRight className="text-xs opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+                    </span>
                   </div>
-                  <div className="flex items-center">
-                    <FaEye className="mr-1" />
-                    <span>{article.views} görüntülenme</span>
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                  <Link to={`/saglik-rehberi/${article.slug}`}>{article.title}</Link>
-                </h3>
-                <p className="text-text-light text-sm mb-4 line-clamp-2">{(article as any).summary || article.content?.substring(0, 100) || ''}...</p>
-                <Link
-                  to={`/saglik-rehberi/${article.slug}`}
-                  className="inline-block text-sm font-medium text-primary hover:text-primary-dark transition-colors"
-                >
-                  Devamını Oku
                 </Link>
-              </motion.div>
-            ))
-          )}
-        </motion.div>
+              </motion.article>
+            ))}
+          </motion.div>
 
         <div className="text-center mt-12">
           <Link to="/saglik-rehberi" className="btn btn-outline">
-            Tüm Makaleler
+            {t('home.allArticles', 'Tüm Makaleler')}
           </Link>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSupabase } from '../../contexts/SupabaseContext';
 import { NewUser } from '../../lib/supabase';
 
@@ -8,6 +9,7 @@ interface SignUpFormProps {
 }
 
 const SignUpForm = ({ onSuccess, onSignInClick }: SignUpFormProps) => {
+  const { t } = useTranslation();
   const { signUp } = useSupabase();
   const [userData, setUserData] = useState<NewUser>({
     email: '',
@@ -35,7 +37,7 @@ const SignUpForm = ({ onSuccess, onSignInClick }: SignUpFormProps) => {
 
     // Validate password match
     if (userData.password !== confirmPassword) {
-      setError('Şifreler eşleşmiyor.');
+      setError(t('auth.passwordMismatch','Şifreler eşleşmiyor.'));
       setLoading(false);
       return;
     }
@@ -48,13 +50,13 @@ const SignUpForm = ({ onSuccess, onSignInClick }: SignUpFormProps) => {
         return;
       }
 
-      setSuccess('Kayıt başarılı! E-posta adresinize gönderilen onay bağlantısını kontrol edin.');
+      setSuccess(t('auth.signUpSuccess','Kayıt başarılı! E-posta adresinize gönderilen onay bağlantısını kontrol edin.'));
       
       if (onSuccess) {
         onSuccess();
       }
     } catch (err: any) {
-      setError(err.message || 'Kayıt olurken bir hata oluştu.');
+      setError(err.message || t('auth.signUpError','Kayıt olurken bir hata oluştu.'));
     } finally {
       setLoading(false);
     }
@@ -62,10 +64,10 @@ const SignUpForm = ({ onSuccess, onSignInClick }: SignUpFormProps) => {
 
   return (
     <div className="card p-6">
-      <h2 className="text-2xl font-semibold text-primary mb-6">Kayıt Ol</h2>
+      <h2 className="text-2xl font-semibold text-primary mb-6">{t('auth.signUp','Kayıt Ol')}</h2>
       
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div role="alert" className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
@@ -79,7 +81,7 @@ const SignUpForm = ({ onSuccess, onSignInClick }: SignUpFormProps) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="full_name" className="block text-sm font-medium text-text mb-1">
-            Ad Soyad
+            {t('auth.fullName','Ad Soyad')}
           </label>
           <input
             type="text"
@@ -94,7 +96,7 @@ const SignUpForm = ({ onSuccess, onSignInClick }: SignUpFormProps) => {
         
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-text mb-1">
-            E-posta
+            {t('auth.email','E-posta')}
           </label>
           <input
             type="email"
@@ -109,7 +111,7 @@ const SignUpForm = ({ onSuccess, onSignInClick }: SignUpFormProps) => {
         
         <div>
           <label htmlFor="phone" className="block text-sm font-medium text-text mb-1">
-            Telefon (İsteğe Bağlı)
+            {t('auth.phoneOptional','Telefon (İsteğe Bağlı)')}
           </label>
           <input
             type="tel"
@@ -123,7 +125,7 @@ const SignUpForm = ({ onSuccess, onSignInClick }: SignUpFormProps) => {
         
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-text mb-1">
-            Şifre
+            {t('auth.password','Şifre')}
           </label>
           <input
             type="password"
@@ -139,7 +141,7 @@ const SignUpForm = ({ onSuccess, onSignInClick }: SignUpFormProps) => {
         
         <div>
           <label htmlFor="confirmPassword" className="block text-sm font-medium text-text mb-1">
-            Şifre Tekrar
+            {t('auth.confirmPassword','Şifre Tekrar')}
           </label>
           <input
             type="password"
@@ -157,18 +159,18 @@ const SignUpForm = ({ onSuccess, onSignInClick }: SignUpFormProps) => {
           className="btn btn-primary w-full"
           disabled={loading}
         >
-          {loading ? 'Kayıt Yapılıyor...' : 'Kayıt Ol'}
+          {loading ? t('auth.signingUp','Kayıt Yapılıyor...') : t('auth.signUp','Kayıt Ol')}
         </button>
       </form>
       
       <div className="mt-6 text-center">
         <p className="text-text-light">
-          Zaten hesabınız var mı?{' '}
+          {t('auth.hasAccount','Zaten hesabınız var mı?')}{' '}
           <button
             onClick={onSignInClick}
             className="text-primary hover:text-primary-dark transition-colors"
           >
-            Giriş Yap
+            {t('auth.signIn','Giriş Yap')}
           </button>
         </p>
       </div>

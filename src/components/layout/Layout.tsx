@@ -7,17 +7,23 @@ import ScrollToTop from '../ui/ScrollToTop'
 import FloatingActions from './FloatingActions'
 
 const Layout = () => {
-  const { pathname } = useLocation()
+  const location = useLocation()
 
   useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
+    const timeout = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+    }, 50)
+    return () => clearTimeout(timeout)
+  }, [location.pathname, location.key])
 
   return (
     <div className="flex flex-col min-h-screen">
+      <a href="#main-content" className="skip-to-content">
+        İçeriğe atla
+      </a>
       <EmergencyBanner />
       <Header />
-      <main className="flex-grow">
+      <main id="main-content" tabIndex={-1} className="flex-grow focus:outline-none">
         <Outlet />
       </main>
       <Footer />

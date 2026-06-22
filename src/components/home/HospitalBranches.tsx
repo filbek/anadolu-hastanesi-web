@@ -1,114 +1,87 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import SectionTitle from '../ui/SectionTitle'
 import { FaMapMarkerAlt, FaPhone, FaArrowRight } from 'react-icons/fa'
 import { useHospitals } from '../../hooks/useHospitals'
 
 const HospitalBranches = () => {
-  const { data: hospitals = [], isLoading } = useHospitals({ onlyPublished: true })
+  const { t } = useTranslation()
+  const { data: hospitals = [] } = useHospitals({ onlyPublished: true })
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 },
-    },
-  }
-
-  if (isLoading) {
-    return (
-      <section className="py-20 bg-neutral">
-        <div className="container-custom">
-          <SectionTitle
-            title="Hastane Şubelerimiz"
-            subtitle="Hastanelerimiz yükleniyor..."
-          />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="animate-pulse bg-white rounded-2xl h-80 shadow-sm border border-gray-100" />
-            ))}
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  // Filter and sort hospitals for homepage
   const displayHospitals = hospitals
-    .filter(h => h.display_on_homepage !== false) // Handle undefined as true for safety
+    .filter((h) => h.display_on_homepage !== false)
     .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
-    .slice(0, 4)
+    .slice(0, 3)
 
   return (
-    <section className="py-20 bg-neutral">
+    <section className="py-20 md:py-28 bg-white">
       <div className="container-custom">
         <SectionTitle
-          title="Hastane Şubelerimiz"
-          subtitle="Anadolu Hastaneleri Grubu olarak İstanbul'un farklı bölgelerinde hizmet veriyoruz."
+          label={t('home.locationsLabel', 'Konumlarımız')}
+          title={t('home.hospitalsTitle', 'Hastane Şubelerimiz')}
+          subtitle={t('home.hospitalsSubtitle', 'İstanbul\'un farklı bölgelerinde, aynı kalite ve özenle hizmetinizdeyiz.')}
         />
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto"
-        >
-          {displayHospitals.map((hospital) => (
-            <motion.div
-              key={hospital.id}
-              variants={itemVariants}
-              className="card group hover:-translate-y-2 bg-white shadow-sm hover:shadow-md transition-all duration-300"
-            >
-              <div className="relative h-48 mb-4 rounded-lg overflow-hidden bg-slate-100">
+        {displayHospitals.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            {displayHospitals.map((hospital, index) => (
+              <motion.div
+                key={hospital.id}
+                initial={false}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                className="group relative rounded-3xl overflow-hidden min-h-[380px]"
+              >
                 <img
-                  src={hospital.images && hospital.images[0] ? hospital.images[0] : 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=800&q=80'}
+                  src={
+                    hospital.images && hospital.images[0]
+                      ? hospital.images[0]
+                      : 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=800&q=80'
+                  }
                   alt={hospital.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   loading="lazy"
-                  crossOrigin="anonymous"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                <h3 className="absolute bottom-4 left-4 text-white font-bold text-xl drop-shadow-md z-10">{hospital.name}</h3>
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-start">
-                  <FaMapMarkerAlt className="text-primary mt-1 mr-2 flex-shrink-0" />
-                  <p className="text-sm text-text-light">{hospital.address}</p>
+                <div className="absolute inset-0 bg-gradient-to-t from-primary-900/90 via-primary-900/30 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <div className="flex items-center gap-2 text-ocean-300 text-sm font-medium mb-2">
+                    <FaMapMarkerAlt />
+                    <span>{hospital.address?.split(',')[0] || t('home.defaultCity', 'İstanbul')}</span>
+                  </div>
+                  <h3 className="font-display text-xl font-bold text-white mb-3">
+                    {hospital.name}
+                  </h3>
+                  <p className="text-white/70 text-sm mb-4 line-clamp-2">
+                    {hospital.description}
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <a
+                      href={`tel:${hospital.phone?.replace(/\s/g, '')}`}
+                      className="flex items-center gap-2 text-white/80 hover:text-white text-sm transition-colors"
+                    >
+                      <FaPhone className="text-xs" />
+                      {hospital.phone}
+                    </a>
+                    <Link
+                      to={`/hastanelerimiz/${hospital.slug}`}
+                      aria-label={t('home.moreInfoAbout', '{{name}} hakkında detaylı bilgi', { name: hospital.name })}
+                      className="flex items-center gap-1.5 text-coral-400 hover:text-coral-300 text-sm font-semibold transition-colors"
+                    >
+                      {t('home.moreInfo', 'Detaylı Bilgi')} <FaArrowRight aria-hidden="true" className="text-xs" />
+                    </Link>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <FaPhone className="text-primary mr-2 flex-shrink-0" />
-                  <a href={`tel:${hospital.phone?.replace(/\s/g, '')}`} className="text-sm text-text-light hover:text-primary transition-colors">
-                    {hospital.phone}
-                  </a>
-                </div>
-                <p className="text-text-light text-sm pt-2 line-clamp-2">{hospital.description}</p>
-                <Link
-                  to={`/hastanelerimiz/${hospital.slug}`}
-                  className="inline-flex items-center text-primary font-bold mt-4 hover:text-primary-dark transition-colors"
-                >
-                  Detaylı Bilgi <FaArrowRight className="ml-2" />
-                </Link>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+              </motion.div>
+            ))}
+          </div>
+        ) : null}
 
         {hospitals.length > displayHospitals.length && (
           <div className="text-center mt-12">
             <Link to="/hastanelerimiz" className="btn btn-outline">
-              Tüm Hastanelerimiz
+              {t('home.allHospitals', 'Tüm Hastanelerimiz')}
             </Link>
           </div>
         )}
@@ -116,4 +89,5 @@ const HospitalBranches = () => {
     </section>
   )
 }
+
 export default HospitalBranches

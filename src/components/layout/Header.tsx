@@ -1,150 +1,158 @@
 import { useState, useEffect } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
-import { FaBars, FaTimes, FaChevronDown, FaPhone, FaUser, FaRegHospital, FaStethoscope, FaInfoCircle, FaPhoneAlt } from 'react-icons/fa'
-import { useSupabase } from '../../contexts/SupabaseContext'
-import AuthModal from '../auth/AuthModal'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
+import {
+  FaBars,
+  FaTimes,
+  FaChevronDown,
+  FaPhone,
+  FaRegHospital,
+  FaStethoscope,
+  FaInfoCircle,
+  FaPhoneAlt,
+  FaCalendarCheck,
+  FaSearch,
+} from 'react-icons/fa'
 import Logo from '../ui/Logo'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
+  const [_isScrolled, setIsScrolled] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const location = useLocation()
-  const { user, signOut } = useSupabase()
-
-  const { scrollY } = useScroll()
-  const headerHeight = useTransform(scrollY, [0, 100], ['5.5rem', '4.5rem'])
-  const headerBg = useTransform(scrollY, [0, 100], ['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.95)'])
+  const { t, i18n } = useTranslation()
+  const mobileMenuRef = useFocusTrap<HTMLDivElement>(isOpen, () => setIsOpen(false))
 
   const toggleMenu = () => setIsOpen(!isOpen)
   const closeMenu = () => setIsOpen(false)
-
-  const toggleDropdown = (dropdown: string) => {
-    setActiveDropdown(activeDropdown === dropdown ? null : dropdown)
-  }
 
   useEffect(() => {
     closeMenu()
   }, [location])
 
+  // isScrolled kept for potential future use but header is always solid white now
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
+      setIsScrolled(window.scrollY > 30)
     }
-
-    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const menuItems = [
     {
-      title: 'Hastanelerimiz',
+      title: t('nav.hospitals'),
       path: '/hastanelerimiz',
-      icon: <FaRegHospital />,
-      dropdown: [
-        { name: 'Tüm Hastanelerimiz', path: '/hastanelerimiz' },
-        { name: 'Tarihçe ve Misyon', path: '/hakkimizda' },
-        { name: 'Kalite Belgeleri', path: '/hakkimizda/kalite-belgeleri' },
-      ],
+      icon: <FaRegHospital className="text-sm" />,
+      dropdown: null,
     },
     {
-      title: 'Bölümlerimiz',
+      title: t('nav.departments'),
       path: '/bolumlerimiz',
-      icon: <FaStethoscope />,
+      icon: <FaStethoscope className="text-sm" />,
       dropdown: [
-        { name: 'Tüm Bölümler', path: '/bolumlerimiz' },
-        { name: 'Cerrahi Birimler', path: '/bolumlerimiz?kategori=cerrahi' },
-        { name: 'Dahili Birimler', path: '/bolumlerimiz?kategori=dahili' },
-        { name: 'Teşhis Birimleri', path: '/bolumlerimiz?kategori=teshis' },
+        { name: t('nav.departments'), path: '/bolumlerimiz' },
+        { name: t('header.dropdown.surgical'), path: '/bolumlerimiz?kategori=cerrahi' },
+        { name: t('header.dropdown.internal'), path: '/bolumlerimiz?kategori=dahili' },
+        { name: t('header.dropdown.diagnostic'), path: '/bolumlerimiz?kategori=teshis' },
       ],
     },
     {
-      title: 'Doktorlar',
+      title: t('nav.doctors'),
       path: '/doktorlar',
       dropdown: null,
     },
     {
-      title: 'Sağlık Rehberi',
+      title: t('nav.healthGuide'),
       path: '/saglik-rehberi',
       dropdown: [
-        { name: 'Makaleler', path: '/saglik-rehberi' },
-        { name: 'Video İçerikler', path: '/saglik-rehberi/videolar' },
-        { name: 'Hasta Bilgilendirme', path: '/saglik-rehberi/hasta-bilgilendirme' },
+        { name: t('header.dropdown.articles'), path: '/saglik-rehberi' },
       ],
     },
     {
-      title: 'Sağlık Turizmi',
+      title: t('nav.healthTourism'),
       path: '/saglik-turizmi',
-      icon: <FaInfoCircle />,
+      icon: <FaInfoCircle className="text-sm" />,
       dropdown: null,
     },
     {
-      title: 'İletişim',
+      title: t('nav.contact'),
       path: '/iletisim',
-      icon: <FaPhoneAlt />,
+      icon: <FaPhoneAlt className="text-sm" />,
       dropdown: null,
     },
   ]
 
   return (
-    <motion.header
-      style={{ height: headerHeight, backgroundColor: headerBg }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-shadow duration-300 backdrop-blur-xl border-b border-white/10 ${isScrolled ? 'shadow-lg' : ''
-        }`}
+    <header
+      className="fixed top-0 left-0 right-0 z-[60] bg-white shadow-card border-b border-neutral-100 transition-shadow duration-300"
     >
-      <div className="container-custom h-full flex justify-between items-center relative">
-        {/* Logo Section */}
-        <Link to="/" className="z-50 shrink-0 transform transition-transform hover:scale-105">
-          <Logo clickable={false} />
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-4 lg:px-5 xl:px-6 w-full h-[72px] flex justify-between items-center relative">
+        {/* Logo */}
+        <Link to="/" className="z-50 shrink-0 transition-transform hover:scale-105 duration-300">
+          <Logo clickable={false} size="large" />
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center space-x-1">
+        <nav className="hidden xl:flex items-center gap-1" aria-label={t('nav.mainMenu', 'Ana menü')}>
           {menuItems.map((item) => (
             <div
               key={item.title}
-              className="relative group h-full flex items-center"
+              className="relative group"
               onMouseEnter={() => item.dropdown && setActiveDropdown(item.title)}
               onMouseLeave={() => setActiveDropdown(null)}
+              onFocus={() => item.dropdown && setActiveDropdown(item.title)}
+              onBlur={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) setActiveDropdown(null)
+              }}
             >
               <NavLink
                 to={item.path}
                 className={({ isActive }) =>
-                  `px-4 py-2 rounded-xl text-[14px] font-semibold tracking-wide transition-all duration-300 flex items-center gap-2 group-hover:bg-primary/5 ${isActive ? 'text-primary' : 'text-slate-600 hover:text-primary'
+                  `relative px-2.5 py-2 rounded-xl text-[13px] font-semibold tracking-tight transition-all duration-300 flex items-center gap-1 whitespace-nowrap ${
+                    isActive
+                      ? 'text-primary-600'
+                      : 'text-neutral-600 hover:text-primary-600'
                   }`
                 }
               >
                 {item.title}
                 {item.dropdown && (
-                  <FaChevronDown className={`text-[10px] transition-transform duration-300 ${activeDropdown === item.title ? 'rotate-180' : ''}`} />
+                  <FaChevronDown
+                    className={`text-[10px] transition-transform duration-300 ${
+                      activeDropdown === item.title ? 'rotate-180' : ''
+                    }`}
+                  />
                 )}
-                {/* Active Indicator */}
-                <motion.div
-                  className="absolute bottom-[-1px] left-4 right-4 h-[2px] bg-primary scale-x-0 group-hover:scale-x-100 transition-transform origin-center"
-                  initial={false}
+                {/* Active indicator */}
+                <span
+                  className={`absolute bottom-0 left-2.5 right-2.5 h-[2px] bg-coral-500 rounded-full transition-transform duration-300 origin-center ${
+                    location.pathname.startsWith(item.path) && item.path !== '/'
+                      ? 'scale-x-100'
+                      : 'scale-x-0 group-hover:scale-x-100'
+                  }`}
                 />
               </NavLink>
 
-              {/* Enhanced Dropdown Menu */}
+              {/* Dropdown */}
               <AnimatePresence>
                 {item.dropdown && activeDropdown === item.title && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="absolute top-full left-0 mt-0 w-64 pt-2"
+                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute top-full left-0 mt-1 w-52 pt-2"
                   >
-                    <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden premium-shadow-lg">
+                    <div className="bg-white rounded-2xl shadow-elevated border border-neutral-100 overflow-hidden">
                       <div className="py-2">
                         {item.dropdown.map((dropdownItem) => (
                           <Link
                             key={dropdownItem.name}
                             to={dropdownItem.path}
-                            className="block px-6 py-3 text-[14px] text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors border-l-2 border-transparent hover:border-primary font-medium"
+                            className="block px-5 py-2.5 text-sm text-neutral-600 hover:bg-surface hover:text-primary-600 transition-colors border-l-[3px] border-transparent hover:border-ocean-500 font-medium"
                           >
                             {dropdownItem.name}
                           </Link>
@@ -159,207 +167,222 @@ const Header = () => {
         </nav>
 
         {/* Action Buttons */}
-        <div className="hidden lg:flex items-center space-x-6">
+        <div className="hidden lg:flex items-center gap-2">
+          {/* Doctor Search */}
+          <div className="hidden md:block relative">
+            <label htmlFor="header-doctor-search" className="sr-only">
+              {t('nav.searchDoctor')}
+            </label>
+            <input
+              id="header-doctor-search"
+              type="search"
+              aria-label={t('nav.searchDoctor')}
+              placeholder={t('nav.searchDoctor')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const term = (e.target as HTMLInputElement).value
+                  if (term.trim()) {
+                    window.location.href = `/doktorlar?search=${encodeURIComponent(term.trim())}`
+                  }
+                }
+              }}
+              className="w-32 xl:w-36 pl-9 pr-3 py-2 rounded-full bg-surface border border-neutral-200 text-sm text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:border-ocean-400 focus:w-44 transition-all duration-300"
+            />
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 text-xs" />
+          </div>
+
+          {/* Emergency Phone */}
           <a
-            href="tel:+902121234567"
-            className="group flex flex-col items-end"
+            href="tel:4445058"
+            className="group flex items-center gap-2 text-sm font-semibold text-neutral-600 hover:text-primary-600 transition-colors"
           >
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Acil Destek</span>
-            <span className="text-[15px] font-bold text-slate-700 group-hover:text-primary transition-colors flex items-center">
-              <FaPhone className="mr-2 text-xs" /> 0212 123 45 67
-            </span>
+            <div className="w-8 h-8 rounded-full bg-coral-50 flex items-center justify-center group-hover:bg-coral-100 transition-colors">
+              <FaPhone className="text-coral-500 text-xs" />
+            </div>
+            <span className="hidden xl:inline">{t('nav.emergency')}</span>
           </a>
 
-          <div className="h-8 w-[1px] bg-slate-200" />
-
-          {user ? (
-            <div className="relative">
-              <button
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center space-x-2 group"
-              >
-                <div className="w-10 h-10 rounded-full bg-primary/5 p-[2px] transition-transform group-hover:scale-105">
-                  <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-white border border-primary/10 shadow-sm">
-                    {user.user_metadata?.avatar_url ? (
-                      <img
-                        src={user.user_metadata.avatar_url}
-                        alt="Avatar"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <FaUser className="text-primary text-sm" />
-                    )}
-                  </div>
-                </div>
-                <div className="flex flex-col items-start leading-none">
-                  <span className="text-[13px] font-bold text-slate-800">
-                    {user.user_metadata?.full_name?.split(' ')[0] || 'Hesabım'}
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-medium">Profil</span>
-                </div>
-                <FaChevronDown className={`text-[10px] text-slate-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              <AnimatePresence>
-                {isUserMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute right-0 mt-4 w-56 rounded-2xl bg-white shadow-2xl border border-slate-100 overflow-hidden z-50 premium-shadow-lg"
-                  >
-                    <div className="py-2">
-                      <Link
-                        to="/profil"
-                        className="flex items-center px-4 py-3 text-[14px] text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        <FaUser className="mr-3 text-xs opacity-50" /> Profilim
-                      </Link>
-                      <Link
-                        to="/profil"
-                        className="flex items-center px-4 py-3 text-[14px] text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        <i className="bi bi-calendar-check mr-3 opacity-50"></i> Randevularım
-                      </Link>
-                      <div className="h-[1px] bg-slate-100 my-1 mx-2" />
-                      <button
-                        onClick={() => {
-                          signOut();
-                          setIsUserMenuOpen(false);
-                        }}
-                        className="flex items-center w-full text-left px-4 py-3 text-[14px] text-red-500 hover:bg-red-50/50 transition-colors"
-                      >
-                        <i className="bi bi-box-arrow-right mr-3 opacity-70"></i> Güvenli Çıkış
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ) : (
+          {/* Language Switcher Dropdown */}
+          <div className="relative group hidden xl:flex items-center">
             <button
-              onClick={() => setIsAuthModalOpen(true)}
-              className="flex items-center px-5 py-2.5 rounded-full border border-slate-200 text-slate-700 font-bold text-[14px] hover:bg-slate-50 hover:border-slate-300 transition-all duration-300 shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-neutral-600 hover:text-primary-600 transition-colors uppercase"
+              aria-label={t('nav.language', 'Dil seçimi')}
+              aria-haspopup="true"
             >
-              <FaUser className="mr-2 text-xs opacity-50" />
-              Giriş Yap
+              {i18n.language || 'tr'}
+              <FaChevronDown aria-hidden="true" className="text-[10px] opacity-50 group-hover:rotate-180 transition-transform duration-300" />
             </button>
-          )}
 
+            <div className="absolute top-full right-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-300">
+              <div className="bg-white rounded-2xl shadow-elevated border border-neutral-100 p-1 min-w-[120px] flex flex-col gap-0.5">
+                {(['tr', 'en', 'ar'] as const).map((lang) => (
+                  <button
+                    key={lang}
+                    onClick={() => {
+                      i18n.changeLanguage(lang)
+                      closeMenu()
+                    }}
+                    aria-label={lang === 'tr' ? 'Türkçe' : lang === 'en' ? 'English' : 'العربية'}
+                    aria-current={i18n.language === lang ? 'true' : undefined}
+                    lang={lang}
+                    className={`px-4 py-2.5 text-sm font-medium rounded-xl text-left transition-colors flex items-center justify-between ${
+                      i18n.language === lang
+                        ? 'bg-coral-50 text-coral-600'
+                        : 'text-neutral-600 hover:bg-surface hover:text-primary-600'
+                    }`}
+                  >
+                    <span>{lang === 'tr' ? 'Türkçe' : lang === 'en' ? 'English' : 'العربية'}</span>
+                    <span className="text-[10px] uppercase opacity-50">{lang}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* CTA Button */}
           <a
             href="https://anadoluhastaneleri.kendineiyibak.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-primary !rounded-full !px-8 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transform hover:-translate-y-0.5"
+            className="btn btn-coral !px-4 !py-2 !text-[13px] !rounded-full whitespace-nowrap"
           >
-            Online Randevu
+            <FaCalendarCheck className="text-xs" />
+            {t('nav.appointment')}
           </a>
         </div>
 
-        {/* Mobile menu logic remains but with enhanced UI */}
+        {/* Mobile Toggle */}
         <button
-          className="lg:hidden z-50 p-3 rounded-xl bg-slate-50 text-slate-800 hover:text-primary transition-all duration-300"
+          className="lg:hidden z-50 p-3 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-white/80 backdrop-blur-sm border border-neutral-100 text-neutral-800 hover:text-primary-600 transition-all"
           onClick={toggleMenu}
+          aria-expanded={isOpen}
+          aria-controls="mobile-menu"
+          aria-label={isOpen ? t('nav.closeMenu', 'Menüyü kapat') : t('nav.openMenu', 'Menüyü aç')}
         >
-          {isOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+          {isOpen ? <FaTimes size={18} aria-hidden="true" /> : <FaBars size={18} aria-hidden="true" />}
         </button>
 
-        {/* Mobile Menu Overlay */}
+        {/* Mobile Overlay */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden"
+              className="fixed inset-0 bg-primary-900/40 backdrop-blur-sm z-40 lg:hidden"
               onClick={closeMenu}
             />
           )}
         </AnimatePresence>
 
-        {/* Improved Mobile Sidebar */}
+        {/* Mobile Sidebar */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
+              ref={mobileMenuRef}
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 right-0 w-[85%] max-w-[400px] bg-white z-50 lg:hidden shadow-2xl flex flex-col pt-24 px-8 pb-10"
+              transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+              className="fixed inset-y-0 right-0 w-[85%] max-w-[380px] bg-white z-50 lg:hidden shadow-2xl flex flex-col"
+              id="mobile-menu"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t('nav.mainMenu', 'Ana menü')}
             >
-              <nav className="flex-1 overflow-y-auto custom-scrollbar pr-2">
-                <div className="space-y-4">
+              {/* Mobile Header */}
+              <div className="px-6 pt-6 pb-4 border-b border-neutral-100 flex items-center justify-between">
+                <Logo clickable={false} />
+                <button
+                  type="button"
+                  onClick={closeMenu}
+                  aria-label={t('nav.closeMenu', 'Menüyü kapat')}
+                  className="w-11 h-11 rounded-xl flex items-center justify-center text-neutral-600 hover:text-primary-600 hover:bg-neutral-100 transition-colors"
+                >
+                  <FaTimes size={18} aria-hidden="true" />
+                </button>
+              </div>
+
+              <nav className="flex-1 overflow-y-auto px-6 py-4" aria-label={t('nav.mainMenu', 'Ana menü')}>
+                <div className="space-y-1">
                   {menuItems.map((item) => (
-                    <div key={item.title} className="border-b border-slate-50 pb-2">
-                      <div className="flex justify-between items-center">
+                    <div key={item.title} className="border-b border-neutral-50 last:border-0">
+                      <div className="flex items-center justify-between py-3">
                         <NavLink
                           to={item.path}
                           className={({ isActive }) =>
-                            `py-3 text-lg font-bold tracking-tight ${isActive ? 'text-primary' : 'text-slate-800'}`
+                            `text-base font-semibold ${
+                              isActive ? 'text-primary-600' : 'text-neutral-800'
+                            }`
                           }
                           onClick={closeMenu}
                         >
                           {item.title}
                         </NavLink>
-                        {item.dropdown && (
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              toggleDropdown(item.title);
-                            }}
-                            className="p-2 bg-slate-50 rounded-lg text-slate-400"
-                          >
-                            <FaChevronDown className={`transition-transform ${activeDropdown === item.title ? 'rotate-180' : ''}`} />
-                          </button>
-                        )}
                       </div>
-
-                      <AnimatePresence>
-                        {item.dropdown && activeDropdown === item.title && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden pl-4 mt-2 space-y-2 border-l-2 border-slate-100"
-                          >
-                            {item.dropdown.map((sub) => (
-                              <Link
-                                key={sub.name}
-                                to={sub.path}
-                                onClick={closeMenu}
-                                className="block py-3 text-[15px] font-medium text-slate-500 active:text-primary transition-colors"
-                              >
-                                {sub.name}
-                              </Link>
-                            ))}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                      {item.dropdown && (
+                        <div className="pl-3 pb-3 space-y-1">
+                          {item.dropdown.map((sub) => (
+                            <Link
+                              key={sub.name}
+                              to={sub.path}
+                              onClick={closeMenu}
+                              className="block py-2 text-sm text-neutral-500 hover:text-primary-600 transition-colors"
+                            >
+                              {sub.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
               </nav>
 
-              <div className="mt-8 space-y-4 pt-8 border-t border-slate-100">
-                <div className="grid grid-cols-2 gap-4">
-                  <a href="tel:+902121234567" className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 text-center">
-                    <FaPhone className="text-primary mb-2" />
-                    <span className="text-[10px] uppercase font-bold text-slate-400">Acil Çağrı</span>
-                    <span className="text-xs font-bold text-slate-700 line-clamp-1">0212 123...</span>
-                  </a>
-                  <button className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-50 text-center">
-                    <FaUser className="text-primary mb-2" />
-                    <span className="text-[10px] uppercase font-bold text-slate-400">Giriş Yap</span>
-                    <span className="text-xs font-bold text-slate-700">Hesabım</span>
-                  </button>
+              {/* Mobile Actions */}
+              <div className="px-6 pb-8 pt-4 border-t border-neutral-100 space-y-3">
+                {/* Mobile Language Switcher */}
+                <div className="flex flex-col gap-1 mb-4">
+                  <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1">{t('nav.language', 'Dil Seçimi')}</span>
+                  {(['tr', 'en', 'ar'] as const).map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => {
+                        i18n.changeLanguage(lang)
+                        closeMenu()
+                      }}
+                      aria-label={lang === 'tr' ? 'Türkçe' : lang === 'en' ? 'English' : 'العربية'}
+                      aria-current={i18n.language === lang ? 'true' : undefined}
+                      lang={lang}
+                      className={`px-4 py-2 text-sm font-medium rounded-xl text-left transition-colors flex items-center justify-between ${
+                        i18n.language === lang
+                          ? 'bg-coral-50 text-coral-600'
+                          : 'text-neutral-600 hover:bg-surface hover:text-primary-600'
+                      }`}
+                    >
+                      <span>{lang === 'tr' ? 'Türkçe' : lang === 'en' ? 'English' : 'العربية'}</span>
+                      <span className="text-[10px] uppercase opacity-50">{lang}</span>
+                    </button>
+                  ))}
                 </div>
+
                 <a
                   href="https://anadoluhastaneleri.kendineiyibak.app/"
-                  className="btn btn-primary w-full !rounded-xl !py-4 shadow-xl shadow-primary/20 text-center block"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-coral w-full justify-center"
                 >
-                  Hemen Randevu Al
+                  <FaCalendarCheck />
+                  {t('common.onlineAppointment')}
+                </a>
+                <a
+                  href="tel:4445058"
+                  className="flex items-center justify-center gap-2 py-3 text-sm font-semibold text-neutral-600 hover:text-primary-600 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-coral-50 flex items-center justify-center">
+                    <FaPhone className="text-coral-500 text-xs" />
+                  </div>
+                  {t('nav.emergency')}
                 </a>
               </div>
             </motion.div>
@@ -367,12 +390,7 @@ const Header = () => {
         </AnimatePresence>
       </div>
 
-      {/* Auth Modal remains the same */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-      />
-    </motion.header>
+    </header>
   )
 }
 

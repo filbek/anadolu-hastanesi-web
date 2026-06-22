@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useSupabase } from '../contexts/SupabaseContext';
 import UserProfileForm from '../components/profile/UserProfileForm';
 import UserAppointments from '../components/profile/UserAppointments';
 
 const ProfilePage = () => {
+  const { t } = useTranslation();
   const { user, signOut, loading } = useSupabase();
   const [activeTab, setActiveTab] = useState('profile');
 
@@ -24,12 +26,13 @@ const ProfilePage = () => {
   return (
     <>
       <Helmet>
-        <title>Profilim | Anadolu Hastaneleri Grubu</title>
-        <meta name="description" content="Anadolu Hastaneleri Grubu kullanıcı profil sayfası. Profil bilgilerinizi güncelleyin ve randevularınızı görüntüleyin." />
+        <title>{t('profile.pageTitle', 'Profilim')} | Anadolu Hastaneleri Grubu</title>
+        <meta name="description" content={t('profile.metaDescription', 'Anadolu Hastaneleri Grubu kullanıcı profil sayfası. Profil bilgilerinizi güncelleyin ve randevularınızı görüntüleyin.')} />
       </Helmet>
 
       <div className="pt-24 pb-12">
         <div className="container-custom">
+          <h1 className="sr-only">{t('profile.pageTitle', 'Profilim')}</h1>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Sidebar */}
             <div className="lg:col-span-1">
@@ -49,14 +52,14 @@ const ProfilePage = () => {
                     )}
                   </div>
                   <h2 className="text-xl font-semibold text-primary mb-1">
-                    {user.user_metadata?.full_name || 'Kullanıcı'}
+                    {user.user_metadata?.full_name || t('profile.defaultUser', 'Kullanıcı')}
                   </h2>
                   <p className="text-text-light text-sm mb-4">{user.email}</p>
                   <button
                     onClick={() => signOut()}
                     className="btn btn-outline w-full"
                   >
-                    Çıkış Yap
+                    {t('auth.logout', 'Çıkış Yap')}
                   </button>
                 </div>
               </div>
@@ -70,7 +73,7 @@ const ProfilePage = () => {
                   }`}
                   onClick={() => setActiveTab('profile')}
                 >
-                  <i className="bi bi-person mr-2"></i> Profil Bilgilerim
+                  <i className="bi bi-person mr-2"></i> {t('profile.info', 'Profil Bilgilerim')}
                 </button>
                 <button
                   className={`w-full py-3 px-6 text-left font-medium transition-colors ${
@@ -80,7 +83,7 @@ const ProfilePage = () => {
                   }`}
                   onClick={() => setActiveTab('appointments')}
                 >
-                  <i className="bi bi-calendar-check mr-2"></i> Randevularım
+                  <i className="bi bi-calendar-check mr-2"></i> {t('profile.appointments', 'Randevularım')}
                 </button>
                 <a
                   href="https://anadoluhastaneleri.kendineiyibak.app/"
@@ -88,7 +91,7 @@ const ProfilePage = () => {
                   rel="noopener noreferrer"
                   className="w-full py-3 px-6 text-left font-medium transition-colors hover:bg-neutral flex items-center"
                 >
-                  <i className="bi bi-calendar-plus mr-2"></i> Randevu Al
+                  <i className="bi bi-calendar-plus mr-2"></i> {t('profile.bookAppointment', 'Randevu Al')}
                   <i className="bi bi-box-arrow-up-right ml-auto text-xs"></i>
                 </a>
               </div>

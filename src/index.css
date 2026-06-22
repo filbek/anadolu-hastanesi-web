@@ -2,29 +2,112 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --primary: #141729;
-  --primary-dark: #0D0F1A;
-  --primary-light: #1D2138;
-  --secondary: #475569;
-  --accent: #E21A22;
-  --accent-dark: #B8151B;
-  --neutral: #F8FAFC;
-  --text: #1E293B;
-  --text-light: #94A3B8;
-  --border: #E2E8F0;
-  --footer-bg: #141729;
+/* ============================================================
+   ANADOLU HASTANELERİ 2026 — CALM AUTHORITY DESIGN SYSTEM
+   Font: Plus Jakarta Sans (Display) + Inter (Body)
+   Primary: #0F1F3A | Ocean: #0A6B7D | Coral: #E85D4E
+   ============================================================ */
 
-  /* Admin & Premium Frontend Tokens */
-  --admin-sidebar: #0F172A;
-  --admin-sidebar-hover: #1E293B;
-  --admin-bg: #F1F5F9;
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-light: rgba(255, 255, 255, 0.4);
-  --premium-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
-  --premium-shadow-lg: 0 20px 50px -12px rgba(0, 0, 0, 0.15);
+:root {
+  /* === Primary — Deep Navy === */
+  --color-primary-50:  #E8EDF3;
+  --color-primary-100: #D1DBE7;
+  --color-primary-200: #A3B7CF;
+  --color-primary-300: #7593B7;
+  --color-primary-400: #476F9F;
+  --color-primary-500: #1A4B87;
+  --color-primary-600: #0F1F3A;
+  --color-primary-700: #0C1930;
+  --color-primary-800: #091326;
+  --color-primary-900: #060D1C;
+
+  /* === Ocean — Calm Secondary === */
+  --color-ocean-50:  #E6F2F4;
+  --color-ocean-100: #CCE5EA;
+  --color-ocean-200: #99CCD5;
+  --color-ocean-300: #66B2C0;
+  --color-ocean-400: #3399AB;
+  --color-ocean-500: #0A6B7D;
+  --color-ocean-600: #085664;
+  --color-ocean-700: #06404B;
+
+  /* === Amber — Premium Accent === */
+  --color-amber-50:  #FCF6EB;
+  --color-amber-100: #F9EDD6;
+  --color-amber-200: #F3DBAD;
+  --color-amber-300: #EDC984;
+  --color-amber-400: #E7B75B;
+  --color-amber-500: #D4953A;
+  --color-amber-600: #AA772E;
+
+  /* === Coral — Action CTA (Logo Red) === */
+  --color-coral-50:  #FEF2F2;
+  --color-coral-100: #FEE2E2;
+  --color-coral-200: #FECACA;
+  --color-coral-300: #FCA5A5;
+  --color-coral-400: #F87171;
+  --color-coral-500: #E30613;
+  --color-coral-600: #DC2626;
+
+  /* === Success === */
+  --color-success: #2D8A5E;
+
+  /* === Surface & Neutral === */
+  --color-surface:       #F7F9FB;
+  --color-surface-dark:  #EDF1F5;
+  --color-neutral-100:   #EDF1F5;
+  --color-neutral-200:   #D5DDE4;
+  --color-neutral-300:   #B5C0CA;
+  --color-neutral-400:   #8A97A3;
+  --color-neutral-500:   #6B7884;
+  --color-neutral-600:   #4D5862;
+  --color-neutral-700:   #3A4249;
+  --color-neutral-800:   #262C31;
+  --color-neutral-900:   #1A1D23;
+  --color-neutral-950:   #0D0F12;
+
+  /* === Text === */
+  --color-text:        #1A1D23;
+  --color-text-light:  #4D5862;
+  --color-text-muted:  #6B7884;
+
+  /* === Backgrounds === */
+  --bg-primary:   #FFFFFF;
+  --bg-surface:   #F7F9FB;
+  --bg-dark:      #0F1F3A;
+  --bg-dark-deep: #0A1628;
+
+  /* === Typography === */
+  --font-display: '"Plus Jakarta Sans"', system-ui, sans-serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+
+  /* === Spacing === */
+  --space-section:    96px;
+  --space-section-lg: 120px;
+  --space-hero:       128px;
+
+  /* === Shadows === */
+  --shadow-soft:      0 2px 15px rgba(15, 31, 58, 0.05);
+  --shadow-card:      0 4px 24px rgba(15, 31, 58, 0.07);
+  --shadow-hover:     0 8px 32px rgba(15, 31, 58, 0.10);
+  --shadow-elevated:  0 12px 48px rgba(15, 31, 58, 0.12);
+  --shadow-glass:     0 8px 32px rgba(15, 31, 58, 0.08);
+  --shadow-coral:     0 4px 20px rgba(232, 93, 78, 0.25);
+  --shadow-ocean:     0 4px 20px rgba(10, 107, 125, 0.20);
+
+  /* === Glassmorphism === */
+  --glass-bg:    rgba(255, 255, 255, 0.72);
+  --glass-bg-dark: rgba(15, 31, 58, 0.60);
+  --glass-border: rgba(255, 255, 255, 0.15);
+
+  /* === Transitions === */
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-bounce:  cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
+/* ============================================================
+   BASE RESET
+   ============================================================ */
 
 * {
   margin: 0;
@@ -34,127 +117,530 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  font-family: 'Poppins', sans-serif;
-  color: var(--text);
-  background-color: #ffffff;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  background-color: var(--bg-primary);
   overflow-x: hidden;
 }
 
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  color: var(--color-primary-600);
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+h1 { font-size: clamp(36px, 5vw, 64px); line-height: 1.05; }
+h2 { font-size: clamp(28px, 3.5vw, 48px); line-height: 1.1; }
+h3 { font-size: clamp(22px, 2.5vw, 36px); line-height: 1.15; }
+h4 { font-size: clamp(18px, 2vw, 28px); line-height: 1.2; }
+h5 { font-size: clamp(16px, 1.5vw, 22px); line-height: 1.3; }
+h6 { font-size: clamp(14px, 1.2vw, 18px); line-height: 1.4; }
+
+p {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--color-text-light);
+}
+
+/* ============================================================
+   PHOTOGRAPHY TREATMENT
+   ============================================================ */
+
+.img-hospital {
+  filter: saturate(0.92) contrast(1.03);
+}
+
+.img-doctor {
+  filter: saturate(0.88) brightness(1.02) contrast(1.03) grayscale(100%);
+  transition: filter 0.5s var(--ease-premium);
+}
+
+.img-doctor:hover {
+  filter: saturate(0.92) brightness(1.02) contrast(1.03) grayscale(0%);
+}
+
+.img-doctor-color {
+  filter: saturate(0.90) contrast(1.03);
+}
+
+/* ============================================================
+   SKELETON LOADING
+   ============================================================ */
+
+.skeleton {
+  background: linear-gradient(90deg, var(--color-neutral-100) 25%, var(--color-neutral-200) 50%, var(--color-neutral-100) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ============================================================
+   ERİŞİLEBİLİRLİK (WCAG 2.2 A) — Odak, Skip-link, Hareket
+   ============================================================ */
+
+/* Klavye ile gezinende her zaman görünür odak halkası (WCAG 2.4.7) */
+*:focus-visible {
+  outline: 3px solid var(--color-ocean-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Fare/dokunma ile etkileşimde outline gösterme (focus-visible bunu zaten yönetir) */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* "İçeriğe atla" bağlantısı (WCAG 2.4.1) — sadece odaklanınca görünür */
+.skip-to-content {
+  position: absolute;
+  left: 1rem;
+  top: -100px;
+  z-index: 200;
+  padding: 0.75rem 1.25rem;
+  background: var(--color-primary-600);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 0 0 0.75rem 0.75rem;
+  transition: top 0.2s ease;
+}
+.skip-to-content:focus {
+  top: 0;
+}
+
+/* Ekran okuyucuya özel metin (görsel olarak gizli ama okunabilir) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Mobil uyumluluk: yatay kaydırmayı ve içerik taşmasını önle (WCAG 1.4.10 Reflow).
+   overflow-x: clip kullanılır; `hidden`in aksine scroll-container oluşturmaz,
+   böylece sayfalardaki `position: sticky` kenar çubukları bozulmaz. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* Medya ögeleri kapsayıcısını asla taşırmasın */
+img,
+video,
+iframe {
+  max-width: 100%;
+}
+
+/* Metin büyütüldüğünde (WCAG 1.4.4) uzun kelimeler/bağlantılar taşmasın */
+body {
+  overflow-wrap: break-word;
+}
+
+/* Hareket azaltma tercihini onurlandır (WCAG 2.3.3 / kullanıcı tercihi) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   COMPONENT LAYER
+   ============================================================ */
+
 @layer components {
+
+  /* --- Container --- */
   .container-custom {
-    @apply container mx-auto px-4 md:px-6 lg:px-8;
+    @apply w-full mx-auto px-5 md:px-10 lg:px-20;
+    max-width: 1280px;
   }
 
+  .container-narrow {
+    @apply w-full mx-auto px-5 md:px-10;
+    max-width: 960px;
+  }
+
+  /* --- Buttons --- */
   .btn {
-    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-all duration-300 focus:outline-none;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold transition-all duration-200 focus:outline-none;
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+
+  .btn-coral {
+    @apply bg-coral-500 text-white;
+    box-shadow: var(--shadow-coral);
+  }
+  .btn-coral:hover {
+    @apply bg-coral-600;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(227, 6, 19, 0.35);
   }
 
   .btn-primary {
-    @apply bg-primary text-white hover:bg-primary-dark;
+    @apply bg-primary-600 text-white;
+    box-shadow: var(--shadow-soft);
+  }
+  .btn-primary:hover {
+    @apply bg-primary-700;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
   }
 
-  .btn-accent {
-    @apply bg-accent text-white hover:bg-accent-dark;
+  .btn-ocean {
+    @apply bg-ocean-500 text-white;
+    box-shadow: var(--shadow-ocean);
+  }
+  .btn-ocean:hover {
+    @apply bg-ocean-600;
+    transform: translateY(-2px);
   }
 
   .btn-outline {
-    @apply border-2 border-primary text-primary hover:bg-primary hover:text-white;
+    @apply border-2 border-primary-600 text-primary-600 bg-transparent;
+    transition: all 150ms var(--ease-premium);
+  }
+  .btn-outline:hover {
+    @apply bg-primary-600 text-white;
+  }
+
+  .btn-outline-ocean {
+    @apply border-2 border-ocean-500 text-ocean-500 bg-transparent;
+    transition: all 150ms var(--ease-premium);
+  }
+  .btn-outline-ocean:hover {
+    @apply bg-ocean-500 text-white;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-primary-600;
+    transition: all 150ms var(--ease-premium);
+  }
+  .btn-ghost:hover {
+    @apply bg-primary-50;
+  }
+
+  .btn-white {
+    @apply bg-white text-primary-600;
+    box-shadow: var(--shadow-soft);
+  }
+  .btn-white:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+  }
+
+  /* --- Section Labels & Titles --- */
+  .section-label {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ocean-500);
   }
 
   .section-title {
-    @apply text-3xl md:text-4xl font-bold mb-6 text-primary;
+    font-family: var(--font-display);
+    font-size: clamp(28px, 3.5vw, 48px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-primary-600);
+    line-height: 1.1;
   }
 
   .section-subtitle {
-    @apply text-xl md:text-2xl font-semibold mb-4 text-secondary;
+    font-family: var(--font-body);
+    font-size: clamp(16px, 1.5vw, 20px);
+    font-weight: 400;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    letter-spacing: -0.01em;
   }
 
-  .card {
-    @apply bg-white rounded-xl shadow-card p-6 transition-all duration-300 hover:shadow-hover;
+  /* --- Cards (v2 — minimal) --- */
+  .card-v2 {
+    @apply bg-white rounded-2xl p-6 transition-all duration-300;
+    border: 1px solid var(--color-neutral-100);
+  }
+  .card-v2:hover {
+    border-color: var(--color-ocean-200);
+    box-shadow: var(--shadow-hover);
   }
 
+  .card-v2-ocean {
+    @apply bg-white rounded-2xl p-6 transition-all duration-300;
+    border: 1px solid var(--color-neutral-100);
+  }
+  .card-v2-ocean:hover {
+    border-left: 3px solid var(--color-ocean-500);
+    box-shadow: var(--shadow-hover);
+  }
+
+  /* --- Forms --- */
   .input-field {
-    @apply w-full px-4 py-3 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 bg-white;
+    @apply w-full px-5 py-3.5 rounded-xl transition-all duration-200 bg-white;
+    font-size: 16px;
+    border: 1px solid var(--color-neutral-200);
+    color: var(--color-text);
+  }
+  .input-field::placeholder {
+    color: var(--color-neutral-400);
+  }
+  .input-field:focus {
+    outline: none;
+    border-color: var(--color-ocean-400);
+    box-shadow: 0 0 0 3px rgba(10, 107, 125, 0.12);
   }
 
-  /* Admin Premium Utilities */
-  .admin-glass {
-    @apply backdrop-blur-md bg-white/70 border border-white/20;
+  /* --- Glassmorphism --- */
+  .glass {
+    @apply backdrop-blur-xl;
+    background-color: var(--glass-bg);
+    border: 1px solid var(--glass-border);
   }
 
-  .admin-card {
-    @apply bg-white rounded-2xl border border-border/50 shadow-sm hover:shadow-md transition-all duration-300;
+  .glass-dark {
+    @apply backdrop-blur-xl;
+    background-color: var(--glass-bg-dark);
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
-  .admin-sidebar-item {
-    @apply flex items-center px-4 py-3 rounded-xl transition-all duration-200 text-slate-400 hover:text-white hover:bg-white/5;
+  /* --- Badges --- */
+  .badge-coral {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium;
+    font-family: var(--font-display);
+    background-color: var(--color-coral-50);
+    color: var(--color-coral-600);
+    border: 1px solid var(--color-coral-100);
   }
 
-  .admin-sidebar-item-active {
-    @apply bg-primary text-white shadow-lg shadow-primary/20;
+  .badge-ocean {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium;
+    font-family: var(--font-display);
+    background-color: var(--color-ocean-50);
+    color: var(--color-ocean-600);
+    border: 1px solid var(--color-ocean-100);
   }
 
-  .premium-shadow {
-    box-shadow: var(--premium-shadow);
+  .badge-amber {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium;
+    font-family: var(--font-display);
+    background-color: var(--color-amber-50);
+    color: var(--color-amber-600);
+    border: 1px solid var(--color-amber-100);
   }
 
-  .premium-shadow-lg {
-    box-shadow: var(--premium-shadow-lg);
+  .badge-primary {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium;
+    font-family: var(--font-display);
+    background-color: var(--color-primary-50);
+    color: var(--color-primary-600);
+    border: 1px solid var(--color-primary-100);
   }
 
+  /* --- Text Effects --- */
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary-light to-secondary;
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, var(--color-primary-600), var(--color-ocean-500));
   }
 
-  .glass-modern {
-    @apply backdrop-blur-xl bg-white/70 border border-white/20 shadow-xl;
+  .text-gradient-coral {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, var(--color-coral-500), var(--color-coral-300));
+  }
+
+  /* --- Link Underline Animation --- */
+  .link-underline {
+    @apply relative;
+  }
+  .link-underline::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-0 h-[2px] bg-current transition-all duration-300;
+  }
+  .link-underline:hover::after {
+    @apply w-full;
+  }
+
+  /* --- Ribbon / Quick Action Band --- */
+  .ribbon {
+    @apply glass rounded-2xl;
+    box-shadow: var(--shadow-glass);
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 10px;
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+
+.fade-up {
+  animation: fadeUp 0.6s var(--ease-premium) both;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--neutral);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--secondary);
-  border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--primary);
-}
-
-/* Animations */
 .fade-in {
-  animation: fadeIn 0.5s ease-in-out;
+  animation: fadeIn 0.4s ease-out both;
+}
+
+.slide-up {
+  animation: slideUp 0.5s var(--ease-premium) both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-/* Swiper custom styles */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+
+::-webkit-scrollbar         { width: 8px; }
+::-webkit-scrollbar-track   { background: var(--color-surface); }
+::-webkit-scrollbar-thumb   { background: var(--color-neutral-200); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-ocean-400); }
+
+/* ============================================================
+   SWIPER OVERRIDES
+   ============================================================ */
+
 .swiper-pagination-bullet-active {
-  background-color: var(--primary) !important;
+  background-color: var(--color-coral-500) !important;
+  width: 24px !important;
+  border-radius: 4px !important;
+}
+
+.swiper-pagination-bullet {
+  transition: all 0.3s ease;
 }
 
 .swiper-button-next,
 .swiper-button-prev {
-  color: var(--primary) !important;
+  color: var(--color-primary-600) !important;
+  background: white;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50%;
+  box-shadow: var(--shadow-card);
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 18px !important;
+  font-weight: 700;
+}
+
+/* ============================================================
+   MOBILE SAFE AREA
+   ============================================================ */
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mobile-safe {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* ============================================================
+   SELECTION
+   ============================================================ */
+
+::selection {
+  background-color: var(--color-ocean-100);
+  color: var(--color-primary-700);
+}
+
+/* ============================================================
+   HOSPITAL MAP (Leaflet) — hastane ikonlu özel pin
+   ============================================================ */
+
+/* Leaflet pane'lerinin yüksek z-index'i header/modal gibi sayfa
+   katmanlarının üzerine çıkmasın diye haritayı kendi stacking
+   context'ine alıyoruz. */
+.hospital-map {
+  position: relative;
+  z-index: 0;
+}
+
+.hospital-map-marker {
+  background: transparent;
+  border: none;
+}
+
+.hospital-map-pin {
+  position: relative;
+  width: 44px;
+  height: 56px;
+  filter: drop-shadow(0 4px 6px rgba(15, 31, 58, 0.35));
+}
+
+.hospital-map-pin-head {
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  background: #0F1F3A; /* primary */
+  border: 3px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 20px;
+}
+
+.hospital-map-pin-tail {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 14px solid #0F1F3A; /* primary */
+}
+
+.hospital-map .leaflet-popup-content {
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.hospital-map .leaflet-popup-content a {
+  color: #0A6B7D; /* ocean */
+  font-weight: 600;
 }

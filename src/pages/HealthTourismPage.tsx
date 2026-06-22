@@ -1,12 +1,14 @@
-import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import {
   FaCheck, FaGlobeAmericas, FaHotel, FaAmbulance, FaUserMd, FaMicrochip, FaUserFriends,
   FaHeartbeat, FaBone, FaEye, FaUserEdit, FaTooth, FaCut,
-  FaPhone, FaEnvelope, FaWhatsapp, FaFacebookF, FaTwitter, FaInstagram, FaYoutube
+  FaPhone, FaEnvelope, FaWhatsapp, FaFacebookF, FaTwitter, FaInstagram, FaYoutube, FaSearchPlus
 } from 'react-icons/fa'
 
 const HealthTourismPage = () => {
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false)
   const whyUs = [
     { title: 'JCI Akreditasyonu', desc: 'Uluslararası standartlarda sağlık hizmeti sunduğumuzu belgeleyen JCI akreditasyonuna sahibiz.' },
     { title: 'Uzman Doktor Kadrosu', desc: 'Alanında uzman ve uluslararası deneyime sahip doktorlarımızla hizmet veriyoruz.' },
@@ -65,10 +67,10 @@ const HealthTourismPage = () => {
       {/* HERO SECTION WITH BANNER */}
       <section className="relative min-h-[600px] flex items-center pt-24 overflow-hidden">
         {/* Background Image */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0" aria-hidden="true">
           <img
             src="https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=1920&q=80"
-            alt="Medical Technology"
+            alt=""
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-primary/60" />
@@ -106,29 +108,14 @@ const HealthTourismPage = () => {
               className="hidden lg:block"
             >
               <img
-                src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=600&q=80"
-                alt="Medical Equipment"
-                className="rounded-3xl shadow-2xl border-4 border-white/20"
+                src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=800&q=80"
+                alt="Anadolu Hastaneleri'nde uzman doktor hasta ile görüşürken"
+                className="rounded-3xl shadow-2xl border-4 border-white/20 w-full object-cover aspect-[4/3]"
               />
             </motion.div>
           </div>
         </div>
       </section>
-
-      {/* LANGUAGE SELECTOR */}
-      <div className="bg-slate-100 py-4">
-        <div className="container-custom flex justify-center items-center gap-6">
-          <span className="text-slate-500 font-medium">Dil Seçin:</span>
-          {['Türkçe', 'English', 'العربية', 'Русский', 'Deutsch'].map((lang, i) => (
-            <button
-              key={i}
-              className={`font-medium transition-colors ${i === 0 ? 'text-primary underline' : 'text-slate-400 hover:text-primary'}`}
-            >
-              {lang}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* WHY CHOOSE US */}
       <section className="py-20">
@@ -154,12 +141,20 @@ const HealthTourismPage = () => {
                 ))}
               </div>
             </div>
-            <div className="relative">
+            <div className="relative group cursor-pointer" onClick={() => setIsLightboxOpen(true)}>
+              <div className="absolute inset-0 bg-primary/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
+                <div className="bg-white/90 p-4 rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-all duration-300">
+                  <FaSearchPlus className="text-primary text-2xl" />
+                </div>
+              </div>
               <img
-                src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=600&q=80"
-                alt="Medical Team"
-                className="rounded-3xl shadow-xl"
+                src="/uploads/saglik-turizmi-yetki-belgesi.png"
+                alt="Sağlık Turizmi Yetki Belgesi"
+                className="rounded-3xl shadow-xl border border-slate-200 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
               />
+              <div className="absolute -bottom-4 -right-4 bg-accent text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg">
+                T.C. Sağlık Bakanlığı Onaylı
+              </div>
             </div>
           </div>
         </div>
@@ -289,7 +284,7 @@ const HealthTourismPage = () => {
                   </div>
                   <div>
                     <h4 className="font-bold text-primary">{testimonial.name}</h4>
-                    <p className="text-sm text-slate-400">{testimonial.country}</p>
+                    <p className="text-sm text-slate-500">{testimonial.country}</p>
                   </div>
                 </div>
                 <div className="flex gap-1 mb-4">
@@ -365,7 +360,7 @@ const HealthTourismPage = () => {
                     <FaEnvelope />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-400">E-posta</p>
+                    <p className="text-sm text-slate-500">E-posta</p>
                     <a href="mailto:international@anadoluhastaneleri.com" className="text-primary font-medium">international@anadoluhastaneleri.com</a>
                   </div>
                 </div>
@@ -374,7 +369,7 @@ const HealthTourismPage = () => {
                     <FaPhone />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-400">Telefon</p>
+                    <p className="text-sm text-slate-500">Telefon</p>
                     <a href="tel:+902121234567" className="text-primary font-medium">+90 212 123 45 67</a>
                   </div>
                 </div>
@@ -383,13 +378,13 @@ const HealthTourismPage = () => {
                     <FaWhatsapp />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-400">WhatsApp</p>
+                    <p className="text-sm text-slate-500">WhatsApp</p>
                     <a href="https://wa.me/902121234567" className="text-primary font-medium">+90 212 123 45 67</a>
                   </div>
                 </div>
               </div>
               <div>
-                <p className="text-sm text-slate-400 mb-4">Bizi Takip Edin</p>
+                <p className="text-sm text-slate-500 mb-4">Bizi Takip Edin</p>
                 <div className="flex gap-3">
                   {[FaFacebookF, FaTwitter, FaInstagram, FaYoutube].map((Icon, i) => (
                     <a key={i} href="#" className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors">
@@ -455,6 +450,44 @@ const HealthTourismPage = () => {
           </div>
         </div>
       </section>
+
+      {/* LIGHTBOX MODAL */}
+      <AnimatePresence>
+        {isLightboxOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsLightboxOpen(false)}
+            className="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center z-[9999] p-4 cursor-zoom-out"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center"
+            >
+              <button
+                onClick={() => setIsLightboxOpen(false)}
+                className="absolute -top-12 right-0 text-white hover:text-accent text-3xl font-bold transition-colors"
+                aria-label="Kapat"
+              >
+                &times;
+              </button>
+              <img
+                src="/uploads/saglik-turizmi-yetki-belgesi.png"
+                alt="Sağlık Turizmi Yetki Belgesi"
+                className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl border-4 border-white/10"
+              />
+              <p className="text-white/80 text-sm mt-4 font-semibold tracking-wider uppercase">
+                Uluslararası Sağlık Turizmi Yetki Belgesi
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,57 +1,80 @@
 import { motion } from 'framer-motion'
 
 interface SectionTitleProps {
+  label?: string
   title: string
   subtitle?: string
   alignment?: 'left' | 'center' | 'right'
   light?: boolean
+  /** Başlık seviyesi — sayfanın ana başlığı için 'h1' kullanın (erişilebilirlik / WCAG 1.3.1). Varsayılan 'h2'. */
+  as?: 'h1' | 'h2'
 }
 
-const SectionTitle = ({ 
-  title, 
-  subtitle, 
+const SectionTitle = ({
+  label,
+  title,
+  subtitle,
   alignment = 'center',
-  light = false 
+  light = false,
+  as = 'h2',
 }: SectionTitleProps) => {
+  const Heading = as === 'h1' ? motion.h1 : motion.h2
   const alignmentClasses = {
     left: 'text-left',
     center: 'text-center mx-auto',
     right: 'text-right ml-auto',
   }
 
-  const titleColor = light ? 'text-white' : 'text-primary'
-  const subtitleColor = light ? 'text-white/80' : 'text-secondary'
+  const labelColor = light ? 'text-ocean-300' : 'text-ocean-500'
+  const titleColor = light ? 'text-white' : 'text-primary-600'
+  const subtitleColor = light ? 'text-white/70' : 'text-neutral-500'
+  const lineColor = light ? 'bg-ocean-400' : 'bg-coral-500'
 
   return (
-    <div className={`max-w-3xl mb-12 ${alignmentClasses[alignment]}`}>
-      <motion.h2 
-        initial={{ opacity: 0, y: 20 }}
+    <div className={`max-w-3xl ${alignmentClasses[alignment]}`}>
+      {label && (
+        <motion.span
+          initial={false}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.1 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className={`inline-block font-display text-xs font-semibold uppercase tracking-[0.12em] mb-3 ${labelColor}`}
+        >
+          {label}
+        </motion.span>
+      )}
+
+      <Heading
+        initial={false}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5 }}
-        className={`text-3xl md:text-4xl font-bold mb-4 ${titleColor}`}
+        viewport={{ once: true, amount: 0.1 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className={`section-title mb-4 ${titleColor}`}
       >
         {title}
-      </motion.h2>
-      
+      </Heading>
+
       {subtitle && (
-        <motion.p 
-          initial={{ opacity: 0, y: 20 }}
+        <motion.p
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className={`text-lg ${subtitleColor}`}
+          viewport={{ once: true, amount: 0.1 }}
+          transition={{ duration: 0.45, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className={`section-subtitle ${subtitleColor}`}
         >
           {subtitle}
         </motion.p>
       )}
-      
-      <motion.div 
-        initial={{ width: 0 }}
-        whileInView={{ width: alignment === 'center' ? '120px' : '80px' }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-        className={`h-1 bg-accent mt-6 ${alignment === 'center' ? 'mx-auto' : alignment === 'right' ? 'ml-auto' : ''}`}
+
+      <motion.div
+        initial={false}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true, amount: 0.1 }}
+        transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        className={`h-[3px] w-16 rounded-full mt-6 origin-${alignment === 'center' ? 'center' : alignment} ${lineColor} ${
+          alignment === 'center' ? 'mx-auto' : ''
+        }`}
+        style={{ transformOrigin: alignment === 'center' ? 'center' : alignment }}
       />
     </div>
   )

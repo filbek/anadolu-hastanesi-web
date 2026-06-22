@@ -1,35 +1,38 @@
 import DynamicPageRenderer from '../components/common/DynamicPageRenderer'
+import LastUpdated from '../components/ui/LastUpdated'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
+import { useTranslation } from 'react-i18next'
 import { FaHospital, FaUserMd, FaUsers, FaCalendarAlt } from 'react-icons/fa'
 
 // Original about page as fallback
 const OriginalAboutPage = () => {
+  const { t } = useTranslation();
   const milestones = [
-    { year: '2005', title: 'Kuruluş', description: 'Şişli\'de ilk butik hastanemizle yola çıktık.', icon: '🚀' },
-    { year: '2010', title: 'Global Standartlar', description: 'JCI Akreditasyonu ile kalitemizi tescilledik.', icon: '💎' },
-    { year: '2015', title: 'Teknoloji Hamlesi', description: 'Robotik cerrahi ve yapay zeka entegrasyonu.', icon: '🤖' },
-    { year: '2023', title: 'Geleceğin Sağlığı', description: '6 hastane ve 1 milyon+ mutlu hasta.', icon: '🌟' },
+    { year: '2005', title: t('about.milestone2005Title', 'Kuruluş'), description: t('about.milestone2005Desc', "Şişli'de ilk butik hastanemizle yola çıktık."), icon: '🚀' },
+    { year: '2010', title: t('about.milestone2010Title', 'Global Standartlar'), description: t('about.milestone2010Desc', 'JCI Akreditasyonu ile kalitemizi tescilledik.'), icon: '💎' },
+    { year: '2015', title: t('about.milestone2015Title', 'Teknoloji Hamlesi'), description: t('about.milestone2015Desc', 'Robotik cerrahi ve yapay zeka entegrasyonu.'), icon: '🤖' },
+    { year: '2023', title: t('about.milestone2023Title', 'Geleceğin Sağlığı'), description: t('about.milestone2023Desc', '6 hastane ve 1 milyon+ mutlu hasta.'), icon: '🌟' },
   ];
 
   const values = [
-    { icon: 'bi-heart-pulse-fill', title: 'İnsan Odaklılık', description: 'Her hastamızın hikayesini dinliyor, kişiye özel çözümler sunuyoruz.', color: 'from-blue-500 to-indigo-600' },
-    { icon: 'bi-shield-shaded', title: 'Sarsılmaz Güven', description: 'Şeffaflık ve etik değerler bizim en temel çalışma prensibimizdir.', color: 'from-teal-400 to-emerald-600' },
-    { icon: 'bi-cpu-fill', title: 'Sürekli İnovasyon', description: 'Tıbbi teknolojideki en son gelişmeleri anlık olarak sistemimize entegre ediyoruz.', color: 'from-amber-400 to-orange-600' },
+    { icon: 'bi-heart-pulse-fill', title: t('about.value1Title', 'İnsan Odaklılık'), description: t('about.value1Desc', 'Her hastamızın hikayesini dinliyor, kişiye özel çözümler sunuyoruz.'), color: 'from-blue-500 to-indigo-600' },
+    { icon: 'bi-shield-shaded', title: t('about.value2Title', 'Sarsılmaz Güven'), description: t('about.value2Desc', 'Şeffaflık ve etik değerler bizim en temel çalışma prensibimizdir.'), color: 'from-teal-400 to-emerald-600' },
+    { icon: 'bi-cpu-fill', title: t('about.value3Title', 'Sürekli İnovasyon'), description: t('about.value3Desc', 'Tıbbi teknolojideki en son gelişmeleri anlık olarak sistemimize entegre ediyoruz.'), color: 'from-amber-400 to-orange-600' },
   ];
 
   const stats = [
-    { icon: <FaHospital />, value: 6, suffix: '', label: 'Hastanelerimiz' },
-    { icon: <FaUserMd />, value: 500, suffix: '+', label: 'Uzman Kadro' },
-    { icon: <FaUsers />, value: 2500, suffix: '+', label: 'Sağlık Profesyoneli' },
-    { icon: <FaCalendarAlt />, value: 1, suffix: 'M+', label: 'Yıllık Hasta' },
+    { icon: <FaHospital />, value: 6, suffix: '', label: t('about.statHospitals', 'Hastanelerimiz') },
+    { icon: <FaUserMd />, value: 500, suffix: '+', label: t('about.statDoctors', 'Uzman Kadro') },
+    { icon: <FaUsers />, value: 2500, suffix: '+', label: t('about.statStaff', 'Sağlık Profesyoneli') },
+    { icon: <FaCalendarAlt />, value: 1, suffix: 'M+', label: t('about.statPatients', 'Yıllık Hasta') },
   ];
 
   return (
     <div className="bg-white overflow-hidden">
       <Helmet>
-        <title>Hakkımızda | Anadolu Hastaneleri Grubu</title>
-        <meta name="description" content="Anadolu Hastaneleri Grubu'nun 2005'ten bugüne uzanan başarı hikayesi ve değerleri." />
+        <title>{t('about.pageTitle', 'Hakkımızda')} | Anadolu Hastaneleri Grubu</title>
+        <meta name="description" content={t('about.metaDescription', "Anadolu Hastaneleri Grubu'nun 2005'ten bugüne uzanan başarı hikayesi ve değerleri.")} />
       </Helmet>
 
       {/* --- HERO SECTION: World Class Impact --- */}
@@ -55,14 +58,14 @@ const OriginalAboutPage = () => {
             >
               <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-xl border border-white/20 px-4 py-2 rounded-full mb-6">
                 <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />
-                <span className="text-white/80 text-sm font-bold tracking-widest uppercase">Geleceğin Sağlık Vizyonu</span>
+                <span className="text-white/80 text-sm font-bold tracking-widest uppercase">{t('about.heroTag', 'Geleceğin Sağlık Vizyonu')}</span>
               </div>
               <h1 className="text-5xl md:text-7xl font-extrabold text-white leading-tight mb-8">
-                Değeriniz, <br />
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-accent to-accent-light">Sizin Sağlığınız.</span>
+                {t('about.heroTitle1', 'Değeriniz,')} <br />
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-accent to-accent-light">{t('about.heroTitle2', 'Sizin Sağlığınız.')}</span>
               </h1>
               <p className="text-xl text-white/70 leading-relaxed mb-10 max-w-xl">
-                2005'ten bugüne, her dokunuşta şifa, her adımda güven taşıyoruz. Sadece tedavi etmiyor, geleceği tasarlıyoruz.
+                {t('about.heroDesc', "2005'ten bugüne, her dokunuşta şifa, her adımda güven taşıyoruz. Sadece tedavi etmiyor, geleceği tasarlıyoruz.")}
               </p>
               <div className="flex flex-wrap gap-5">
                 <motion.button
@@ -70,14 +73,14 @@ const OriginalAboutPage = () => {
                   whileTap={{ scale: 0.95 }}
                   className="px-8 py-4 bg-primary text-white rounded-2xl font-bold shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all"
                 >
-                  Ekibimizi Tanıyın
+                  {t('about.teamButton', 'Ekibimizi Tanıyın')}
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="px-8 py-4 bg-white/10 backdrop-blur-xl text-white border border-white/20 rounded-2xl font-bold hover:bg-white/20 transition-all"
                 >
-                  Online Randevu
+                  {t('common.onlineAppointment', 'Online Randevu')}
                 </motion.button>
               </div>
             </motion.div>
@@ -145,18 +148,18 @@ const OriginalAboutPage = () => {
               <img
                 src="https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=800&q=80"
                 className="relative z-10 w-full rounded-[40px] shadow-2xl"
-                alt="Hospital Operations"
+                alt="Anadolu Hastaneleri'nde modern tıbbi cihazlarla çalışan sağlık ekibi"
               />
               <div className="absolute -bottom-8 -right-8 glass-modern p-8 z-20 hidden md:block">
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Kuruluş Tarihi</p>
-                <p className="text-3xl font-black text-primary">Haziran 2005</p>
+                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">{t('about.foundedLabel', 'Kuruluş Tarihi')}</p>
+                <p className="text-3xl font-black text-primary">{t('about.foundedDate', 'Haziran 2005')}</p>
               </div>
             </div>
 
             <div className="space-y-12">
               <div>
-                <h2 className="text-accent font-black uppercase text-xs tracking-widest mb-4">Yolculuğumuz</h2>
-                <h3 className="text-4xl font-extrabold text-primary leading-tight mb-6">Türkiye'nin Sağlık Gururu Olma Yolunda</h3>
+                <h2 className="text-accent font-black uppercase text-xs tracking-widest mb-4">{t('about.journeyTag', 'Yolculuğumuz')}</h2>
+                <h3 className="text-4xl font-extrabold text-primary leading-tight mb-6">{t('about.journeyTitle', "Türkiye'nin Sağlık Gururu Olma Yolunda")}</h3>
               </div>
 
               <div className="space-y-8 relative">
@@ -194,20 +197,26 @@ const OriginalAboutPage = () => {
 
             <div className="relative z-10">
               <h2 className="text-white text-4xl md:text-6xl font-black mb-8 leading-tight">
-                Sağlığınız, <br />
-                Profesyonel Ellerde.
+                {t('about.ctaTitle1', 'Sağlığınız,')} <br />
+                {t('about.ctaTitle2', 'Profesyonel Ellerde.')}
               </h2>
               <p className="text-white/60 text-lg mb-10 max-w-2xl mx-auto">
-                En ileri tıp teknolojileri ve şefkat dolu bakış açımızla her gün binlerce hayata dokunuyoruz. Siz de Anadolu Hastaneleri farkını yaşayın.
+                {t('about.ctaDesc', 'En ileri tıp teknolojileri ve şefkat dolu bakış açımızla her gün binlerce hayata dokunuyoruz. Siz de Anadolu Hastaneleri farkını yaşayın.')}
               </p>
               <motion.button
                 whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }}
                 className="px-12 py-5 bg-accent text-white rounded-full font-black uppercase tracking-widest text-sm hover:bg-accent-light transition-all"
               >
-                Hemen Randevu Alın
+                {t('common.appointmentNow', 'Hemen Randevu Alın')}
               </motion.button>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="bg-white py-6 border-t border-gray-100">
+        <div className="container-custom">
+          <LastUpdated date="15.05.2024" />
         </div>
       </section>
     </div>

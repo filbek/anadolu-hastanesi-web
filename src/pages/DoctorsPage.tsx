@@ -1,334 +1,328 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useMemo } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
+import { motion, AnimatePresence } from 'framer-motion'
 import SectionTitle from '../components/ui/SectionTitle'
-import { FaSearch, FaFilter } from 'react-icons/fa'
+import { DoctorCardSkeleton } from '../components/ui/Skeleton'
+import { FaSearch, FaFilter, FaArrowRight, FaCalendarCheck } from 'react-icons/fa'
+import { useDoctors } from '../hooks/useDoctors'
 
-// Mock data for doctors
-const doctors = [
-  {
-    id: 1,
-    name: 'Prof. Dr. Ahmet Yılmaz',
-    slug: 'prof-dr-ahmet-yilmaz',
-    title: 'Kardiyoloji Uzmanı',
-    department: 'Kardiyoloji',
-    hospital: 'Anadolu Merkez Hastanesi',
-    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
-    education: 'İstanbul Üniversitesi Tıp Fakültesi',
-    experience: '25 yıl',
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.06 },
   },
-  {
-    id: 2,
-    name: 'Doç. Dr. Ayşe Kaya',
-    slug: 'doc-dr-ayse-kaya',
-    title: 'Nöroloji Uzmanı',
-    department: 'Nöroloji',
-    hospital: 'Anadolu Avrupa Hastanesi',
-    image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
-    education: 'Ankara Üniversitesi Tıp Fakültesi',
-    experience: '15 yıl',
-  },
-  {
-    id: 3,
-    name: 'Prof. Dr. Mehmet Demir',
-    slug: 'prof-dr-mehmet-demir',
-    title: 'Ortopedi Uzmanı',
-    department: 'Ortopedi',
-    hospital: 'Anadolu Merkez Hastanesi',
-    image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
-    education: 'Hacettepe Üniversitesi Tıp Fakültesi',
-    experience: '20 yıl',
-  },
-  {
-    id: 4,
-    name: 'Uzm. Dr. Zeynep Şahin',
-    slug: 'uzm-dr-zeynep-sahin',
-    title: 'Göz Hastalıkları Uzmanı',
-    department: 'Göz Hastalıkları',
-    hospital: 'Anadolu Çocuk Hastanesi',
-    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
-    education: 'Ege Üniversitesi Tıp Fakültesi',
-    experience: '10 yıl',
-  },
-  {
-    id: 5,
-    name: 'Prof. Dr. Ali Yıldız',
-    slug: 'prof-dr-ali-yildiz',
-    title: 'Genel Cerrahi Uzmanı',
-    department: 'Genel Cerrahi',
-    hospital: 'Anadolu Uluslararası Hastanesi',
-    image: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
-    education: 'Marmara Üniversitesi Tıp Fakültesi',
-    experience: '22 yıl',
-  },
-  {
-    id: 6,
-    name: 'Doç. Dr. Selin Arslan',
-    slug: 'doc-dr-selin-arslan',
-    title: 'Kadın Hastalıkları Uzmanı',
-    department: 'Kadın Hastalıkları',
-    hospital: 'Anadolu Avrupa Hastanesi',
-    image: 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
-    education: 'İstanbul Üniversitesi Tıp Fakültesi',
-    experience: '18 yıl',
-  },
-  {
-    id: 7,
-    name: 'Uzm. Dr. Emre Kılıç',
-    slug: 'uzm-dr-emre-kilic',
-    title: 'Dahiliye Uzmanı',
-    department: 'Dahiliye',
-    hospital: 'Anadolu Merkez Hastanesi',
-    image: 'https://images.unsplash.com/photo-1612531386530-97286d97c2d2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
-    education: 'Dokuz Eylül Üniversitesi Tıp Fakültesi',
-    experience: '8 yıl',
-  },
-  {
-    id: 8,
-    name: 'Prof. Dr. Deniz Yılmaz',
-    slug: 'prof-dr-deniz-yilmaz',
-    title: 'Çocuk Sağlığı Uzmanı',
-    department: 'Çocuk Sağlığı',
-    hospital: 'Anadolu Çocuk Hastanesi',
-    image: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
-    education: 'Hacettepe Üniversitesi Tıp Fakültesi',
-    experience: '25 yıl',
-  },
-];
+}
 
-// Get unique departments and hospitals for filters
-const departments = [...new Set(doctors.map(doctor => doctor.department))];
-const hospitals = [...new Set(doctors.map(doctor => doctor.hospital))];
+const itemVariants = {
+  hidden: { y: 16 },
+  visible: {
+    y: 0,
+    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+  },
+}
 
 const DoctorsPage = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState('');
-  const [selectedHospital, setSelectedHospital] = useState('');
-  const [filteredDoctors, setFilteredDoctors] = useState(doctors);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const { t } = useTranslation()
+  const { data: doctors = [], isLoading } = useDoctors()
+  const [searchParams] = useSearchParams()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedDepartment, setSelectedDepartment] = useState('')
+  // Hastane profilindeki "Tüm Doktorları Gör" linki ?hastane=<ad> ile gelir
+  const [selectedHospital, setSelectedHospital] = useState(searchParams.get('hastane') || '')
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
 
-  useEffect(() => {
-    const filtered = doctors.filter((doctor) => {
-      const matchesSearch = doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doctor.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        doctor.department.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesDepartment = selectedDepartment === '' || doctor.department === selectedDepartment;
-      const matchesHospital = selectedHospital === '' || doctor.hospital === selectedHospital;
-      
-      return matchesSearch && matchesDepartment && matchesHospital;
-    });
-    
-    setFilteredDoctors(filtered);
-  }, [searchTerm, selectedDepartment, selectedHospital]);
+  const departments = useMemo(
+    () => [...new Set(doctors.map((d: any) => d.departments?.name).filter(Boolean))].sort(),
+    [doctors]
+  )
+  const hospitals = useMemo(
+    () => [...new Set(doctors.map((d: any) => d.hospitals?.name).filter(Boolean))].sort(),
+    [doctors]
+  )
+
+
+
+  // Title ranking for sorting
+  const TITLE_RANK: Record<string, number> = {
+    'Prof. Dr.': 1, 'Prof.Dr.': 1,
+    'Doç. Dr.': 2, 'Doç Dr.': 2,
+    'Dr. Öğr. Üyesi': 3, 'Dr. Öğr.Üyesi': 3,
+    'Op. Dr.': 4, 'Op.Dr.': 4,
+    'Uzm. Dr.': 5, 'Uzm.Dr.': 5,
+    'Dr.': 6,
+    'Dt.': 7,
+    'Dyt.': 8, 'Uzm. Dyt.': 8,
+    'Uzm. Psikolog': 9,
+  }
+
+  // Silivri executives order
+  const SILIVRI_EXECUTIVES = [
+    'Dr. Öğr. Üyesi Halil Narlı',
+    'Op. Dr. Ülker Moralar',
+    'Doç. Dr. İbak Gönen',
+    'Dr. Öğr. Üyesi Ali Karaçınar',
+  ]
+
+  const sortDoctors = (list: any[]) => {
+    return [...list].sort((a, b) => {
+      const aExec = SILIVRI_EXECUTIVES.indexOf(a.name)
+      const bExec = SILIVRI_EXECUTIVES.indexOf(b.name)
+      if (aExec !== -1 && bExec !== -1) return aExec - bExec
+      if (aExec !== -1) return -1
+      if (bExec !== -1) return 1
+
+      const aRank = TITLE_RANK[a.title] || 99
+      const bRank = TITLE_RANK[b.title] || 99
+      if (aRank !== bRank) return aRank - bRank
+
+      return a.name.localeCompare(b.name, 'tr')
+    })
+  }
+
+  const filteredDoctors = useMemo(
+    () => {
+      const filtered = doctors.filter((doctor: any) => {
+        const matchesSearch =
+          doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (doctor.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (doctor.departments?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
+        const matchesDepartment =
+          selectedDepartment === '' || doctor.departments?.name === selectedDepartment
+        const matchesHospital =
+          selectedHospital === '' || doctor.hospitals?.name === selectedHospital
+        return matchesSearch && matchesDepartment && matchesHospital
+      })
+      return sortDoctors(filtered)
+    },
+    [doctors, searchTerm, selectedDepartment, selectedHospital]
+  )
 
   const resetFilters = () => {
-    setSearchTerm('');
-    setSelectedDepartment('');
-    setSelectedHospital('');
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 },
-    },
-  };
+    setSearchTerm('')
+    setSelectedDepartment('')
+    setSelectedHospital('')
+  }
 
   return (
     <>
       <Helmet>
-        <title>Doktorlarımız | Anadolu Hastaneleri Grubu</title>
-        <meta name="description" content="Anadolu Hastaneleri Grubu'nun uzman doktor kadrosu hakkında bilgi alın ve online randevu alın." />
+        <title>{t('doctorsPage.title')} | Anadolu Hastaneleri Grubu</title>
+        <meta
+          name="description"
+          content={t('doctorsPage.subtitle')}
+        />
       </Helmet>
 
       <div className="pt-24 pb-12 bg-neutral">
         <div className="container-custom">
           <SectionTitle
-            title="Doktorlarımız"
-            subtitle="Anadolu Hastaneleri Grubu olarak, alanında uzman ve deneyimli doktor kadromuzla sağlığınız için buradayız."
+            as="h1"
+            title={t('doctorsPage.title')}
+            subtitle={t('doctorsPage.subtitle')}
           />
 
           <div className="flex flex-col md:flex-row gap-4 mb-8">
             <div className="md:flex-1 relative">
+              <label htmlFor="doctor-search" className="sr-only">{t('doctorsPage.searchPlaceholder')}</label>
               <input
-                type="text"
-                placeholder="Doktor adı, uzmanlık alanı veya bölüm ara..."
+                id="doctor-search"
+                type="search"
+                placeholder={t('doctorsPage.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input-field pl-12 w-full"
+                disabled={isLoading}
               />
-              <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-text-light" />
+              <FaSearch aria-hidden="true" className="absolute left-4 top-1/2 transform -translate-y-1/2 text-text-light" />
             </div>
-            
+
             <button
+              type="button"
               className="md:hidden flex items-center justify-center px-4 py-3 bg-white rounded-lg border border-gray-300 text-text-light hover:bg-neutral transition-colors"
               onClick={() => setIsFilterOpen(!isFilterOpen)}
+              aria-expanded={isFilterOpen}
+              aria-controls="doctor-mobile-filters"
             >
-              <FaFilter className="mr-2" />
-              Filtrele
+              <FaFilter className="mr-2" aria-hidden="true" />
+              {t('common.filter')}
             </button>
-            
+
             <div className="hidden md:flex gap-4">
+              <label htmlFor="doctor-department" className="sr-only">{t('doctorsPage.departmentLabel')}</label>
               <select
+                id="doctor-department"
                 value={selectedDepartment}
                 onChange={(e) => setSelectedDepartment(e.target.value)}
                 className="input-field"
+                disabled={isLoading}
               >
-                <option value="">Tüm Bölümler</option>
-                {departments.map((department) => (
-                  <option key={department} value={department}>
-                    {department}
-                  </option>
+                <option value="">{t('doctorsPage.allDepartments')}</option>
+                {departments.map((dept) => (
+                  <option key={dept} value={dept}>{dept}</option>
                 ))}
               </select>
-              
+
+              <label htmlFor="doctor-hospital" className="sr-only">{t('doctorsPage.hospitalLabel')}</label>
               <select
+                id="doctor-hospital"
                 value={selectedHospital}
                 onChange={(e) => setSelectedHospital(e.target.value)}
                 className="input-field"
+                disabled={isLoading}
               >
-                <option value="">Tüm Hastaneler</option>
-                {hospitals.map((hospital) => (
-                  <option key={hospital} value={hospital}>
-                    {hospital}
-                  </option>
+                <option value="">{t('doctorsPage.allHospitals')}</option>
+                {hospitals.map((hosp) => (
+                  <option key={hosp} value={hosp}>{hosp}</option>
                 ))}
               </select>
-              
+
               <button
                 onClick={resetFilters}
                 className="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
               >
-                Filtreleri Temizle
+                {t('doctorsPage.clear')}
               </button>
             </div>
           </div>
-          
-          {/* Mobile Filters */}
+
           {isFilterOpen && (
-            <div className="md:hidden bg-white p-4 rounded-lg shadow-md mb-6">
-              <h3 className="font-medium mb-3">Filtreler</h3>
+            <div id="doctor-mobile-filters" className="md:hidden bg-white p-4 rounded-lg shadow-md mb-6">
+              <h2 className="font-medium mb-3">{t('doctorsPage.mobileFilterTitle')}</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-text mb-1">Bölüm</label>
+                  <label htmlFor="doctor-department-mobile" className="block text-sm font-medium text-text mb-1">{t('doctorsPage.departmentLabel')}</label>
                   <select
+                    id="doctor-department-mobile"
                     value={selectedDepartment}
                     onChange={(e) => setSelectedDepartment(e.target.value)}
                     className="input-field w-full"
                   >
-                    <option value="">Tüm Bölümler</option>
-                    {departments.map((department) => (
-                      <option key={department} value={department}>
-                        {department}
-                      </option>
+                    <option value="">{t('doctorsPage.allDepartments')}</option>
+                    {departments.map((dept) => (
+                      <option key={dept} value={dept}>{dept}</option>
                     ))}
                   </select>
                 </div>
-                
                 <div>
-                  <label className="block text-sm font-medium text-text mb-1">Hastane</label>
+                  <label htmlFor="doctor-hospital-mobile" className="block text-sm font-medium text-text mb-1">{t('doctorsPage.hospitalLabel')}</label>
                   <select
+                    id="doctor-hospital-mobile"
                     value={selectedHospital}
                     onChange={(e) => setSelectedHospital(e.target.value)}
                     className="input-field w-full"
                   >
-                    <option value="">Tüm Hastaneler</option>
-                    {hospitals.map((hospital) => (
-                      <option key={hospital} value={hospital}>
-                        {hospital}
-                      </option>
+                    <option value="">{t('doctorsPage.allHospitals')}</option>
+                    {hospitals.map((hosp) => (
+                      <option key={hosp} value={hosp}>{hosp}</option>
                     ))}
                   </select>
                 </div>
-                
                 <button
                   onClick={resetFilters}
                   className="w-full px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
                 >
-                  Filtreleri Temizle
+                  {t('common.clearFilters')}
                 </button>
               </div>
             </div>
           )}
 
+          {/* Ekran okuyucu için sonuç sayısı duyurusu */}
+          <p className="sr-only" role="status" aria-live="polite">
+            {isLoading
+              ? t('common.loading', 'Yükleniyor...')
+              : t('doctorsPage.resultCount', '{{count}} doktor listeleniyor', { count: filteredDoctors.length })}
+          </p>
+
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
           >
-            {filteredDoctors.map((doctor) => (
-              <motion.div
-                key={doctor.id}
-                variants={itemVariants}
-                className="card overflow-hidden group"
-              >
-                <div className="relative h-64 -mx-6 -mt-6 mb-6 overflow-hidden">
-                  <img
-                    src={doctor.image}
-                    alt={doctor.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    loading="lazy"
-                    crossOrigin="anonymous"
-                  />
-                </div>
-                <span className="text-xs font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
-                  {doctor.hospital}
-                </span>
-                <h3 className="text-xl font-semibold mt-3 mb-1">{doctor.name}</h3>
-                <p className="text-text-light text-sm mb-1">{doctor.title}</p>
-                <p className="text-text-light text-xs mb-4">{doctor.department}</p>
-                <div className="flex justify-between items-center">
-                  <Link
-                    to={`/doktorlar/${doctor.slug}`}
-                    className="text-sm font-medium text-primary hover:text-primary-dark transition-colors"
-                  >
-                    Profili Görüntüle
-                  </Link>
-                  <a
-                    href="https://anadoluhastaneleri.kendineiyibak.app/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-medium text-accent hover:text-accent-dark transition-colors"
-                  >
-                    Randevu Al
-                  </a>
-                </div>
-              </motion.div>
-            ))}
+            <AnimatePresence mode="popLayout">
+              {isLoading
+                ? [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                    <motion.div key={`skeleton-${i}`} layout exit={{ opacity: 0 }}>
+                      <DoctorCardSkeleton />
+                    </motion.div>
+                  ))
+                : filteredDoctors.map((doctor: any) => (
+                    <motion.div
+                      key={doctor.id}
+                      variants={itemVariants}
+                      layout
+                      className="group bg-white rounded-2xl overflow-hidden border border-neutral-100 hover:border-ocean-200 hover:shadow-hover transition-all duration-300"
+                    >
+                      {/* Image */}
+                      <div className="relative aspect-[3/4] overflow-hidden bg-surface">
+                        <img
+                          src={doctor.image}
+                          alt={doctor.name}
+                          className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-5">
+                        <span className="inline-block px-2.5 py-0.5 rounded-full bg-ocean-50 text-ocean-600 text-xs font-medium mb-2">
+                          {doctor.hospitals?.name || t('home.defaultHospital', 'Anadolu Hastanesi')}
+                        </span>
+                        <h3 className="font-display font-bold text-primary-600 text-lg mb-1 group-hover:text-ocean-600 transition-colors">
+                          {doctor.name}
+                        </h3>
+                        <p className="text-sm text-neutral-500 mb-1">{doctor.title}</p>
+                        {doctor.departments?.name && (
+                          <p className="text-xs text-neutral-500 mb-4">{doctor.departments.name}</p>
+                        )}
+
+                        <div className="flex items-center gap-3 pt-3 border-t border-neutral-100">
+                          <Link
+                            to={`/doktorlar/${doctor.slug}`}
+                            aria-label={t('doctorsPage.viewProfileOf', '{{name}} profilini görüntüle', { name: doctor.name })}
+                            className="flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-ocean-600 transition-colors"
+                          >
+                            {t('home.profile', 'Profil')} <FaArrowRight className="text-xs" aria-hidden="true" />
+                          </Link>
+                          <a
+                            href="https://anadoluhastaneleri.kendineiyibak.app/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={t('doctorsPage.bookAppointmentWith', '{{name}} ile randevu al', { name: doctor.name })}
+                            className="flex items-center gap-1.5 text-sm font-medium text-coral-500 hover:text-coral-600 transition-colors ml-auto"
+                          >
+                            <FaCalendarCheck className="text-xs" aria-hidden="true" />
+                            {t('home.appointment', 'Randevu')}
+                          </a>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+            </AnimatePresence>
           </motion.div>
 
-          {filteredDoctors.length === 0 && (
+          {!isLoading && filteredDoctors.length === 0 && (
             <div className="text-center py-12">
               <i className="bi bi-search text-4xl text-text-light mb-4"></i>
-              <h3 className="text-xl font-semibold mb-2">Sonuç Bulunamadı</h3>
-              <p className="text-text-light">Arama kriterlerinize uygun doktor bulunamadı. Lütfen farklı bir arama terimi deneyin veya filtreleri temizleyin.</p>
+              <h3 className="text-xl font-semibold mb-2">{t('common.noResults')}</h3>
+              <p className="text-text-light">
+                {t('common.noResultsDesc')}
+              </p>
               <button
                 onClick={resetFilters}
                 className="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
               >
-                Filtreleri Temizle
+                {t('common.clearFilters')}
               </button>
             </div>
           )}
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
-export default DoctorsPage;
+export default DoctorsPage

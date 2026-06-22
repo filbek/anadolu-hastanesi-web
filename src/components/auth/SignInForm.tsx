@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSupabase } from '../../contexts/SupabaseContext';
 import { UserCredentials } from '../../lib/supabase';
 
@@ -8,6 +9,7 @@ interface SignInFormProps {
 }
 
 const SignInForm = ({ onSuccess, onSignUpClick }: SignInFormProps) => {
+  const { t } = useTranslation();
   const { signIn } = useSupabase();
   const [credentials, setCredentials] = useState<UserCredentials>({
     email: '',
@@ -40,7 +42,7 @@ const SignInForm = ({ onSuccess, onSignUpClick }: SignInFormProps) => {
         onSuccess();
       }
     } catch (err: any) {
-      setError(err.message || 'Giriş yapılırken bir hata oluştu.');
+      setError(err.message || t('auth.signInError','Giriş yapılırken bir hata oluştu.'));
     } finally {
       setLoading(false);
     }
@@ -48,10 +50,10 @@ const SignInForm = ({ onSuccess, onSignUpClick }: SignInFormProps) => {
 
   return (
     <div className="card p-6">
-      <h2 className="text-2xl font-semibold text-primary mb-6">Giriş Yap</h2>
+      <h2 className="text-2xl font-semibold text-primary mb-6">{t('auth.signIn','Giriş Yap')}</h2>
       
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div role="alert" className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
@@ -59,7 +61,7 @@ const SignInForm = ({ onSuccess, onSignUpClick }: SignInFormProps) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-text mb-1">
-            E-posta
+            {t('auth.email','E-posta')}
           </label>
           <input
             type="email"
@@ -74,7 +76,7 @@ const SignInForm = ({ onSuccess, onSignUpClick }: SignInFormProps) => {
         
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-text mb-1">
-            Şifre
+            {t('auth.password','Şifre')}
           </label>
           <input
             type="password"
@@ -89,7 +91,7 @@ const SignInForm = ({ onSuccess, onSignUpClick }: SignInFormProps) => {
         
         <div className="text-right">
           <a href="#" className="text-sm text-primary hover:text-primary-dark transition-colors">
-            Şifremi Unuttum
+            {t('auth.forgotPassword','Şifremi Unuttum')}
           </a>
         </div>
         
@@ -98,18 +100,18 @@ const SignInForm = ({ onSuccess, onSignUpClick }: SignInFormProps) => {
           className="btn btn-primary w-full"
           disabled={loading}
         >
-          {loading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
+          {loading ? t('auth.signingIn','Giriş Yapılıyor...') : t('auth.signIn','Giriş Yap')}
         </button>
       </form>
       
       <div className="mt-6 text-center">
         <p className="text-text-light">
-          Hesabınız yok mu?{' '}
+          {t('auth.noAccount','Hesabınız yok mu?')}{' '}
           <button
             onClick={onSignUpClick}
             className="text-primary hover:text-primary-dark transition-colors"
           >
-            Kayıt Ol
+            {t('auth.signUp','Kayıt Ol')}
           </button>
         </p>
       </div>
