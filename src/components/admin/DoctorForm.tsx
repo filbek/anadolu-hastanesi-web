@@ -59,7 +59,7 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
     rating: 5,
     review_count: 0,
     is_active: true,
-    display_order: 1
+    display_order: 0
   });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -511,11 +511,13 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
                 <input
                   type="number"
                   value={formData.display_order}
-                  onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  min="1"
-                  required
+                  min="0"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  0 = otomatik (ünvana göre sıralanır). 1 ve üzeri: küçük numara listede daha üstte görünür.
+                </p>
               </div>
             </div>
           </div>

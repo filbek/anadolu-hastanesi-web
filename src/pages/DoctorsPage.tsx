@@ -48,15 +48,30 @@ const DoctorsPage = () => {
 
   // Title ranking for sorting
   const TITLE_RANK: Record<string, number> = {
-    'Prof. Dr.': 1, 'Prof.Dr.': 1,
-    'Doç. Dr.': 2, 'Doç Dr.': 2,
-    'Dr. Öğr. Üyesi': 3, 'Dr. Öğr.Üyesi': 3,
-    'Op. Dr.': 4, 'Op.Dr.': 4,
-    'Uzm. Dr.': 5, 'Uzm.Dr.': 5,
+    'Prof. Dr.': 1,
+    'Doç. Dr.': 2,
+    'Dr. Öğr. Üyesi': 3,
+    'Op. Dr.': 4,
+    'Uzm. Dr.': 5,
     'Dr.': 6,
     'Dt.': 7,
     'Dyt.': 8, 'Uzm. Dyt.': 8,
     'Uzm. Psikolog': 9,
+  }
+
+  // Ünvanları nokta/boşluk farklarına duyarsız eşle ("Op.Dr", "Op. Dr." → aynı)
+  const normalizeTitle = (s: string) =>
+    (s || '').toLocaleLowerCase('tr').replace(/[\s.]+/g, '')
+  const TITLE_RANK_NORM: Record<string, number> = Object.fromEntries(
+    Object.entries(TITLE_RANK).map(([k, v]) => [normalizeTitle(k), v])
+  )
+  const titleRank = (title: string) => TITLE_RANK_NORM[normalizeTitle(title)] ?? 99
+
+  // display_order: 1 ve üzeri = admin tarafından belirlenmiş (küçük = üstte),
+  // 0 / boş = belirlenmemiş (en sona, ünvan sıralamasına bırakılır)
+  const orderValue = (d: any) => {
+    const o = Number(d.display_order)
+    return !o || o <= 0 ? Number.MAX_SAFE_INTEGER : o
   }
 
   // Silivri executives order
@@ -69,16 +84,24 @@ const DoctorsPage = () => {
 
   const sortDoctors = (list: any[]) => {
     return [...list].sort((a, b) => {
+      // 1) Önce admin sıra numarası (küçükten büyüğe)
+      const ao = orderValue(a)
+      const bo = orderValue(b)
+      if (ao !== bo) return ao - bo
+
+      // 2) Eşit/numarasız ise mevcut curation: Silivri yöneticileri en üstte
       const aExec = SILIVRI_EXECUTIVES.indexOf(a.name)
       const bExec = SILIVRI_EXECUTIVES.indexOf(b.name)
       if (aExec !== -1 && bExec !== -1) return aExec - bExec
       if (aExec !== -1) return -1
       if (bExec !== -1) return 1
 
-      const aRank = TITLE_RANK[a.title] || 99
-      const bRank = TITLE_RANK[b.title] || 99
+      // 3) Ünvana göre
+      const aRank = titleRank(a.title)
+      const bRank = titleRank(b.title)
       if (aRank !== bRank) return aRank - bRank
 
+      // 4) İsme göre
       return a.name.localeCompare(b.name, 'tr')
     })
   }
