@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase';
 
 interface Doctor {
   id?: number;
+  slug?: string;
   name: string;
   title: string;
   specialty: string;
@@ -113,10 +114,32 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
       const { data, error } = await supabase.from('doctors').select('*').eq('id', doctorId).single();
       if (error) throw error;
       if (data) {
+        // DB kolonlarını form modeline eşle (bkz. handleSubmit'teki ters eşleme)
         setFormData({
-          ...data,
-          education: Array.isArray(data.education) ? data.education : (typeof data.education === 'string' ? JSON.parse(data.education || '[]') : []),
-          languages: Array.isArray(data.languages) ? data.languages : (typeof data.languages === 'string' ? JSON.parse(data.languages || '[]') : [])
+          id: data.id,
+          slug: data.slug || '',
+          name: data.name || '',
+          title: data.title || '',
+          specialty: Array.isArray(data.specialties) ? (data.specialties[0] || '') : (data.specialties || ''),
+          department_id: data.department_id || 0,
+          hospital_id: data.hospital_id || 0,
+          bio: data.about || '',
+          education:
+            Array.isArray(data.education)
+              ? data.education
+              : (typeof data.education === 'string' && data.education.trim()
+                  ? data.education.split('\n').filter(Boolean)
+                  : []),
+          experience: data.experience || '',
+          languages: Array.isArray(data.languages) ? data.languages : [],
+          image_url: data.image || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          rating: data.rating ?? 5,
+          review_count: data.review_count ?? 0,
+          is_active: data.is_active ?? true,
+          display_order: data.display_order ?? 1,
+          created_at: data.created_at,
         });
       }
     } catch (error) {
@@ -171,31 +194,64 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
     }));
   };
 
+  // Türkçe karakterleri de dikkate alan slug üretici
+  const slugify = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
+      .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
     try {
-      const doctorData = {
-        ...formData,
+      // Form modelini gerçek doctors tablosu kolonlarına eşle (bkz. fetchDoctor)
+      const doctorData: Record<string, any> = {
+        name: formData.name,
+        slug: formData.slug || slugify(formData.name) || `doktor-${Date.now()}`,
+        title: formData.title,
+        specialties: formData.specialty ? [formData.specialty] : [],
+        department_id: formData.department_id || null,
+        hospital_id: formData.hospital_id || null,
+        about: formData.bio,
+        education: (formData.education || []).join('\n'),
+        experience: formData.experience,
+        languages: formData.languages || [],
+        image: formData.image_url,
+        email: formData.email || null,
+        phone: formData.phone || null,
+        rating: formData.rating,
+        review_count: formData.review_count,
+        is_active: formData.is_active,
+        display_order: formData.display_order,
         updated_at: new Date().toISOString(),
-        created_at: formData.created_at || new Date().toISOString()
       };
 
       if (onSave) {
-        onSave(doctorData);
-      } else {
-        if (id || formData.id) {
-          const doctorId = id ? parseInt(id) : formData.id!;
-          await supabase.from('doctors').update(doctorData).eq('id', doctorId);
-        } else {
-          await supabase.from('doctors').insert([doctorData]);
-        }
-        navigate('/admin/doctors');
+        onSave({ ...formData, ...doctorData });
+        return;
       }
-    } catch (error) {
+
+      let error;
+      if (id || formData.id) {
+        const doctorId = id ? parseInt(id) : formData.id!;
+        ({ error } = await supabase.from('doctors').update(doctorData).eq('id', doctorId));
+      } else {
+        doctorData.created_at = formData.created_at || new Date().toISOString();
+        ({ error } = await supabase.from('doctors').insert([doctorData]));
+      }
+
+      if (error) throw error;
+      navigate('/admin/doctors');
+    } catch (error: any) {
       console.error('Error saving doctor:', error);
-      alert(t('admin.doctorForm.saveError', 'Doktor kaydedilirken hata oluştu!'));
+      alert(
+        (t('admin.doctorForm.saveError', 'Doktor kaydedilirken hata oluştu!') as string) +
+          (error?.message ? `\n\n${error.message}` : ''),
+      );
     } finally {
       setSaving(false);
     }
