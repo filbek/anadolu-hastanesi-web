@@ -13,7 +13,7 @@ const FloatingActions = () => {
       icon: <FaWhatsapp />,
       label: t('layout.whatsappSupport', 'WhatsApp Destek'),
       color: 'bg-[#25D366]',
-      href: 'https://wa.me/4445058',
+      href: 'https://wa.me/905305106246',
     },
     {
       id: 'appointment',

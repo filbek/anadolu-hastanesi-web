@@ -202,9 +202,9 @@ const Footer = () => {
             <div className="flex flex-col sm:flex-row flex-wrap items-center gap-2 sm:gap-4 text-xs text-white/40">
               <span className="text-center sm:text-left">
                 {t('footer.privacy')}{' '}
-                <a href="https://anadoluhastaneleri.com/gizlilikilkesi" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors underline">
+                <Link to="/kvkk" className="hover:text-white transition-colors underline">
                   {t('footer.kvkk')}
-                </a>
+                </Link>
               </span>
               <span className="hidden sm:inline">|</span>
               <div className="flex items-center gap-3">
