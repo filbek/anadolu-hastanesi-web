@@ -64,6 +64,31 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
   const [loading, setLoading] = useState(false);
   const [educationInput, setEducationInput] = useState('');
   const [languageInput, setLanguageInput] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).slice(2)}-${Date.now()}.${fileExt}`;
+      const filePath = `doctor-images/${fileName}`;
+      const { error: uploadError } = await supabase.storage
+        .from('doctor-images')
+        .upload(filePath, file);
+      if (uploadError) {
+        alert('Resim yüklenirken hata oluştu: ' + uploadError.message);
+        return;
+      }
+      const { data } = supabase.storage.from('doctor-images').getPublicUrl(filePath);
+      setFormData((prev) => ({ ...prev, image_url: data.publicUrl }));
+    } catch (error: any) {
+      alert('Resim yüklenirken hata oluştu: ' + (error?.message || ''));
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   useEffect(() => {
     if (doctor) {
@@ -515,17 +540,41 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
               {t('admin.label.profileImage', 'Profil Resmi')}
             </h3>
 
-            <input
-              type="url"
-              value={formData.image_url}
-              onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="https://example.com/doctor.jpg"
-            />
+            {/* PC'den yükleme */}
+            <label
+              htmlFor="doctor-image-upload"
+              className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary transition-colors ${uploadingImage ? 'opacity-60 pointer-events-none' : ''}`}
+            >
+              <FaImage className="text-2xl text-gray-400 mb-2" />
+              <span className="text-sm text-gray-500">
+                {uploadingImage ? 'Yükleniyor...' : 'Bilgisayardan resim seç / sürükle'}
+              </span>
+              <input
+                id="doctor-image-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploadingImage}
+                className="hidden"
+              />
+            </label>
+
+            {/* veya URL ile */}
+            <div className="mt-3">
+              <label className="block text-xs font-medium text-gray-500 mb-1">veya resim URL'si girin</label>
+              <input
+                type="url"
+                value={formData.image_url}
+                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder="https://example.com/doctor.jpg"
+              />
+            </div>
+
             {formData.image_url && (
               <img
                 src={formData.image_url}
-                alt="Preview"
+                alt="Önizleme"
                 className="mt-3 w-full h-32 object-cover rounded-lg"
               />
             )}
