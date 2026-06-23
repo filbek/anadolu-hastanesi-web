@@ -6,6 +6,7 @@ import { FaCalendarAlt, FaGraduationCap, FaHospital, FaStethoscope, FaAward, FaF
 import { useDoctorDetail } from '../hooks/useDoctors'
 import { useLocalizedItem } from '../hooks/useLocalizedList'
 import SecondOpinionBanner from '../components/common/SecondOpinionBanner'
+import AutoTranslate from '../components/common/AutoTranslate'
 
 const TREATMENTS_BY_DEPT: Record<string, string[]> = {
   'acil-servis': ['Acil Müdahale', 'Travma Tedavisi', 'Yanık Tedavisi', 'Zehirlenme Tedavisi', 'İlk Yardım ve Stabilizasyon'],
@@ -62,15 +63,11 @@ function getTreatments(deptName: string, deptSlug: string): string[] {
   ]
 }
 
-function getDeptDescription(deptName: string): string {
-  return `${deptName} birimimizde, alanında uzman hekim kadromuz ve modern tıp teknolojilerimizle hastalarımıza en iyi sağlık hizmetini sunmayı ilke edindik. Teşhis ve tedavi süreçlerinde multidisipliner yaklaşım benimseyerek, her hastamız için kişiselleştirilmiş çözümler üretiyoruz.`
-}
-
 const DoctorDetailPage = () => {
   const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>()
   const { data: doctorRaw, isLoading } = useDoctorDetail(slug || '')
-  const doctor = useLocalizedItem(doctorRaw, ['title', 'education', 'experience'])
+  const doctor = useLocalizedItem(doctorRaw, ['title', 'education', 'experience', 'departments.name', 'hospitals.name'])
 
   if (isLoading) {
     return (
@@ -99,7 +96,7 @@ const DoctorDetailPage = () => {
   const hospitalName = (doctor as any).hospitals?.name || ''
   const hospitalSlug = (doctor as any).hospitals?.slug || ''
   const treatments = getTreatments(deptName, deptSlug)
-  const deptDescription = getDeptDescription(deptName)
+  const deptDescription = t('doctorDetail.deptDescTemplate', '{{deptName}} birimimizde, alanında uzman hekim kadromuz ve modern tıp teknolojilerimizle hastalarımıza en iyi sağlık hizmetini sunmayı ilke edindik. Teşhis ve tedavi süreçlerinde multidisipliner yaklaşım benimseyerek, her hastamız için kişiselleştirilmiş çözümler üretiyoruz.', { deptName })
 
   const hasEducation = doctor.education && doctor.education.trim().length > 0
   const hasExperience = doctor.experience && doctor.experience.trim().length > 0
@@ -108,7 +105,7 @@ const DoctorDetailPage = () => {
     <>
       <Helmet>
         <title>{doctor.name} | Anadolu Hastaneleri Grubu</title>
-        <meta name="description" content={`${doctor.name} - ${doctor.title}. ${hospitalName} bünyesinde hizmet veren uzman doktorumuz hakkında bilgi alın ve online randevu alın.`} />
+        <meta name="description" content={t('doctorDetail.metaDesc', '{{name}} - {{title}}. {{hospital}} bünyesinde hizmet veren uzman doktorumuz hakkında bilgi alın ve online randevu alın.', { name: doctor.name, title: doctor.title, hospital: hospitalName })} />
       </Helmet>
 
       {/* Page Banner */}
@@ -177,7 +174,7 @@ const DoctorDetailPage = () => {
                     rel="noopener noreferrer"
                     className="btn btn-coral w-full justify-center"
                   >
-                    <FaCalendarAlt className="mr-2" /> Online Randevu
+                    <FaCalendarAlt className="mr-2" /> {t('onlineAppointment', 'Online Randevu')}
                   </a>
                   <a
                     href="tel:4445058"
@@ -214,8 +211,8 @@ const DoctorDetailPage = () => {
                     <FaClock className="text-ocean-500 mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="font-medium text-primary">{t('common.workingHours', 'Çalışma Saatleri')}</p>
-                      <p className="text-text-light">{t('common.weekday', 'Haftaiçi')}: 08:00 - 17:00</p>
-                      <p className="text-text-light">{t('common.weekend', 'Haftasonu')}: 08:30 - 14:00</p>
+                      <p className="text-text-light">{t('common.weekdays', 'Haftaiçi')}: 08:00 - 17:00</p>
+                      <p className="text-text-light">{t('common.weekends', 'Haftasonu')}: 08:30 - 14:00</p>
                     </div>
                   </li>
                 </ul>
@@ -250,7 +247,7 @@ const DoctorDetailPage = () => {
                       <div className="w-10 h-10 rounded-full bg-ocean-50 flex items-center justify-center flex-shrink-0">
                         <i className="bi bi-check-lg text-ocean-600"></i>
                       </div>
-                      <span className="text-sm font-medium text-primary">{treatment}</span>
+                      <span className="text-sm font-medium text-primary"><AutoTranslate text={treatment} /></span>
                     </div>
                   ))}
                 </div>
@@ -261,7 +258,7 @@ const DoctorDetailPage = () => {
                 <div className="card">
                   <h3 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
                     <FaGraduationCap className="text-ocean-500" />
-                    Eğitim ve Deneyim
+                    {t('doctorDetail.education', 'Eğitim ve Deneyim')}
                   </h3>
                   <p className="text-text-light whitespace-pre-line">{doctor.education}</p>
                 </div>
@@ -272,7 +269,7 @@ const DoctorDetailPage = () => {
                 <div className="card">
                   <h3 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
                     <FaAward className="text-ocean-500" />
-                    Mesleki Deneyim
+                    {t('doctorDetail.experience', 'Mesleki Deneyim')}
                   </h3>
                   <p className="text-text-light whitespace-pre-line">{doctor.experience}</p>
                 </div>
@@ -315,7 +312,7 @@ const DoctorDetailPage = () => {
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-coral-500 hover:bg-coral-600 text-white font-semibold rounded-xl transition-colors whitespace-nowrap"
                     >
-                      <FaCalendarAlt /> {t('common.onlineAppointment', 'Online Randevu')}
+                      <FaCalendarAlt /> {t('onlineAppointment', 'Online Randevu')}
                     </a>
                     <a
                       href="tel:4445058"

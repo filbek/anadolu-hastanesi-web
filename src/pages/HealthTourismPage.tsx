@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
+import { useTranslation } from 'react-i18next'
+import AutoTranslate from '../components/common/AutoTranslate'
 import {
   FaCheck, FaGlobeAmericas, FaHotel, FaAmbulance, FaUserMd, FaMicrochip, FaUserFriends,
   FaHeartbeat, FaBone, FaEye, FaUserEdit, FaTooth, FaCut,
@@ -8,6 +10,7 @@ import {
 } from 'react-icons/fa'
 
 const HealthTourismPage = () => {
+  const { t } = useTranslation()
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
   const whyUs = [
     { title: 'JCI Akreditasyonu', desc: 'Uluslararası standartlarda sağlık hizmeti sunduğumuzu belgeleyen JCI akreditasyonuna sahibiz.' },
@@ -60,8 +63,8 @@ const HealthTourismPage = () => {
   return (
     <div className="bg-white min-h-screen">
       <Helmet>
-        <title>Sağlık Turizmi | Anadolu Hastaneleri Grubu</title>
-        <meta name="description" content="Dünya standartlarında sağlık hizmetleri için Türkiye'nin önde gelen sağlık kuruluşu." />
+        <title>{t('healthTourismPage.heroTitle', 'Sağlık Turizmi')} | {t('common.brand', 'Anadolu Hastaneleri Grubu')}</title>
+        <meta name="description" content={t('healthTourismPage.heroSubtitle', "Dünya standartlarında sağlık hizmetleri için Türkiye'nin önde gelen sağlık kuruluşu.")} />
       </Helmet>
 
       {/* HERO SECTION WITH BANNER */}
@@ -84,20 +87,20 @@ const HealthTourismPage = () => {
               transition={{ duration: 0.8 }}
             >
               <span className="inline-block px-4 py-2 bg-accent/20 text-accent rounded-full text-sm font-bold mb-6">
-                Anadolu Hastaneleri Grubu
+                {t('common.brand', 'Anadolu Hastaneleri Grubu')}
               </span>
               <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-6">
-                Sağlık Turizmi
+                {t('healthTourismPage.heroTitle', 'Sağlık Turizmi')}
               </h1>
               <p className="text-lg text-white/80 leading-relaxed mb-8 max-w-lg">
-                Dünya standartlarında sağlık hizmetleri için Türkiye'nin önde gelen sağlık kuruluşu. Modern teknolojimiz, uzman doktor kadromuz ve uluslararası standartlardaki tesislerimizle sağlığınız için buradayız.
+                {t('healthTourismPage.heroSubtitle', "Dünya standartlarında sağlık hizmetleri için Türkiye'nin önde gelen sağlık kuruluşu. Modern teknolojimiz, uzman doktor kadromuz ve uluslararası standartlardaki tesislerimizle sağlığınız için buradayız.")}
               </p>
               <div className="flex flex-wrap gap-4">
                 <a href="#contact" className="px-8 py-4 bg-accent text-white rounded-xl font-bold hover:bg-accent/90 transition-all shadow-lg">
-                  İletişime Geçin
+                  {t('healthTourismPage.contactButton', 'İletişime Geçin')}
                 </a>
                 <a href="#services" className="px-8 py-4 bg-white/10 text-white border border-white/30 rounded-xl font-bold hover:bg-white/20 transition-all backdrop-blur-sm">
-                  Hizmetlerimiz
+                  {t('healthTourismPage.servicesButton', 'Hizmetlerimiz')}
                 </a>
               </div>
             </motion.div>
@@ -109,7 +112,7 @@ const HealthTourismPage = () => {
             >
               <img
                 src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=800&q=80"
-                alt="Anadolu Hastaneleri'nde uzman doktor hasta ile görüşürken"
+                alt={t('common.brand', 'Anadolu Hastaneleri')}
                 className="rounded-3xl shadow-2xl border-4 border-white/20 w-full object-cover aspect-[4/3]"
               />
             </motion.div>
@@ -122,20 +125,21 @@ const HealthTourismPage = () => {
         <div className="container-custom">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-black text-primary mb-6">Neden Bizi Tercih Etmelisiniz?</h2>
+              <h2 className="text-3xl md:text-4xl font-black text-primary mb-6">{t('healthTourismPage.whyChooseUs', 'Neden Bizi Tercih Etmelisiniz?')}</h2>
               <p className="text-slate-500 mb-8">
-                Anadolu Hastaneleri Grubu olarak, uluslararası hastalara en yüksek kalitede sağlık hizmeti sunuyoruz.
-              </p>
-              <p className="text-slate-500 mb-8">
-                Anadolu Hastaneleri Grubu olarak, dünyanın dört bir yanından gelen hastalara en yüksek kalitede sağlık hizmeti sunuyoruz. Modern teknolojimiz, uzman doktor kadromuz ve uluslararası standartlardaki tesislerimizle sağlığınız için buradayız.
+                {t('healthTourismPage.whyChooseDesc', 'Anadolu Hastaneleri Grubu olarak, uluslararası hastalara en yüksek kalitede sağlık hizmeti sunuyoruz.')}
               </p>
               <div className="space-y-4">
                 {whyUs.map((item, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <FaCheck className="text-accent mt-1 flex-shrink-0" />
                     <div>
-                      <h4 className="font-bold text-primary">{item.title}</h4>
-                      <p className="text-sm text-slate-500">{item.desc}</p>
+                      <h4 className="font-bold text-primary">
+                        <AutoTranslate text={item.title} />
+                      </h4>
+                      <p className="text-sm text-slate-500">
+                        <AutoTranslate text={item.desc} />
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -149,11 +153,11 @@ const HealthTourismPage = () => {
               </div>
               <img
                 src="/uploads/saglik-turizmi-yetki-belgesi.png"
-                alt="Sağlık Turizmi Yetki Belgesi"
+                alt={t('healthTourismPage.heroTitle', 'Sağlık Turizmi Yetki Belgesi')}
                 className="rounded-3xl shadow-xl border border-slate-200 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
               />
               <div className="absolute -bottom-4 -right-4 bg-accent text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg">
-                T.C. Sağlık Bakanlığı Onaylı
+                <AutoTranslate text="T.C. Sağlık Bakanlığı Onaylı" />
               </div>
             </div>
           </div>
@@ -164,9 +168,9 @@ const HealthTourismPage = () => {
       <section id="services" className="py-20 bg-slate-50">
         <div className="container-custom">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">Hizmetlerimiz</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">{t('healthTourismPage.servicesTitle', 'Hizmetlerimiz')}</h2>
             <p className="text-slate-500 max-w-2xl mx-auto">
-              Anadolu Hastaneleri Grubu olarak, uluslararası hastalarımıza geniş bir yelpazede hizmet sunuyoruz.
+              {t('healthTourismPage.servicesDesc', 'Anadolu Hastaneleri Grubu olarak, uluslararası hastalarımıza geniş bir yelpazede hizmet sunuyoruz.')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -182,8 +186,12 @@ const HealthTourismPage = () => {
                 <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center text-accent text-2xl mb-6">
                   {service.icon}
                 </div>
-                <h3 className="text-lg font-bold text-primary mb-3">{service.title}</h3>
-                <p className="text-slate-500 text-sm">{service.desc}</p>
+                <h3 className="text-lg font-bold text-primary mb-3">
+                  <AutoTranslate text={service.title} />
+                </h3>
+                <p className="text-slate-500 text-sm">
+                  <AutoTranslate text={service.desc} />
+                </p>
               </motion.div>
             ))}
           </div>
@@ -194,9 +202,9 @@ const HealthTourismPage = () => {
       <section className="py-20">
         <div className="container-custom">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">Tedavi Seçenekleri</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">{t('healthTourismPage.treatmentsTitle', 'Tedavi Seçenekleri')}</h2>
             <p className="text-slate-500 max-w-2xl mx-auto">
-              Anadolu Hastaneleri Grubu olarak, birçok farklı alanda tedavi hizmeti sunuyoruz.
+              {t('healthTourismPage.treatmentsDesc', 'Anadolu Hastaneleri Grubu olarak, birçok farklı alanda tedavi hizmeti sunuyoruz.')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -213,13 +221,15 @@ const HealthTourismPage = () => {
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary text-xl">
                     {treatment.icon}
                   </div>
-                  <h3 className="text-lg font-bold text-primary">{treatment.title}</h3>
+                  <h3 className="text-lg font-bold text-primary">
+                    <AutoTranslate text={treatment.title} />
+                  </h3>
                 </div>
                 <ul className="space-y-2">
                   {treatment.items.map((item, j) => (
                     <li key={j} className="flex items-center gap-2 text-slate-500 text-sm">
                       <FaCheck className="text-accent text-xs" />
-                      {item}
+                      <AutoTranslate text={item} />
                     </li>
                   ))}
                 </ul>
@@ -233,9 +243,9 @@ const HealthTourismPage = () => {
       <section className="py-20 bg-primary">
         <div className="container-custom">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">Tedavi Süreci</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">{t('healthTourismPage.processTitle', 'Tedavi Süreci')}</h2>
             <p className="text-white/60 max-w-2xl mx-auto">
-              Anadolu Hastaneleri Grubu'nda tedavi süreciniz nasıl ilerler?
+              {t('healthTourismPage.processDesc', "Anadolu Hastaneleri Grubu'nda tedavi süreciniz nasıl ilerler?")}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -251,8 +261,12 @@ const HealthTourismPage = () => {
                 <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center text-white text-2xl font-black mx-auto mb-6">
                   {item.step}
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
-                <p className="text-white/60 text-sm">{item.desc}</p>
+                <h3 className="text-xl font-bold text-white mb-3">
+                  <AutoTranslate text={item.title} />
+                </h3>
+                <p className="text-white/60 text-sm">
+                  <AutoTranslate text={item.desc} />
+                </p>
               </motion.div>
             ))}
           </div>
@@ -263,9 +277,9 @@ const HealthTourismPage = () => {
       <section className="py-20">
         <div className="container-custom">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">Hasta Yorumları</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">{t('healthTourismPage.testimonialsTitle', 'Hasta Yorumları')}</h2>
             <p className="text-slate-500 max-w-2xl mx-auto">
-              Dünyanın dört bir yanından gelen hastalarımızın deneyimleri
+              {t('healthTourismPage.testimonialsDesc', 'Dünyanın dört bir yanından gelen hastalarımızın deneyimleri')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -284,7 +298,9 @@ const HealthTourismPage = () => {
                   </div>
                   <div>
                     <h4 className="font-bold text-primary">{testimonial.name}</h4>
-                    <p className="text-sm text-slate-500">{testimonial.country}</p>
+                    <p className="text-sm text-slate-500">
+                      <AutoTranslate text={testimonial.country} />
+                    </p>
                   </div>
                 </div>
                 <div className="flex gap-1 mb-4">
@@ -292,7 +308,9 @@ const HealthTourismPage = () => {
                     <span key={j} className="text-accent">★</span>
                   ))}
                 </div>
-                <p className="text-slate-500 text-sm leading-relaxed">{testimonial.text}</p>
+                <p className="text-slate-500 text-sm leading-relaxed">
+                  <AutoTranslate text={testimonial.text} />
+                </p>
               </motion.div>
             ))}
           </div>
@@ -303,7 +321,7 @@ const HealthTourismPage = () => {
               rel="noopener noreferrer"
               className="text-accent font-medium hover:underline"
             >
-              Trustpilot'ta tüm yorumları görüntüleyin →
+              {t('healthTourismPage.trustpilot', 'Trustpilot\'ta tüm yorumları görüntüleyin →')}
             </a>
           </div>
         </div>
@@ -313,16 +331,16 @@ const HealthTourismPage = () => {
       <section className="py-20 bg-slate-50">
         <div className="container-custom">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">Sık Sorulan Sorular</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">{t('healthTourismPage.faqTitle', 'Sık Sorulan Sorular')}</h2>
             <p className="text-slate-500 max-w-2xl mx-auto">
-              Sağlık turizmi hakkında merak ettiğiniz soruların cevapları
+              {t('healthTourismPage.faqDesc', 'Sağlık turizmi hakkında merak ettiğiniz soruların cevapları')}
             </p>
           </div>
           <div className="max-w-3xl mx-auto space-y-4">
             {faqs.map((faq, i) => (
               <details key={i} className="group bg-white rounded-xl overflow-hidden shadow-sm">
                 <summary className="flex justify-between items-center p-6 cursor-pointer font-medium text-primary">
-                  {faq.q}
+                  <AutoTranslate text={faq.q} />
                   <span className="text-slate-400 group-open:rotate-180 transition-transform">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                       <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -330,7 +348,7 @@ const HealthTourismPage = () => {
                   </span>
                 </summary>
                 <div className="px-6 pb-6 text-slate-500">
-                  {faq.a}
+                  <AutoTranslate text={faq.a} />
                 </div>
               </details>
             ))}
@@ -342,17 +360,17 @@ const HealthTourismPage = () => {
       <section id="contact" className="py-20">
         <div className="container-custom">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">İletişime Geçin</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-primary mb-4">{t('healthTourismPage.contactTitle', 'İletişime Geçin')}</h2>
             <p className="text-slate-500 max-w-2xl mx-auto">
-              Sağlık turizmi hakkında daha fazla bilgi almak için bizimle iletişime geçin.
+              {t('healthTourismPage.contactDesc', 'Sağlık turizmi hakkında daha fazla bilgi almak için bizimle iletişime geçin.')}
             </p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {/* Contact Info */}
             <div>
-              <h3 className="text-xl font-bold text-primary mb-6">Bize Ulaşın</h3>
+              <h3 className="text-xl font-bold text-primary mb-6">{t('healthTourismPage.contactInfoTitle', 'Bize Ulaşın')}</h3>
               <p className="text-slate-500 mb-8">
-                Sağlık turizmi hakkında daha fazla bilgi almak, tedavi seçeneklerini öğrenmek veya randevu almak için bizimle iletişime geçebilirsiniz. Uzman ekibimiz, size en kısa sürede dönüş yapacaktır.
+                {t('healthTourismPage.contactInfoDesc', 'Sağlık turizmi hakkında daha fazla bilgi almak, tedavi seçeneklerini öğrenmek veya randevu almak için bizimle iletişime geçebilirsiniz. Uzman ekibimiz, size en kısa sürede dönüş yapacaktır.')}
               </p>
               <div className="space-y-4 mb-8">
                 <div className="flex items-center gap-4">
@@ -360,7 +378,7 @@ const HealthTourismPage = () => {
                     <FaEnvelope />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-500">E-posta</p>
+                    <p className="text-sm text-slate-500">{t('healthTourismPage.emailLabel', 'E-posta')}</p>
                     <a href="mailto:international@anadoluhastaneleri.com" className="text-primary font-medium">international@anadoluhastaneleri.com</a>
                   </div>
                 </div>
@@ -369,7 +387,7 @@ const HealthTourismPage = () => {
                     <FaPhone />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-500">Telefon</p>
+                    <p className="text-sm text-slate-500">{t('healthTourismPage.phoneLabel', 'Telefon')}</p>
                     <a href="tel:+902121234567" className="text-primary font-medium">+90 212 123 45 67</a>
                   </div>
                 </div>
@@ -378,16 +396,16 @@ const HealthTourismPage = () => {
                     <FaWhatsapp />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-500">WhatsApp</p>
+                    <p className="text-sm text-slate-500">{t('healthTourismPage.whatsappLabel', 'WhatsApp')}</p>
                     <a href="https://wa.me/902121234567" className="text-primary font-medium">+90 212 123 45 67</a>
                   </div>
                 </div>
               </div>
               <div>
-                <p className="text-sm text-slate-500 mb-4">Bizi Takip Edin</p>
+                <p className="text-sm text-slate-500 mb-4">{t('footer.followUs', 'Bizi Takip Edin')}</p>
                 <div className="flex gap-3">
                   {[FaFacebookF, FaTwitter, FaInstagram, FaYoutube].map((Icon, i) => (
-                    <a key={i} href="#" className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors">
+                    <a key={i} href="#" className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-colors" aria-label="Sosyal Medya">
                       <Icon />
                     </a>
                   ))}
@@ -397,32 +415,32 @@ const HealthTourismPage = () => {
 
             {/* Contact Form */}
             <div>
-              <h3 className="text-xl font-bold text-primary mb-6">İletişim Formu</h3>
+              <h3 className="text-xl font-bold text-primary mb-6">{t('common.contactForm', 'İletişim Formu')}</h3>
               <form className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-2">Ad Soyad</label>
-                    <input type="text" placeholder="Adınız Soyadınız" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
+                    <label className="block text-sm font-medium text-slate-600 mb-2">{t('common.name', 'Ad Soyad')}</label>
+                    <input type="text" placeholder={t('contactPage.placeholderName', 'Adınız Soyadınız')} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-2">E-posta</label>
-                    <input type="email" placeholder="ornek@email.com" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
+                    <label className="block text-sm font-medium text-slate-600 mb-2">{t('common.email', 'E-posta')}</label>
+                    <input type="email" placeholder={t('contactPage.placeholderEmail', 'ornek@email.com')} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-2">Telefon</label>
-                    <input type="tel" placeholder="+90 555 123 45 67" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
+                    <label className="block text-sm font-medium text-slate-600 mb-2">{t('common.phone', 'Telefon')}</label>
+                    <input type="tel" placeholder={t('contactPage.placeholderPhone', '0555 123 45 67')} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-2">Ülke</label>
-                    <input type="text" placeholder="Ülkeniz" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
+                    <label className="block text-sm font-medium text-slate-600 mb-2">{t('healthTourismPage.countryLabel', 'Ülke')}</label>
+                    <input type="text" placeholder={t('healthTourismPage.countryLabel', 'Ülke')} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-2">İlgilendiğiniz Tedavi</label>
+                  <label className="block text-sm font-medium text-slate-600 mb-2">{t('healthTourismPage.treatmentLabel', 'İlgilendiğiniz Tedavi')}</label>
                   <select className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary bg-white">
-                    <option>Tedavi Seçiniz</option>
+                    <option>{t('healthTourismPage.selectTreatment', 'Tedavi Seçiniz')}</option>
                     <option>Kardiyoloji</option>
                     <option>Ortopedi</option>
                     <option>Göz Hastalıkları</option>
@@ -433,17 +451,17 @@ const HealthTourismPage = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-2">Mesajınız</label>
-                  <textarea rows={4} placeholder="Sağlık durumunuz ve tedavi beklentileriniz hakkında bilgi verebilirsiniz." className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary resize-none" />
+                  <label className="block text-sm font-medium text-slate-600 mb-2">{t('common.message', 'Mesajınız')}</label>
+                  <textarea rows={4} placeholder={t('contactPage.placeholderMessage', 'Mesajınızı buraya yazınız...')} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary resize-none" />
                 </div>
                 <div className="flex items-start gap-2">
                   <input type="checkbox" id="consent" className="mt-1" />
                   <label htmlFor="consent" className="text-sm text-slate-500">
-                    Kişisel verilerimin, tarafıma dönüş yapılması amacıyla işlenmesine onay veriyorum.
+                    {t('common.consentText', 'Kişisel verilerimin, tarafıma dönüş yapılması amacıyla işlenmesine izin veriyorum.')}
                   </label>
                 </div>
                 <button type="submit" className="w-full py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors">
-                  Gönder
+                  {t('common.send', 'Gönder')}
                 </button>
               </form>
             </div>
@@ -478,11 +496,11 @@ const HealthTourismPage = () => {
               </button>
               <img
                 src="/uploads/saglik-turizmi-yetki-belgesi.png"
-                alt="Sağlık Turizmi Yetki Belgesi"
+                alt={t('healthTourismPage.heroTitle', 'Sağlık Turizmi Yetki Belgesi')}
                 className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl border-4 border-white/10"
               />
               <p className="text-white/80 text-sm mt-4 font-semibold tracking-wider uppercase">
-                Uluslararası Sağlık Turizmi Yetki Belgesi
+                <AutoTranslate text="Uluslararası Sağlık Turizmi Yetki Belgesi" />
               </p>
             </motion.div>
           </motion.div>

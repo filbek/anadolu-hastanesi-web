@@ -11,8 +11,8 @@ export async function getDoctors(): Promise<Doctor[]> {
       .from('doctors')
       .select(`
         *,
-        departments:department_id(name, slug),
-        hospitals:hospital_id(name, slug)
+        departments:department_id(name, slug, translations),
+        hospitals:hospital_id(name, slug, translations)
       `)
       .eq('is_active', true)
       .order('name');
@@ -36,8 +36,8 @@ export async function getDoctorsByDepartment(departmentId: number): Promise<Doct
     .from('doctors')
     .select(`
       *,
-      departments:department_id(name, slug),
-      hospitals:hospital_id(name, slug)
+      departments:department_id(name, slug, translations),
+      hospitals:hospital_id(name, slug, translations)
     `)
     .eq('department_id', departmentId)
     .eq('is_active', true)
@@ -56,8 +56,8 @@ export async function getDoctorsByHospital(hospitalId: number): Promise<Doctor[]
     .from('doctors')
     .select(`
       *,
-      departments:department_id(name, slug),
-      hospitals:hospital_id(name, slug)
+      departments:department_id(name, slug, translations),
+      hospitals:hospital_id(name, slug, translations)
     `)
     .eq('hospital_id', hospitalId)
     .eq('is_active', true)
@@ -76,8 +76,8 @@ export async function getDoctorBySlug(slug: string): Promise<Doctor | null> {
     .from('doctors')
     .select(`
       *,
-      departments:department_id(name, slug),
-      hospitals:hospital_id(name, slug)
+      departments:department_id(name, slug, translations),
+      hospitals:hospital_id(name, slug, translations)
     `)
     .eq('slug', slug)
     .eq('is_active', true)

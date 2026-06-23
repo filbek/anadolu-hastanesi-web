@@ -1341,7 +1341,12 @@
   "doctorDetail": {
     "treatments": "Treatments Applied",
     "cvTitle": "CV Information",
-    "cvDesc": "This doctor's education, experience and publication information will be added soon. For current information, please contact our hospital."
+    "cvDesc": "This doctor's education, experience and publication information will be added soon. For current information, please contact our hospital.",
+    "education": "Education and Experience",
+    "experience": "Professional Experience",
+    "aboutDesc": "{{name}} works in the {{dept}} department at {{hospital}}. By using modern diagnosis and treatment methods, they provide the most up-to-date and effective health service to their patients.",
+    "deptDescTemplate": "In our {{deptName}} department, we aim to provide the best health service to our patients with our expert physician staff and modern medical technologies. By adopting a multidisciplinary approach in diagnostic and treatment processes, we produce personalized solutions for each of our patients.",
+    "metaDesc": "{{name}} - {{title}}. Find information about our specialist doctor serving at {{hospital}} and book an online appointment."
   },
   "gebe": {
     "featureExpert": "Expert Staff",

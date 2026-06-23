@@ -1341,7 +1341,12 @@
   "doctorDetail": {
     "treatments": "Uygulanan Tedaviler",
     "cvTitle": "Özgeçmiş Bilgileri",
-    "cvDesc": "Bu doktorun eğitim, deneyim ve yayın bilgileri yakında eklenecektir. Güncel bilgiler için lütfen hastanemizle iletişime geçiniz."
+    "cvDesc": "Bu doktorun eğitim, deneyim ve yayın bilgileri yakında eklenecektir. Güncel bilgiler için lütfen hastanemizle iletişime geçiniz.",
+    "education": "Eğitim ve Deneyim",
+    "experience": "Mesleki Deneyim",
+    "aboutDesc": "{{name}}, {{hospital}} bünyesinde {{dept}} biriminde görev yapmaktadır. Modern teşhis ve tedavi yöntemlerini kullanarak hastalarına en güncel ve etkili sağlık hizmetini sunmaktadır.",
+    "deptDescTemplate": "{{deptName}} birimimizde, alanında uzman hekim kadromuz ve modern tıp teknolojilerimizle hastalarımıza en iyi sağlık hizmetini sunmayı ilke edindik. Teşhis ve tedavi süreçlerinde multidisipliner yaklaşım benimseyerek, her hastamız için kişiselleştirilmiş çözümler üretiyoruz.",
+    "metaDesc": "{{name}} - {{title}}. {{hospital}} bünyesinde hizmet veren uzman doktorumuz hakkında bilgi alın ve online randevu alın."
   },
   "gebe": {
     "featureExpert": "Uzman Kadro",

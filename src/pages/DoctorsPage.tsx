@@ -27,7 +27,7 @@ const itemVariants = {
 const DoctorsPage = () => {
   const { t } = useTranslation()
   const { data: doctorsRaw = [], isLoading } = useDoctors()
-  const doctors = useLocalizedList(doctorsRaw, ['title'])
+  const doctors = useLocalizedList(doctorsRaw, ['title', 'departments.name', 'hospitals.name'])
   const [searchParams] = useSearchParams()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedDepartment, setSelectedDepartment] = useState('')

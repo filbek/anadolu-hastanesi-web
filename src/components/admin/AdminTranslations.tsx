@@ -6,6 +6,7 @@ import {
   TARGET_LANGS,
   type TargetLang,
   mergeTranslations,
+  shouldTranslateString,
 } from '../../services/translationService'
 
 /**
@@ -114,10 +115,10 @@ const AdminTranslations = () => {
     try {
       const { data, error } = await supabase
         .from(cfg.table)
-        .select('id, translations')
+        .select('*')
       if (error) throw error
       const rows = data || []
-      const missing = rows.filter((r: any) => isMissing(r.translations, cfg.fields)).length
+      const missing = rows.filter((r: any) => isMissing(r, cfg.fields)).length
       return { total: rows.length, missing, loading: false }
     } catch (e: any) {
       return {
@@ -154,7 +155,7 @@ const AdminTranslations = () => {
 
       const targetRows = forceMode
         ? rows
-        : rows.filter((r: any) => isMissing(r.translations, cfg.fields))
+        : rows.filter((r: any) => isMissing(r, cfg.fields))
 
       const total = targetRows.length
       let done = 0
@@ -164,6 +165,9 @@ const AdminTranslations = () => {
       }))
 
       for (const row of targetRows) {
+        // Google Translate API rate limit (429) almamak için her satır arasında 300ms bekle
+        await new Promise((resolve) => setTimeout(resolve, 300))
+
         const merged = await mergeTranslations(
           row,
           cfg.fields as any,
@@ -347,17 +351,33 @@ const AdminTranslations = () => {
   )
 }
 
-function isMissing(translations: any, fields: string[]): boolean {
+function isMissing(row: any, fields: string[]): boolean {
+  const translations = row?.translations
   if (!translations || typeof translations !== 'object') return true
   for (const lang of TARGET_LANGS) {
     const t = translations[lang as TargetLang]
     if (!t || typeof t !== 'object') return true
     for (const f of fields) {
+      // Türkçe kaynak alan boşsa, çeviri de beklenmez (eksik sayılmaz)
+      const trVal = row[f]
+      const isSourceEmpty =
+        trVal == null ||
+        (typeof trVal === 'string' && trVal.trim() === '') ||
+        (Array.isArray(trVal) && trVal.length === 0)
+
+      if (isSourceEmpty) continue
+
+      // Kaynak dolu ama çeviri eksik/boşsa, eksiktir
       const v = t[f]
       if (v == null) return true
       if (typeof v === 'string' && v.trim() === '') return true
-      // Diziler için: kaynak boş değilse ama hedef boşsa eksik say
       if (Array.isArray(v) && v.length === 0) return true
+
+      // EĞER çevrilen dil Türkçe değilse ama çeviri değeri Türkçe kaynak değerle birebir aynıysa eksik say!
+      // (Önceki başarısız API denemelerinden kalan Türkçe değerleri yakalamak için)
+      if (typeof trVal === 'string' && typeof v === 'string' && trVal === v && shouldTranslateString(trVal)) {
+        return true
+      }
     }
   }
   return false

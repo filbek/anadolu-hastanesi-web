@@ -24,7 +24,7 @@ function normalizeLang(raw: string | undefined): 'tr' | TargetLang {
  */
 export function useLocalizedList<T extends WithTranslations>(
   items: T[] | undefined,
-  fields: (keyof T & string)[]
+  fields: string[]
 ): T[] {
   const { i18n } = useTranslation()
   const lang = normalizeLang(i18n.language)
@@ -46,17 +46,48 @@ export function useLocalizedList<T extends WithTranslations>(
         safeItems.map(async (item) => {
           const copy: any = { ...item }
           for (const f of fields) {
-            const dbVal = item.translations?.[lang as TargetLang]?.[f]
-            if (dbVal != null && dbVal !== '') {
-              copy[f] = dbVal
-              continue
-            }
-            const v = item[f]
-            if (typeof v === 'string' && v.trim()) {
-              try {
-                copy[f] = await translateText(v, lang)
-              } catch {
-                /* orijinali koru */
+            if (f.includes('.')) {
+              const parts = f.split('.')
+              const parentKey = parts[0]
+              const childKey = parts[1]
+              const parentObj = item[parentKey]
+              if (parentObj) {
+                copy[parentKey] = { ...parentObj }
+                
+                // 1. Check if the nested object itself has its own translations column
+                let dbVal = parentObj.translations?.[lang as TargetLang]?.[childKey]
+                
+                // 2. Fallback: check if the parent object has translations for this nested path
+                if (dbVal == null || dbVal === '') {
+                  dbVal = item.translations?.[lang as TargetLang]?.[f]
+                }
+                
+                if (dbVal != null && dbVal !== '') {
+                  copy[parentKey][childKey] = dbVal
+                } else {
+                  const v = parentObj[childKey]
+                  if (typeof v === 'string' && v.trim()) {
+                    try {
+                      copy[parentKey][childKey] = await translateText(v, lang)
+                    } catch {
+                      /* orijinali koru */
+                    }
+                  }
+                }
+              }
+            } else {
+              const dbVal = item.translations?.[lang as TargetLang]?.[f]
+              if (dbVal != null && dbVal !== '') {
+                copy[f] = dbVal
+                continue
+              }
+              const v = item[f]
+              if (typeof v === 'string' && v.trim()) {
+                try {
+                  copy[f] = await translateText(v, lang)
+                } catch {
+                  /* orijinali koru */
+                }
               }
             }
           }
@@ -80,7 +111,7 @@ export function useLocalizedList<T extends WithTranslations>(
  */
 export function useLocalizedItem<T extends WithTranslations>(
   item: T | null | undefined,
-  fields: (keyof T & string)[]
+  fields: string[]
 ): T | null {
   const list = useLocalizedList(item ? [item] : [], fields)
   return list[0] ?? null

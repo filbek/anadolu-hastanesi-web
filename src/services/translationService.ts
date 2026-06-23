@@ -317,14 +317,28 @@ export async function mergeTranslations<T extends Record<string, any>>(
         if (!shouldTranslateString(trVal)) {
           updated[f as string] = trVal
         } else {
-          updated[f as string] = await translateText(trVal, lang)
+          const translated = await translateText(trVal, lang)
+          if (translated !== trVal) {
+            updated[f as string] = translated
+          }
         }
       } else if (Array.isArray(trVal) && trVal.every((x: any) => typeof x === 'string')) {
         const arr: string[] = []
+        let hasFailed = false
         for (const s of trVal as string[]) {
-          arr.push(shouldTranslateString(s) ? await translateText(s, lang) : s)
+          if (!shouldTranslateString(s)) {
+            arr.push(s)
+          } else {
+            const translated = await translateText(s, lang)
+            if (translated === s) {
+              hasFailed = true
+            }
+            arr.push(translated)
+          }
         }
-        updated[f as string] = arr
+        if (!hasFailed) {
+          updated[f as string] = arr
+        }
       }
     }
     result[lang] = updated
@@ -335,7 +349,7 @@ export async function mergeTranslations<T extends Record<string, any>>(
 /**
  * URL, e-posta, telefon, hex renk gibi çevrilmemesi gereken stringleri filtreler.
  */
-function shouldTranslateString(s: string): boolean {
+export function shouldTranslateString(s: string): boolean {
   if (!s || !s.trim()) return false
   const t = s.trim()
   // URL veya e-posta
