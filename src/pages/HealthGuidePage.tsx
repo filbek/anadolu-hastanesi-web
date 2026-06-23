@@ -12,7 +12,7 @@ import { getArticleImageUrl } from '../services'
 const HealthGuidePage = () => {
   const { t } = useTranslation();
   const { data: articlesRaw = [], isLoading } = useHealthArticles()
-  const articles = useLocalizedList(articlesRaw, ['title', 'excerpt'])
+  const articles = useLocalizedList(articlesRaw, ['title', 'excerpt', 'category'])
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedType, setSelectedType] = useState('');

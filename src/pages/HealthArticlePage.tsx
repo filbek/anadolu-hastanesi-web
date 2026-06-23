@@ -11,6 +11,7 @@ import { getDepartmentByName } from '../services/departmentService'
 import { useDoctorsByDepartment } from '../hooks/useDoctors'
 import { useLocalizedItem } from '../hooks/useLocalizedList'
 import type { HealthArticle, Department } from '../lib/supabase'
+import { parseMarkdown } from '../utils/markdown'
 
 const HealthArticlePage = () => {
   const { t } = useTranslation();
@@ -138,7 +139,7 @@ const HealthArticlePage = () => {
               <div className="md:col-span-3">
                 <div 
                   className="prose prose-lg max-w-none mb-8"
-                  dangerouslySetInnerHTML={{ __html: localizedArticle?.content || article.content }}
+                  dangerouslySetInnerHTML={{ __html: parseMarkdown(localizedArticle?.content || article.content) }}
                 />
 
                 {/* Tags */}

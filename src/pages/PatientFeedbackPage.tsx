@@ -6,6 +6,7 @@ import { FaPaperPlane, FaCheckCircle, FaChevronRight, FaPhoneAlt, FaEnvelope, Fa
 import LastUpdated from '../components/ui/LastUpdated';
 import { useHospitals } from '../hooks/useHospitals';
 import { createPatientFeedback } from '../services/patientFeedbackService';
+import { sendFormEmail } from '../services/emailService';
 
 const getFeedbackTypes = (t: any) => [
   { value: 'oneri', label: t('feedback.typeSuggestion', 'Öneri'), icon: '💡', color: 'bg-blue-50 border-blue-200 text-blue-700' },
@@ -47,22 +48,36 @@ const PatientFeedbackPage = () => {
 
     const hospital = hospitalsData?.find(h => h.slug === selectedHospital || h.name === selectedHospital);
     const hospital_id = hospital?.id ? Number(hospital.id) : undefined;
+    const subject = `${getFeedbackTypes(t).find((ft: any) => ft.value === selectedType)?.label || t('feedback.defaultSubject', 'Geri Bildirim')}${formData.department ? ` - ${formData.department}` : ''}`;
+    const fullName = `${formData.name} ${formData.surname}`.trim();
 
     setSubmitting(true);
     const { error } = await createPatientFeedback({
-      name: `${formData.name} ${formData.surname}`.trim(),
+      name: fullName,
       email: formData.email || undefined,
       phone: formData.phone || undefined,
-      subject: `${getFeedbackTypes(t).find((ft: any) => ft.value === selectedType)?.label || t('feedback.defaultSubject', 'Geri Bildirim')}${formData.department ? ` - ${formData.department}` : ''}`,
+      subject,
       message: formData.message,
       hospital_id,
     });
-    setSubmitting(false);
 
     if (error) {
+      setSubmitting(false);
       alert(t('feedback.submitError', 'Geri bildiriminiz gönderilirken bir hata oluştu. Lütfen tekrar deneyin.'));
       return;
     }
+
+    // Geri bildirimi admin panelinde belirlenen e-posta adresine de gönder (bloklamaz)
+    await sendFormEmail('feedback', {
+      name: fullName,
+      email: formData.email,
+      phone: formData.phone,
+      subject,
+      hospital: hospital?.name,
+      department: formData.department,
+      message: formData.message,
+    });
+    setSubmitting(false);
 
     setSubmitted(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });

@@ -6,14 +6,12 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function checkData() {
-    const { data: doctors, error } = await supabase.from('doctors').select('id, name, title, education, experience, translations');
+    const { data: articles, error } = await supabase.from('health_articles').select('*').eq('id', 9);
     if (error) {
-        console.error('Error doctors:', error);
+        console.error('Error articles:', error);
         return;
     }
-    const withDetails = doctors.filter(d => (d.education && d.education.trim()) || (d.experience && d.experience.trim()));
-    console.log(`Found ${withDetails.length} doctors with education/experience:`);
-    console.log(JSON.stringify(withDetails.slice(0, 5), null, 2));
+    console.log(JSON.stringify(articles, null, 2));
 }
 
 checkData();

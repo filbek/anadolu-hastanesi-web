@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import { useTranslation } from 'react-i18next'
-import { FaPhone, FaEnvelope, FaClock, FaMapMarkerAlt, FaFacebookF, FaTwitter, FaInstagram, FaYoutube, FaLinkedinIn } from 'react-icons/fa'
+import { FaPhone, FaEnvelope, FaClock, FaMapMarkerAlt, FaFacebookF, FaTwitter, FaInstagram, FaYoutube, FaLinkedinIn, FaCheckCircle } from 'react-icons/fa'
 import { useHospitals } from '../hooks/useHospitals'
 import LastUpdated from '../components/ui/LastUpdated'
 import HospitalMap from '../components/common/HospitalMap'
+import { supabase } from '../lib/supabase'
+import { sendFormEmail } from '../services/emailService'
 
 const getMapEmbedUrl = (hospital: any) => {
   if (hospital.latitude && hospital.longitude) {
@@ -19,6 +22,41 @@ const getMapEmbedUrl = (hospital: any) => {
 const ContactPage = () => {
   const { t } = useTranslation()
   const { data: hospitals = [], isLoading: hospitalsLoading } = useHospitals();
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    const name = String(fd.get('name') || '').trim();
+    const email = String(fd.get('email') || '').trim();
+    const phone = String(fd.get('phone') || '').trim();
+    const subjectRaw = String(fd.get('subject') || '').trim();
+    const subject = subjectRaw === t('common.selectSubject') ? '' : subjectRaw;
+    const message = String(fd.get('message') || '').trim();
+
+    setSubmitting(true);
+    try {
+      // Başvuruyu veritabanına kaydet (e-posta gitmese bile kaybolmasın)
+      const { error } = await supabase.from('contact_submissions').insert([
+        { name, email, phone: phone || null, subject: subject || null, message, consent: true },
+      ]);
+      if (error) throw error;
+
+      // Admin panelinde belirlenen e-posta adresine gönder (bloklamaz)
+      await sendFormEmail('contact', { name, email, phone, subject, message });
+
+      setSubmitted(true);
+      form.reset();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err: any) {
+      console.error('Contact form error:', err);
+      alert(t('contactPage.submitError', 'Mesajınız gönderilirken bir hata oluştu. Lütfen tekrar deneyin.'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const contactBoxes = [
     {
@@ -203,7 +241,15 @@ const ContactPage = () => {
               <p className="text-slate-500 text-sm mb-8">
                 {t('contactPage.writeUsDesc')}
               </p>
-              <form className="space-y-6">
+              {submitted && (
+                <div className="mb-6 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800">
+                  <FaCheckCircle className="mt-0.5 flex-shrink-0 text-green-600" />
+                  <p className="text-sm font-medium">
+                    {t('contactPage.submitSuccess', 'Mesajınız bize ulaştı. En kısa sürede sizinle iletişime geçeceğiz.')}
+                  </p>
+                </div>
+              )}
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="contact-name" className="block text-sm font-medium text-slate-600 mb-2">
@@ -282,9 +328,10 @@ const ContactPage = () => {
                 </div>
                 <button
                   type="submit"
-                  className="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors"
+                  disabled={submitting}
+                  className="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-60"
                 >
-                  {t('common.send')}
+                  {submitting ? t('common.sending', 'Gönderiliyor...') : t('common.send')}
                 </button>
               </form>
             </div>

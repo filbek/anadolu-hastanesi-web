@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { FaCalendarAlt, FaChevronRight, FaTag } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
 import { useNewsItems } from '../hooks/useNewsItems';
+import { useLocalizedList } from '../hooks/useLocalizedList';
 
 const categoryColors: Record<string, string> = {
   Kurumsal: 'bg-blue-100 text-blue-700',
@@ -116,10 +117,10 @@ function mapDbNews(dbItems: any[]): NewsItemData[] {
 
 const NewsPage = () => {
   const { t } = useTranslation();
-  const { data: dbItems, isLoading } = useNewsItems();
-  const newsItems = mapDbNews(dbItems || []).length > 0
-    ? mapDbNews(dbItems || [])
-    : fallbackNews;
+  const { data: dbItemsRaw = [], isLoading } = useNewsItems();
+  const rawNews = dbItemsRaw.length > 0 ? dbItemsRaw : fallbackNews;
+  const localizedNews = useLocalizedList(rawNews as any[], ['title', 'excerpt', 'category']);
+  const newsItems = mapDbNews(localizedNews);
 
   const featured = newsItems[0];
   const rest = newsItems.slice(1);

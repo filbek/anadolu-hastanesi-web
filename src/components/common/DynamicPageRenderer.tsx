@@ -10,6 +10,7 @@ import HealthGuideSection from '../home/HealthGuideSection';
 import TestimonialsSection from '../home/TestimonialsSection';
 import HealthTourismSection from '../home/HealthTourismSection';
 import ScrollReveal from '../ui/ScrollReveal';
+import { parseMarkdown } from '../../utils/markdown';
 
 interface PageSection {
   id: string;
@@ -114,7 +115,7 @@ const DynamicPageRenderer = ({ slug, fallbackComponent: FallbackComponent, rende
                 {section.content && (
                   <div
                     className="prose prose-lg max-w-none text-text-light leading-loose"
-                    dangerouslySetInnerHTML={{ __html: section.content }}
+                    dangerouslySetInnerHTML={{ __html: parseMarkdown(section.content || '') }}
                   />
                 )}
               </div>

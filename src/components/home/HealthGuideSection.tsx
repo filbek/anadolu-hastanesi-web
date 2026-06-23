@@ -4,9 +4,9 @@ import { motion, useInView } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import SectionTitle from '../ui/SectionTitle'
 import { FaArrowRight, FaClock } from 'react-icons/fa'
-import AutoTranslate from '../common/AutoTranslate'
 import { useHealthArticles } from '../../hooks/useHealthArticles'
 import { getArticleImageUrl } from '../../services'
+import { useLocalizedList } from '../../hooks/useLocalizedList'
 
 const fallbackArticles = [
   {
@@ -53,7 +53,8 @@ const HealthGuideSection = () => {
   const isInView = useInView(ref, { once: true, amount: 0.1 })
   const { data: dbArticles = [] } = useHealthArticles()
 
-  const displayArticles = dbArticles.length > 0 ? dbArticles.slice(0, 3) : fallbackArticles
+  const rawArticles = dbArticles.length > 0 ? dbArticles.slice(0, 3) : fallbackArticles
+  const displayArticles = useLocalizedList(rawArticles as any[], ['title', 'category', 'excerpt', 'read_time', 'content'])
 
   return (
     <section className="py-20 md:py-28 bg-surface">
@@ -96,18 +97,18 @@ const HealthGuideSection = () => {
                   <div className="p-5">
                     <div className="flex items-center gap-2 text-xs text-neutral-500 mb-2">
                       <span className="px-2 py-0.5 rounded-full bg-ocean-50 text-ocean-600 font-medium">
-                        <AutoTranslate text={article.category || t('home.defaultCategory', 'Sağlık')} />
+                        {article.category || t('home.defaultCategory', 'Sağlık')}
                       </span>
                       <span className="flex items-center gap-1">
                         <FaClock className="text-[10px]" />
-                        <AutoTranslate text={(article as any).read_time || t('home.defaultReadTime', '5 dk')} />
+                        {(article as any).read_time || t('home.defaultReadTime', '5 dk')}
                       </span>
                     </div>
                     <h3 className="font-display font-semibold text-primary-600 text-lg mb-2 group-hover:text-ocean-600 transition-colors line-clamp-2">
-                      <AutoTranslate text={article.title} />
+                      {article.title}
                     </h3>
                     <p className="text-sm text-neutral-500 line-clamp-2 mb-3">
-                      <AutoTranslate text={(article as any).excerpt || (article as any).content?.substring(0, 120) + '...'} />
+                      {(article as any).excerpt || (article as any).content?.substring(0, 120) + '...'}
                     </p>
                     <span className="inline-flex items-center gap-1.5 text-sm font-medium text-ocean-500 group-hover:text-ocean-600 transition-colors">
                       {t('home.readMore', 'Devamını Oku')}

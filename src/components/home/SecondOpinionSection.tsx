@@ -13,6 +13,7 @@ import {
 } from 'react-icons/fa';
 import { useHospitals } from '../../hooks/useHospitals';
 import { supabase } from '../../lib/supabase';
+import { sendFormEmail } from '../../services/emailService';
 
 const SecondOpinionSection = () => {
   const { t } = useTranslation();
@@ -94,6 +95,17 @@ const SecondOpinionSection = () => {
       ]);
 
       if (insertError) throw insertError;
+
+      // Başvuruyu admin panelinde belirlenen e-posta adresine de gönder (bloklamaz)
+      await sendFormEmail('second_opinion', {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        hospital: formData.hospital || '-',
+        message: formData.message,
+        file_url: fileUrl,
+      });
+
       setSubmitted(true);
     } catch (err: any) {
       console.error('Form submission error:', err);

@@ -13,6 +13,13 @@ function normalizeLang(raw: string | undefined): 'tr' | TargetLang {
   return 'tr'
 }
 
+function isTurkish(text: string): boolean {
+  if (!text) return false
+  if (/[çğıöşüÇĞİÖŞÜ]/.test(text)) return true
+  const trStopwords = /\b(ve|bir|bu|için|ile|olan|olarak|gibi|veya|daha|olup|göre)\b/i
+  return trStopwords.test(text)
+}
+
 /**
  * Bir kayıt listesinin seçili alanlarını aktif dile lokalize eder:
  *  1) DB'deki `translations[lang][field]` varsa onu kullanır (anlık, güvenilir),
@@ -62,10 +69,11 @@ export function useLocalizedList<T extends WithTranslations>(
                   dbVal = item.translations?.[lang as TargetLang]?.[f]
                 }
                 
-                if (dbVal != null && dbVal !== '') {
+                const origVal = parentObj[childKey]
+                if (dbVal != null && dbVal !== '' && dbVal !== origVal && !isTurkish(dbVal)) {
                   copy[parentKey][childKey] = dbVal
                 } else {
-                  const v = parentObj[childKey]
+                  const v = origVal
                   if (typeof v === 'string' && v.trim()) {
                     try {
                       copy[parentKey][childKey] = await translateText(v, lang)
@@ -77,11 +85,12 @@ export function useLocalizedList<T extends WithTranslations>(
               }
             } else {
               const dbVal = item.translations?.[lang as TargetLang]?.[f]
-              if (dbVal != null && dbVal !== '') {
+              const origVal = item[f]
+              if (dbVal != null && dbVal !== '' && dbVal !== origVal && !isTurkish(dbVal)) {
                 copy[f] = dbVal
                 continue
               }
-              const v = item[f]
+              const v = origVal
               if (typeof v === 'string' && v.trim()) {
                 try {
                   copy[f] = await translateText(v, lang)

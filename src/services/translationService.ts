@@ -308,7 +308,8 @@ export async function mergeTranslations<T extends Record<string, any>>(
         options.force ||
         existingVal == null ||
         existingVal === '' ||
-        (Array.isArray(existingVal) && existingVal.length === 0)
+        (Array.isArray(existingVal) && existingVal.length === 0) ||
+        (typeof trVal === 'string' && typeof existingVal === 'string' && trVal === existingVal && shouldTranslateString(trVal))
 
       if (!needsTranslation) continue
       if (trVal == null) continue
