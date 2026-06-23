@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaUser, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaUser, FaEye, FaEyeSlash, FaSort, FaGripVertical, FaSave, FaTimes } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
 import type { Doctor, Department, Hospital } from '../../lib/supabase';
 
@@ -19,6 +19,20 @@ const AdminDoctors = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedHospital, setSelectedHospital] = useState('all');
+
+  // Sürükle-bırak sıralama modu (şube bazlı)
+  const [orderMode, setOrderMode] = useState(false);
+  const [orderList, setOrderList] = useState<DoctorWithRelations[]>([]);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [savingOrder, setSavingOrder] = useState(false);
+
+  // display_order'a göre sıralama (0/boş = en sona, ünvan değil isim ile)
+  const byDisplayOrder = (a: DoctorWithRelations, b: DoctorWithRelations) => {
+    const ao = a.display_order && a.display_order > 0 ? a.display_order : Number.MAX_SAFE_INTEGER;
+    const bo = b.display_order && b.display_order > 0 ? b.display_order : Number.MAX_SAFE_INTEGER;
+    if (ao !== bo) return ao - bo;
+    return a.name.localeCompare(b.name, 'tr');
+  };
 
   useEffect(() => {
     fetchData();
@@ -113,7 +127,68 @@ const AdminDoctors = () => {
     const matchesDepartment = selectedDepartment === 'all' || doctor.department_id?.toString() === selectedDepartment;
     const matchesHospital = selectedHospital === 'all' || doctor.hospital_id?.toString() === selectedHospital;
     return matchesSearch && matchesDepartment && matchesHospital;
-  });
+  }).sort(byDisplayOrder);
+
+  // Sıralama modunu aç: yalnızca tek bir şube (hastane) seçiliyken
+  const enterOrderMode = () => {
+    if (selectedHospital === 'all') {
+      alert(t('admin.doctors.selectHospitalFirst', 'Sıralamak için önce bir şube (hastane) seçin.'));
+      return;
+    }
+    setOrderList(filteredDoctors);
+    setOrderMode(true);
+  };
+
+  const exitOrderMode = () => {
+    setOrderMode(false);
+    setOrderList([]);
+    setDragIndex(null);
+  };
+
+  const handleDrop = (dropIndex: number) => {
+    if (dragIndex === null || dragIndex === dropIndex) {
+      setDragIndex(null);
+      return;
+    }
+    setOrderList(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(dragIndex, 1);
+      next.splice(dropIndex, 0, moved);
+      return next;
+    });
+    setDragIndex(null);
+  };
+
+  const saveOrder = async () => {
+    try {
+      setSavingOrder(true);
+      // Bu şubedeki doktorlara 1..N sıra numarası ata, yalnızca değişenleri güncelle
+      const updates = orderList
+        .map((doc, idx) => ({ id: doc.id, display_order: idx + 1, prev: doc.display_order }))
+        .filter(u => u.prev !== u.display_order);
+
+      for (const u of updates) {
+        const { error } = await supabase
+          .from('doctors')
+          .update({ display_order: u.display_order })
+          .eq('id', u.id);
+        if (error) throw error;
+      }
+
+      // Yerel state'i güncelle
+      const orderMap = new Map(orderList.map((doc, idx) => [doc.id, idx + 1]));
+      setDoctors(prev =>
+        prev.map(d => (orderMap.has(d.id) ? { ...d, display_order: orderMap.get(d.id)! } : d))
+      );
+      alert(t('admin.doctors.orderSaved', 'Sıralama kaydedildi!'));
+      exitOrderMode();
+    } catch (error: any) {
+      console.error('Error saving doctor order:', error);
+      alert(t('admin.doctors.orderSaveError', 'Sıralama kaydedilirken hata oluştu!') + '\n' + (error?.message || ''));
+    } finally {
+      setSavingOrder(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -127,16 +202,50 @@ const AdminDoctors = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold text-primary">{t('admin.doctors.title', 'Doktor Yönetimi')}</h1>
-        <Link
-          to="/admin/doctors/new"
-          className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center"
-        >
-          <FaPlus className="mr-2" />
-          {t('admin.doctors.new', 'Yeni Doktor')}
-        </Link>
+        <div className="flex items-center gap-2">
+          {!orderMode ? (
+            <>
+              <button
+                onClick={enterOrderMode}
+                className="bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600 transition-colors flex items-center"
+                title={t('admin.doctors.orderModeHint', 'Bir şube seçtikten sonra sürükle-bırak ile sıralayın')}
+              >
+                <FaSort className="mr-2" />
+                {t('admin.doctors.orderMode', 'Sıralama Modu')}
+              </button>
+              <Link
+                to="/admin/doctors/new"
+                className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center"
+              >
+                <FaPlus className="mr-2" />
+                {t('admin.doctors.new', 'Yeni Doktor')}
+              </Link>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={saveOrder}
+                disabled={savingOrder}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center disabled:opacity-60"
+              >
+                <FaSave className="mr-2" />
+                {savingOrder ? t('admin.saving', 'Kaydediliyor...') : t('admin.doctors.saveOrder', 'Sıralamayı Kaydet')}
+              </button>
+              <button
+                onClick={exitOrderMode}
+                disabled={savingOrder}
+                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors flex items-center disabled:opacity-60"
+              >
+                <FaTimes className="mr-2" />
+                {t('admin.cancel', 'İptal')}
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Filters */}
+      {/* Filters (sıralama modunda gizli) */}
+      {!orderMode && (
       <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
@@ -175,8 +284,63 @@ const AdminDoctors = () => {
           </select>
         </div>
       </div>
+      )}
+
+      {/* Sıralama modu: sürükle-bırak listesi */}
+      {orderMode && (
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <div className="flex items-center gap-2 mb-4 text-sm text-gray-600 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+            <FaSort className="text-amber-500 flex-shrink-0" />
+            <span>
+              <strong>{hospitals.find(h => h.id.toString() === selectedHospital)?.name || ''}</strong>{' '}
+              {t('admin.doctors.orderModeDesc', 'şubesindeki doktorları sürükleyip bırakarak sıralayın, ardından "Sıralamayı Kaydet"e basın.')}
+            </span>
+          </div>
+          <ul className="space-y-2">
+            {orderList.map((doctor, index) => (
+              <li
+                key={doctor.id}
+                draggable
+                onDragStart={() => setDragIndex(index)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => handleDrop(index)}
+                className={`flex items-center gap-3 p-3 border rounded-lg bg-white cursor-move select-none transition-colors ${
+                  dragIndex === index ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <FaGripVertical className="text-gray-400 flex-shrink-0" />
+                <span className="w-7 h-7 flex items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-semibold flex-shrink-0">
+                  {index + 1}
+                </span>
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  {doctor.image ? (
+                    <img src={doctor.image} alt={doctor.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <FaUser className="text-primary" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="font-medium text-primary truncate">{doctor.name}</p>
+                  {doctor.title && <p className="text-xs text-gray-500 truncate">{doctor.title}</p>}
+                </div>
+                {doctor.department && (
+                  <span className="ml-auto inline-block bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full flex-shrink-0">
+                    {doctor.department.name}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+          {orderList.length === 0 && (
+            <p className="text-center text-gray-500 py-8">
+              {t('admin.doctors.noneInHospital', 'Bu şubede gösterilecek doktor yok.')}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Doctors Grid */}
+      {!orderMode && (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredDoctors.map((doctor) => (
           <div key={doctor.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
@@ -250,8 +414,9 @@ const AdminDoctors = () => {
           </div>
         ))}
       </div>
+      )}
 
-      {filteredDoctors.length === 0 && (
+      {!orderMode && filteredDoctors.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">👨‍⚕️</div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.doctors.notFound', 'Doktor bulunamadı')}</h3>

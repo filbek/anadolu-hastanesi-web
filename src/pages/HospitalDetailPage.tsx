@@ -157,7 +157,7 @@ const HospitalDetailPage = () => {
               transition={{ duration: 0.4, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
               className="flex flex-wrap gap-4"
             >
-              <a href="#appointment" className="btn btn-accent px-8 py-4 text-lg">{t('common.appointmentNow', 'Hemen Randevu Al')}</a>
+              <a href="https://anadoluhastaneleri.kendineiyibak.app/" target="_blank" rel="noopener noreferrer" className="btn btn-accent px-8 py-4 text-lg">{t('common.appointmentNow', 'Hemen Randevu Al')}</a>
               <button onClick={() => goToTab('contact')} className="btn bg-white/10 backdrop-blur-md text-white border-white/20 hover:bg-white/20 px-8 py-4 text-lg">{t('common.directions', 'Yol Tarifi')}</button>
             </motion.div>
           </div>

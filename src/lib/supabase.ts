@@ -90,6 +90,7 @@ export type Doctor = {
   about?: string;
   specialties?: string[];
   is_active?: boolean;
+  display_order?: number;
   translations?: Translations;
   created_at: string;
 };

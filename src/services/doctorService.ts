@@ -1,6 +1,16 @@
 import { supabase, Doctor } from '../lib/supabase';
 import { createAuditLog } from './auditLogService';
 
+// display_order'a göre sırala: 1+ küçükten büyüğe (üstte), 0/boş en sona (isme göre)
+function sortByDisplayOrder(list: Doctor[]): Doctor[] {
+  return [...list].sort((a, b) => {
+    const ao = a.display_order && a.display_order > 0 ? a.display_order : Number.MAX_SAFE_INTEGER;
+    const bo = b.display_order && b.display_order > 0 ? b.display_order : Number.MAX_SAFE_INTEGER;
+    if (ao !== bo) return ao - bo;
+    return a.name.localeCompare(b.name, 'tr');
+  });
+}
+
 export async function getDoctors(): Promise<Doctor[]> {
   try {
     const timeoutPromise = new Promise((_, reject) => 
@@ -48,7 +58,7 @@ export async function getDoctorsByDepartment(departmentId: number): Promise<Doct
     return [];
   }
 
-  return data as unknown as Doctor[];
+  return sortByDisplayOrder(data as unknown as Doctor[]);
 }
 
 export async function getDoctorsByHospital(hospitalId: number): Promise<Doctor[]> {
@@ -68,7 +78,7 @@ export async function getDoctorsByHospital(hospitalId: number): Promise<Doctor[]
     return [];
   }
 
-  return data as unknown as Doctor[];
+  return sortByDisplayOrder(data as unknown as Doctor[]);
 }
 
 export async function getDoctorBySlug(slug: string): Promise<Doctor | null> {
