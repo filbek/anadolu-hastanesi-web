@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/api/translate-google", "destination": "https://translate.googleapis.com/translate_a/single" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

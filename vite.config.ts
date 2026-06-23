@@ -18,6 +18,13 @@ export default defineConfig({
     port: 3001,
     host: '0.0.0.0',
     open: false,
+    proxy: {
+      '/api/translate-google': {
+        target: 'https://translate.googleapis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/translate-google/, '/translate_a/single'),
+      },
+    },
   },
   build: {
     outDir: 'dist',

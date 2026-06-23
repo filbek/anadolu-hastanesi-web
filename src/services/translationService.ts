@@ -7,12 +7,6 @@
  * Kaynak dil daima Türkçe (tr). Hedef diller: en, ar.
  */
 
-const LIBRE_INSTANCES = [
-  'https://libretranslate.de',
-  'https://translate.argosopentech.com',
-  'https://libretranslate.pussthecat.org',
-]
-
 const SOURCE_LANG = 'tr'
 export const TARGET_LANGS = ['en', 'ar'] as const
 export type TargetLang = typeof TARGET_LANGS[number]
@@ -58,40 +52,110 @@ function setCached(text: string, targetLang: string, translated: string): void {
 }
 
 /* ------------------------------------------------------------------ *
- * HTML algılama: TipTap / RichText alanları HTML içerir.
- * LibreTranslate format=html destekler; MyMemory etmez (etiketleri kaçırır).
- * ------------------------------------------------------------------ */
-
-function looksLikeHtml(text: string): boolean {
-  return /<[a-z][\s\S]*>/i.test(text)
-}
-
-/* ------------------------------------------------------------------ *
  * Çeviri sağlayıcıları
  * ------------------------------------------------------------------ */
 
-async function tryLibre(text: string, targetLang: string): Promise<string | null> {
-  const format = looksLikeHtml(text) ? 'html' : 'text'
-  for (const base of LIBRE_INSTANCES) {
-    try {
-      const res = await fetch(`${base}/translate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          q: text,
-          source: SOURCE_LANG,
-          target: targetLang,
-          format,
-        }),
-      })
-      if (!res.ok) continue
-      const data = await res.json()
-      if (data.translatedText) return data.translatedText
-    } catch {
-      continue
+/**
+ * Azure Translator Service (Opsiyonel / Premium)
+ * - VITE_AZURE_TRANSLATOR_KEY ve VITE_AZURE_TRANSLATOR_REGION env değişkenleri tanımlıysa çalışır.
+ */
+async function tryAzureTranslate(text: string, targetLang: string): Promise<string | null> {
+  const key = (import.meta.env.VITE_AZURE_TRANSLATOR_KEY || '').trim()
+  const region = (import.meta.env.VITE_AZURE_TRANSLATOR_REGION || '').trim()
+  if (!key || !region || key === 'your_azure_translator_key_here') return null
+
+  try {
+    const url = `https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=${SOURCE_LANG}&to=${targetLang}`
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Ocp-Apim-Subscription-Key': key,
+        'Ocp-Apim-Subscription-Region': region,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify([{ Text: text }]),
+    })
+
+    if (!res.ok) return null
+    const data = await res.json()
+    if (Array.isArray(data) && data[0]?.translations?.[0]?.text) {
+      return data[0].translations[0].text
     }
+  } catch (err) {
+    console.error('Azure Translate Error:', err)
   }
   return null
+}
+
+/**
+ * Google Translate'in anahtarsız (gtx) uç noktası — birincil sağlayıcı.
+ * CORS açık (Access-Control-Allow-Origin: *), tarayıcıdan doğrudan çağrılabilir.
+ * Uzun metinler GET URL sınırı için parçalara bölünür.
+ */
+async function tryGoogle(text: string, targetLang: string): Promise<string | null> {
+  const chunks = text.length > 1800 ? splitIntoChunks(text, 1800) : [text]
+  const out: string[] = []
+  for (const chunk of chunks) {
+    const part = await tryGoogleSingle(chunk, targetLang)
+    if (part == null) return null
+    out.push(part)
+  }
+  return out.join('')
+}
+
+async function tryGoogleSingle(text: string, targetLang: string): Promise<string | null> {
+  try {
+    // 1. Adım: Yerel Proxy (vite.config.ts) veya Canlı Proxy (vercel.json) üzerinden CORS'suz çağrıyı dene
+    const url = `/api/translate-google?client=gtx&sl=${SOURCE_LANG}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`
+    const res = await fetch(url)
+    if (res.ok) {
+      const data = await res.json()
+      if (Array.isArray(data) && Array.isArray(data[0])) {
+        const translated = data[0]
+          .map((seg: any) => (seg && typeof seg[0] === 'string' ? seg[0] : ''))
+          .join('')
+        return translated || null
+      }
+    }
+  } catch {
+    // Proxy başarısız olursa doğrudan Google Translate API'sine fallback yap
+  }
+
+  try {
+    // 2. Adım: Doğrudan API çağrısını dene (CORS izinli tarayıcılar / sunucu tarafı testleri için)
+    const url =
+      `https://translate.googleapis.com/translate_a/single?client=gtx` +
+      `&sl=${SOURCE_LANG}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`
+    const res = await fetch(url)
+    if (!res.ok) return null
+    const data = await res.json()
+    if (Array.isArray(data) && Array.isArray(data[0])) {
+      const translated = data[0]
+        .map((seg: any) => (seg && typeof seg[0] === 'string' ? seg[0] : ''))
+        .join('')
+      return translated || null
+    }
+  } catch {
+    /* ignore */
+  }
+  return null
+}
+
+/** Metni cümle sınırlarını koruyarak ~maxLen'lik parçalara böler. */
+function splitIntoChunks(text: string, maxLen: number): string[] {
+  const sentences = text.split(/(?<=[.!?])\s+/)
+  const chunks: string[] = []
+  let current = ''
+  for (const s of sentences) {
+    if ((current + ' ' + s).length > maxLen) {
+      if (current) chunks.push(current.trim())
+      current = s.length > maxLen ? s.slice(0, maxLen) : s
+    } else {
+      current = current ? current + ' ' + s : s
+    }
+  }
+  if (current) chunks.push(current.trim())
+  return chunks
 }
 
 async function tryMyMemory(text: string, targetLang: string): Promise<string | null> {
@@ -157,8 +221,15 @@ export async function translateText(text: string, targetLang: string): Promise<s
   const cached = getCached(trimmed, targetLang)
   if (cached) return cached
 
-  let result = await tryLibre(trimmed, targetLang)
+  // 1. Azure Translate (Eğer anahtar tanımlıysa)
+  let result = await tryAzureTranslate(trimmed, targetLang)
+
+  // 2. Google Translate (Proxy üzerinden)
+  if (!result) result = await tryGoogle(trimmed, targetLang)
+
+  // 3. MyMemory (Fallback)
   if (!result) result = await tryMyMemory(trimmed, targetLang)
+
   if (!result) return trimmed
 
   setCached(trimmed, targetLang, result)
