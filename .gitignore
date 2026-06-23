@@ -85,7 +85,8 @@ dist
 
 # Gatsby files
 .cache/
-public
+# Not: Bu bir Vite projesi; public/ klasörü statik varlıklar (görseller vb.)
+# içerdiği için repoya DAHİL edilmelidir. "public" satırı kaldırıldı.
 
 # Storybook build outputs
 .out

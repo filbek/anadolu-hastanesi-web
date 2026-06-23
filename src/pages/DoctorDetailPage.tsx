@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { FaCalendarAlt, FaGraduationCap, FaHospital, FaStethoscope, FaAward, FaFileMedical, FaPhone, FaClock } from 'react-icons/fa'
 import { useDoctorDetail } from '../hooks/useDoctors'
+import { useLocalizedItem } from '../hooks/useLocalizedList'
 import SecondOpinionBanner from '../components/common/SecondOpinionBanner'
 
 const TREATMENTS_BY_DEPT: Record<string, string[]> = {
@@ -68,7 +69,8 @@ function getDeptDescription(deptName: string): string {
 const DoctorDetailPage = () => {
   const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>()
-  const { data: doctor, isLoading } = useDoctorDetail(slug || '')
+  const { data: doctorRaw, isLoading } = useDoctorDetail(slug || '')
+  const doctor = useLocalizedItem(doctorRaw, ['title', 'education', 'experience'])
 
   if (isLoading) {
     return (

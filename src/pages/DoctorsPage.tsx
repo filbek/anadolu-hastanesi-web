@@ -7,6 +7,7 @@ import SectionTitle from '../components/ui/SectionTitle'
 import { DoctorCardSkeleton } from '../components/ui/Skeleton'
 import { FaSearch, FaFilter, FaArrowRight, FaCalendarCheck } from 'react-icons/fa'
 import { useDoctors } from '../hooks/useDoctors'
+import { useLocalizedList } from '../hooks/useLocalizedList'
 
 const containerVariants = {
   hidden: {},
@@ -25,7 +26,8 @@ const itemVariants = {
 
 const DoctorsPage = () => {
   const { t } = useTranslation()
-  const { data: doctors = [], isLoading } = useDoctors()
+  const { data: doctorsRaw = [], isLoading } = useDoctors()
+  const doctors = useLocalizedList(doctorsRaw, ['title'])
   const [searchParams] = useSearchParams()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedDepartment, setSelectedDepartment] = useState('')

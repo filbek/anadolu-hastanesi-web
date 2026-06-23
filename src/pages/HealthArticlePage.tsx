@@ -9,6 +9,7 @@ import SecondOpinionBanner from '../components/common/SecondOpinionBanner'
 import { getHealthArticleBySlug, getHealthArticles, getArticleImageUrl } from '../services'
 import { getDepartmentByName } from '../services/departmentService'
 import { useDoctorsByDepartment } from '../hooks/useDoctors'
+import { useLocalizedItem } from '../hooks/useLocalizedList'
 import type { HealthArticle, Department } from '../lib/supabase'
 
 const HealthArticlePage = () => {
@@ -18,6 +19,8 @@ const HealthArticlePage = () => {
   const [relatedArticles, setRelatedArticles] = useState<HealthArticle[]>([]);
   const [relatedDepartment, setRelatedDepartment] = useState<Department | null>(null);
   const [loading, setLoading] = useState(true);
+  // Makale gövdesini (HTML) aktif dile çevir (başlık/kategori AutoTranslate ile yönetilir)
+  const localizedArticle = useLocalizedItem(article, ['content']);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -135,7 +138,7 @@ const HealthArticlePage = () => {
               <div className="md:col-span-3">
                 <div 
                   className="prose prose-lg max-w-none mb-8"
-                  dangerouslySetInnerHTML={{ __html: article.content }}
+                  dangerouslySetInnerHTML={{ __html: localizedArticle?.content || article.content }}
                 />
 
                 {/* Tags */}

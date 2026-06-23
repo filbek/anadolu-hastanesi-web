@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import SectionTitle from '../ui/SectionTitle'
 
 import { useDepartments } from '../../hooks/useDepartments'
+import { useLocalizedList } from '../../hooks/useLocalizedList'
 import {
   FaHeart,
   FaBrain,
@@ -45,7 +46,8 @@ const DepartmentsSection = () => {
   const { t } = useTranslation()
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.1 })
-  const { data: departments = [] } = useDepartments({ onlyPublished: true })
+  const { data: departmentsRaw = [] } = useDepartments({ onlyPublished: true })
+  const departments = useLocalizedList(departmentsRaw, ['name', 'description'])
 
   const displayDepartments = departments.slice(0, 8)
 

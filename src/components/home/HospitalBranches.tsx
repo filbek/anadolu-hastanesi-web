@@ -4,10 +4,12 @@ import { useTranslation } from 'react-i18next'
 import SectionTitle from '../ui/SectionTitle'
 import { FaMapMarkerAlt, FaPhone, FaArrowRight } from 'react-icons/fa'
 import { useHospitals } from '../../hooks/useHospitals'
+import { useLocalizedList } from '../../hooks/useLocalizedList'
 
 const HospitalBranches = () => {
   const { t } = useTranslation()
-  const { data: hospitals = [] } = useHospitals({ onlyPublished: true })
+  const { data: hospitalsRaw = [] } = useHospitals({ onlyPublished: true })
+  const hospitals = useLocalizedList(hospitalsRaw, ['description'])
 
   const displayHospitals = hospitals
     .filter((h) => h.display_on_homepage !== false)

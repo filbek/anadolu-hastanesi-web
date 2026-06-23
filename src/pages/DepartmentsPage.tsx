@@ -7,6 +7,7 @@ import SectionTitle from '../components/ui/SectionTitle'
 import { FaSearch } from 'react-icons/fa'
 
 import { useDepartments } from '../hooks/useDepartments'
+import { useLocalizedList } from '../hooks/useLocalizedList'
 
 const containerVariants = {
   hidden: {},
@@ -27,7 +28,8 @@ const itemVariants = {
 
 const DepartmentsPage = () => {
   const { t } = useTranslation();
-  const { data: departments = [], isLoading } = useDepartments({ onlyPublished: true })
+  const { data: departmentsRaw = [], isLoading } = useDepartments({ onlyPublished: true })
+  const departments = useLocalizedList(departmentsRaw, ['name', 'description'])
   const [searchTerm, setSearchTerm] = useState('')
   const [activeCategory, setActiveCategory] = useState('all')
 

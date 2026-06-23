@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import SectionTitle from '../components/ui/SectionTitle'
 import { FaMapMarkerAlt, FaPhone, FaArrowRight, FaSearch } from 'react-icons/fa'
 import { useHospitals } from '../hooks/useHospitals'
+import { useLocalizedList } from '../hooks/useLocalizedList'
 
 const containerVariants = {
   hidden: {},
@@ -26,7 +27,8 @@ const itemVariants = {
 
 const HospitalsPage = () => {
   const { t } = useTranslation();
-  const { data: hospitals = [], isLoading, error } = useHospitals({ onlyPublished: true })
+  const { data: hospitalsRaw = [], isLoading, error } = useHospitals({ onlyPublished: true })
+  const hospitals = useLocalizedList(hospitalsRaw, ['description'])
   const [searchTerm, setSearchTerm] = useState('')
 
   const filteredHospitals = hospitals.filter((hospital) =>

@@ -6,11 +6,13 @@ import { motion } from 'framer-motion'
 import SectionTitle from '../components/ui/SectionTitle'
 import { FaSearch, FaCalendarAlt, FaEye, FaVideo, FaFilePdf } from 'react-icons/fa'
 import { useHealthArticles } from '../hooks/useHealthArticles'
+import { useLocalizedList } from '../hooks/useLocalizedList'
 import { getArticleImageUrl } from '../services'
 
 const HealthGuidePage = () => {
   const { t } = useTranslation();
-  const { data: articles = [], isLoading } = useHealthArticles()
+  const { data: articlesRaw = [], isLoading } = useHealthArticles()
+  const articles = useLocalizedList(articlesRaw, ['title', 'excerpt'])
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedType, setSelectedType] = useState('');

@@ -5,13 +5,15 @@ import { useTranslation } from 'react-i18next'
 import SectionTitle from '../ui/SectionTitle'
 import { DoctorCardSkeleton } from '../ui/Skeleton'
 import { useDoctors } from '../../hooks/useDoctors'
+import { useLocalizedList } from '../../hooks/useLocalizedList'
 import { FaCalendarCheck, FaArrowRight } from 'react-icons/fa'
 
 const DoctorsSlider = () => {
   const { t } = useTranslation()
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.1 })
-  const { data: doctors = [], isLoading } = useDoctors()
+  const { data: doctorsRaw = [], isLoading } = useDoctors()
+  const doctors = useLocalizedList(doctorsRaw, ['title'])
 
   const displayDoctors = useMemo(() => {
     const shuffled = [...doctors].sort(() => Math.random() - 0.5)
