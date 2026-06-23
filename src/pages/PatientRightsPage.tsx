@@ -129,7 +129,7 @@ const PatientRightsPage = () => {
         </motion.div>
 
         <div className="container-custom pt-6 pb-0">
-          <LastUpdated date="15.05.2024" />
+          <LastUpdated date="22.06.2026" />
         </div>
       </div>
     </div>

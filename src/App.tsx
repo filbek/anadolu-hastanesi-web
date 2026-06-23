@@ -43,6 +43,7 @@ const TransportationPage = lazy(() => import('./pages/TransportationPage'))
 const HospitalGuidePage = lazy(() => import('./pages/HospitalGuidePage'))
 const MedicalCentersPage = lazy(() => import('./pages/MedicalCentersPage'))
 const SecondOpinionPage = lazy(() => import('./pages/SecondOpinionPage'))
+const CookiePolicyPage = lazy(() => import('./pages/CookiePolicyPage'))
 
 // Admin pages
 const Dashboard = lazy(() => import('./components/admin/Dashboard'))
@@ -143,6 +144,7 @@ function App() {
             <Route path="ulasim" element={<TransportationPage />} />
             <Route path="hastane-ici-rehber" element={<HospitalGuidePage />} />
             <Route path="merkezlerimiz" element={<MedicalCentersPage />} />
+            <Route path="cerez-politikasi" element={<CookiePolicyPage />} />
             <Route path="test" element={<TestPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>

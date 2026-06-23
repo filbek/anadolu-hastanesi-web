@@ -212,9 +212,9 @@ const Footer = () => {
                   {t('footer.terms')}
                 </a>
                 <span>/</span>
-                <a href="https://anadoluhastaneleri.com/cerezpolitikasi" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                <Link to="/cerez-politikasi" className="hover:text-white transition-colors">
                   {t('footer.cookies')}
-                </a>
+                </Link>
               </div>
             </div>
           </div>
