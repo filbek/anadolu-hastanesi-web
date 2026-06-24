@@ -26,6 +26,19 @@ const AdminDoctors = () => {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [savingOrder, setSavingOrder] = useState(false);
 
+  // Türkçe-duyarlı, aksandan bağımsız arama normalizasyonu.
+  // toLowerCase() Türkçe "İ/I" harflerinde hatalı sonuç verir; toLocaleLowerCase('tr')
+  // + birleşik işaretlerin temizlenmesi ile "İbrahim" → "ibrahim", "Gülşen" → "gulsen" eşleşir.
+  const normalize = (s?: string | null) =>
+    (s || '')
+      .toLocaleLowerCase('tr-TR')
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/ı/g, 'i')
+      .replace(/\./g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
   // display_order'a göre sıralama (0/boş = en sona, ünvan değil isim ile)
   const byDisplayOrder = (a: DoctorWithRelations, b: DoctorWithRelations) => {
     const ao = a.display_order && a.display_order > 0 ? a.display_order : Number.MAX_SAFE_INTEGER;
@@ -122,8 +135,20 @@ const AdminDoctors = () => {
   };
 
   const filteredDoctors = doctors.filter(doctor => {
-    const matchesSearch = doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doctor.title?.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchVal = normalize(searchTerm);
+    const searchTokens = searchVal.split(' ').filter(Boolean);
+
+    const titleNormalized = normalize(doctor.title || '');
+    const nameNormalized = normalize(doctor.name || '');
+    const deptNormalized = normalize(doctor.department?.name || '');
+    const hospitalNormalized = normalize(doctor.hospital?.name || '');
+
+    const searchableText = `${titleNormalized} ${nameNormalized} ${deptNormalized} ${hospitalNormalized}`;
+
+    const matchesSearch =
+      searchTokens.length === 0 ||
+      searchTokens.every(token => searchableText.includes(token));
+
     const matchesDepartment = selectedDepartment === 'all' || doctor.department_id?.toString() === selectedDepartment;
     const matchesHospital = selectedHospital === 'all' || doctor.hospital_id?.toString() === selectedHospital;
     return matchesSearch && matchesDepartment && matchesHospital;

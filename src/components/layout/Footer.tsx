@@ -164,10 +164,23 @@ const Footer = () => {
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
                 <FaMapMarkerAlt className="text-ocean-400 mt-0.5 flex-shrink-0 text-sm" />
-                <span className="text-sm text-white/60">
-                  Anadolu Hastaneleri Merkez,<br />
-                  Atatürk Bulvarı No:123, İstanbul
-                </span>
+                <div className="text-sm text-white/60 space-y-1.5">
+                  <div>
+                    <span className="text-white/80">Silivri Anadolu Hastanesi</span>
+                    <br />
+                    Alibey Mah. Atatürk Bulvarı No:42, Silivri / İstanbul
+                  </div>
+                  <div>
+                    <span className="text-white/80">Avcılar Anadolu Hastanesi</span>
+                    <br />
+                    Mustafa Kemal Paşa Firuzköy Bulvarı, Kayabaşı Sk. No:1/3, Avcılar / İstanbul
+                  </div>
+                  <div>
+                    <span className="text-white/80">Ereğli Anadolu Hastanesi</span>
+                    <br />
+                    Müftü Mah. Atatürk Cad. No:88, Ereğli / Zonguldak
+                  </div>
+                </div>
               </li>
               <li className="flex items-center gap-3">
                 <FaPhone className="text-ocean-400 flex-shrink-0 text-sm" />

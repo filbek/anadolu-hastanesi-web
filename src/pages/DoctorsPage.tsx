@@ -24,12 +24,23 @@ const itemVariants = {
   },
 }
 
+const normalizeSearch = (str: string) => {
+  return (str || '')
+    .toLocaleLowerCase('tr-TR')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ı/g, 'i')
+    .replace(/\./g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 const DoctorsPage = () => {
   const { t } = useTranslation()
   const { data: doctorsRaw = [], isLoading } = useDoctors()
   const doctors = useLocalizedList(doctorsRaw, ['title', 'departments.name', 'hospitals.name'])
   const [searchParams] = useSearchParams()
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '')
   const [selectedDepartment, setSelectedDepartment] = useState('')
   // Hastane profilindeki "Tüm Doktorları Gör" linki ?hastane=<ad> ile gelir
   const [selectedHospital, setSelectedHospital] = useState(searchParams.get('hastane') || '')
@@ -108,11 +119,19 @@ const DoctorsPage = () => {
 
   const filteredDoctors = useMemo(
     () => {
+      const searchVal = normalizeSearch(searchTerm)
+      const searchTokens = searchVal.split(' ').filter(Boolean)
       const filtered = doctors.filter((doctor: any) => {
+        const titleNormalized = normalizeSearch(doctor.title || '')
+        const nameNormalized = normalizeSearch(doctor.name || '')
+        const deptNormalized = normalizeSearch(doctor.departments?.name || '')
+        const hospitalNormalized = normalizeSearch(doctor.hospitals?.name || '')
+
+        const searchableText = `${titleNormalized} ${nameNormalized} ${deptNormalized} ${hospitalNormalized}`
+
         const matchesSearch =
-          doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (doctor.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (doctor.departments?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
+          searchTokens.length === 0 ||
+          searchTokens.every((token) => searchableText.includes(token))
         const matchesDepartment =
           selectedDepartment === '' || doctor.departments?.name === selectedDepartment
         const matchesHospital =
