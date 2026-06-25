@@ -1351,8 +1351,8 @@
   "gebe": {
     "featureExpert": "Expert Staff",
     "featureExpertDesc": "Information with our experienced team consisting of gynecologists, midwives and dietitians.",
-    "featureWorkshop": "Practical Workshops",
-    "featureWorkshopDesc": "Practical birth preparation and baby care workshops in addition to theoretical knowledge.",
+    "featureWorkshop": "Practical Applications",
+    "featureWorkshopDesc": "Practical birth preparation and baby care applications in addition to theoretical knowledge.",
     "featureFamily": "Family Support",
     "featureFamilyDesc": "Preparation process within family integrity with seminars attended by spouses.",
     "featureFreeCheck": "Free Check-up",
@@ -1361,7 +1361,7 @@
     "badge": "Special for Expectant Mothers",
     "title": "Prenatal School",
     "seminarsTitle": "Seminars We Organize",
-    "seminarsSubtitle": "Highlights from the training and workshops we conduct at our prenatal school",
+    "seminarsSubtitle": "Highlights from the training and applications we conduct at our prenatal school",
     "ctaDesc": "Register for our seminars to have a healthy pregnancy process with our expert staff. All our seminars are free."
   },
   "healthArticle": {

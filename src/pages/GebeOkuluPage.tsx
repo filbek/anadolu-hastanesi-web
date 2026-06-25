@@ -8,7 +8,7 @@ import { defaultSeminars } from '../data/gebeOkuluSeminars'
 
 const features = (t: any) => [
   { icon: <FaUserMd />, title: t('gebe.featureExpert', 'Uzman Kadro'), desc: t('gebe.featureExpertDesc', 'Jinekolog, ebe ve diyetisyenlerden oluşan deneyimli ekibimizle bilgilendirme.') },
-  { icon: <FaBaby />, title: t('gebe.featureWorkshop', 'Pratik Atölyeler'), desc: t('gebe.featureWorkshopDesc', 'Teorik bilginin yanı sıra uygulamalı doğum hazırlık ve bebek bakım atölyeleri.') },
+  { icon: <FaBaby />, title: t('gebe.featureWorkshop', 'Pratik Uygulamalar'), desc: t('gebe.featureWorkshopDesc', 'Teorik bilginin yanı sıra uygulamalı doğum hazırlık ve bebek bakım uygulamaları.') },
   { icon: <FaHeart />, title: t('gebe.featureFamily', 'Aile Desteği'), desc: t('gebe.featureFamilyDesc', 'Eşlerin de katıldığı seminerlerle aile bütünlüğü içinde hazırlık süreci.') },
   { icon: <FaStethoscope />, title: t('gebe.featureFreeCheck', 'Ücretsiz Kontrol'), desc: t('gebe.featureFreeCheckDesc', 'Seminer sonrası ücretsiz doktor konsültasyonu ve check-up imkanı.') },
 ];

@@ -1351,8 +1351,8 @@
   "gebe": {
     "featureExpert": "Uzman Kadro",
     "featureExpertDesc": "Jinekolog, ebe ve diyetisyenlerden oluşan deneyimli ekibimizle bilgilendirme.",
-    "featureWorkshop": "Pratik Atölyeler",
-    "featureWorkshopDesc": "Teorik bilginin yanı sıra uygulamalı doğum hazırlık ve bebek bakım atölyeleri.",
+    "featureWorkshop": "Pratik Uygulamalar",
+    "featureWorkshopDesc": "Teorik bilginin yanı sıra uygulamalı doğum hazırlık ve bebek bakım uygulamaları.",
     "featureFamily": "Aile Desteği",
     "featureFamilyDesc": "Eşlerin de katıldığı seminerlerle aile bütünlüğü içinde hazırlık süreci.",
     "featureFreeCheck": "Ücretsiz Kontrol",
@@ -1361,7 +1361,7 @@
     "badge": "Anne Adaylarına Özel",
     "title": "Gebe Okulu",
     "seminarsTitle": "Düzenlediğimiz Seminerler",
-    "seminarsSubtitle": "Gebe okulumuzda gerçekleştirdiğimiz eğitim ve atölyelerden öne çıkanlar",
+    "seminarsSubtitle": "Gebe okulumuzda gerçekleştirdiğimiz eğitim ve uygulamalardan öne çıkanlar",
     "ctaDesc": "Uzman kadromuzla birlikte sağlıklı bir gebelik süreci geçirmek için seminerlerimize kaydolun. Tüm seminerlerimiz ücretsizdir."
   },
   "healthArticle": {

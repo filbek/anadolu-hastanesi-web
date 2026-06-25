@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import {
@@ -12,6 +13,9 @@ import {
   FaChartLine,
   FaSitemap,
   FaBalanceScale,
+  FaSearchPlus,
+  FaSearchMinus,
+  FaTimes,
 } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
 
@@ -80,6 +84,9 @@ const qualitySteps = (t: any) => [
 
 const QualityManagementPage = () => {
   const { t } = useTranslation();
+  const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
+
   return (
     <>
       <Helmet>
@@ -187,49 +194,27 @@ const QualityManagementPage = () => {
             </p>
           </motion.div>
 
-          {/* Org Chart Visual */}
+          {/* Org Chart Visual - Image with Click to Zoom */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="overflow-x-auto"
+            className="flex justify-center"
           >
-            <div className="min-w-[700px]">
-              {/* Level 1 */}
-              <div className="flex justify-center mb-2">
-                <div className="bg-primary text-white rounded-xl px-8 py-4 text-center font-bold shadow-lg">
-                  <p className="text-xs uppercase tracking-widest opacity-70 mb-1">{t('quality.management', 'Yönetim')}</p>
-                  <p>{t('quality.chairman', 'Yönetim Kurulu Başkanı')}</p>
+            <div 
+              className="relative group max-w-4xl w-full rounded-2xl overflow-hidden border border-gray-200 shadow-md bg-slate-50 cursor-pointer" 
+              onClick={() => setIsZoomModalOpen(true)}
+            >
+              <img 
+                src="/uploads/organizasyon-semasi.png" 
+                alt={t('quality.orgTitle', 'Organizasyon Şeması')} 
+                className="w-full h-auto object-contain max-h-[600px] mx-auto"
+              />
+              <div className="absolute inset-0 bg-[#0a1628]/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                <div className="bg-white/95 text-primary font-bold px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg scale-90 group-hover:scale-100 transition-transform duration-300">
+                  <FaSearchPlus />
+                  {t('quality.clickToZoom', 'Tıklayın ve Büyütün')}
                 </div>
-              </div>
-              <div className="flex justify-center">
-                <div className="w-0.5 h-8 bg-gray-300" />
-              </div>
-              {/* Level 2 */}
-              <div className="flex justify-center gap-8 mb-2">
-                {['Hastane Müdürü', 'Başhekim'].map((role) => (
-                  <div key={role} className="flex flex-col items-center">
-                    <div className="bg-primary/10 border-2 border-primary/20 text-primary rounded-xl px-6 py-3 text-center font-semibold text-sm">
-                      {role}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-center gap-28">
-                {[0, 1].map((idx) => (
-                  <div key={idx} className="w-0.5 h-8 bg-gray-300" />
-                ))}
-              </div>
-              {/* Level 3 */}
-              <div className="flex justify-center gap-4 flex-wrap mb-2">
-                {['Kalite Müdürü', 'Hemşirelik Hizmetleri', 'İdari Yapı', 'Tıbbi Hizmetler', 'Destek Hizmetleri'].map((role) => (
-                  <div
-                    key={role}
-                    className="bg-gray-50 border border-gray-200 rounded-xl px-5 py-3 text-center text-secondary text-sm font-medium shadow-sm"
-                  >
-                    {role}
-                  </div>
-                ))}
               </div>
             </div>
           </motion.div>
@@ -341,6 +326,98 @@ const QualityManagementPage = () => {
           <LastUpdated date="22.06.2026" />
         </div>
       </section>
+
+      {/* Zoom Modal Overlay */}
+      <AnimatePresence>
+        {isZoomModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-[#0a1628]/95 backdrop-blur-md flex flex-col items-center justify-center p-4"
+          >
+            {/* Control bar */}
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-md px-6 py-3 rounded-full flex items-center gap-6 text-white z-[110] border border-white/10 shadow-2xl">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setZoomScale(prev => Math.max(0.5, prev - 0.25));
+                }}
+                className="hover:text-accent transition-colors p-1"
+                title={t('quality.zoomOut', 'Uzaklaştır')}
+              >
+                <FaSearchMinus size={18} />
+              </button>
+              <span className="text-sm font-semibold select-none w-12 text-center">
+                %{Math.round(zoomScale * 100)}
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setZoomScale(prev => Math.min(4, prev + 0.25));
+                }}
+                className="hover:text-accent transition-colors p-1"
+                title={t('quality.zoomIn', 'Yakınlaştır')}
+              >
+                <FaSearchPlus size={18} />
+              </button>
+              <div className="w-px h-5 bg-white/20" />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setZoomScale(1);
+                }}
+                className="hover:text-accent transition-colors p-1 text-xs font-bold"
+                title={t('quality.resetZoom', 'Sıfırla')}
+              >
+                {t('quality.reset', 'SIFIRLA')}
+              </button>
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                setIsZoomModalOpen(false);
+                setZoomScale(1);
+              }}
+              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white w-12 h-12 rounded-full flex items-center justify-center transition-colors z-[110] border border-white/10"
+              title={t('common.close', 'Kapat')}
+            >
+              <FaTimes size={20} />
+            </button>
+
+            {/* Image container */}
+            <div 
+              className="w-full h-full flex items-center justify-center overflow-hidden relative cursor-grab active:cursor-grabbing"
+              onClick={() => {
+                setIsZoomModalOpen(false);
+                setZoomScale(1);
+              }}
+            >
+              <motion.div
+                drag
+                dragConstraints={{ left: -1000, right: 1000, top: -1000, bottom: 1000 }}
+                dragElastic={0.15}
+                className="flex items-center justify-center"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <motion.img
+                  src="/uploads/organizasyon-semasi.png"
+                  alt="Organizasyon Şeması"
+                  animate={{ scale: zoomScale }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                  className="max-w-[90vw] max-h-[80vh] object-contain select-none pointer-events-none rounded-lg"
+                />
+              </motion.div>
+            </div>
+
+            {/* Navigation Instruction */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-xs text-center select-none bg-black/40 px-4 py-2 rounded-full pointer-events-none">
+              {t('quality.dragToPan', 'Görseli sürükleyerek kaydırabilir, arka plana tıklayarak kapatabilirsiniz.')}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

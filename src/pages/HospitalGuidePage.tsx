@@ -47,57 +47,6 @@ const guideItems = (t: any) => [
   },
 ];
 
-const floorPlans = (t: any) => [
-  {
-    floor: t('guide.floor0', 'Zemin Kat'),
-    areas: [
-      t('guide.area0_1', 'Acil Servis'),
-      t('guide.area0_2', 'Poliklinik Kayıt ve Danışma'),
-      t('guide.area0_3', 'Kafeterya'),
-      t('guide.area0_4', 'Eczane'),
-      t('guide.area0_5', 'Mescit'),
-      t('guide.area0_6', 'Otopark Girişi'),
-    ],
-  },
-  {
-    floor: t('guide.floor1', '1. Kat'),
-    areas: [
-      t('guide.area1_1', 'Dahiliye Poliklinikleri'),
-      t('guide.area1_2', 'Kardiyoloji'),
-      t('guide.area1_3', 'Göğüs Hastalıkları'),
-      t('guide.area1_4', 'Dermatoloji'),
-      t('guide.area1_5', 'Fizik Tedavi'),
-    ],
-  },
-  {
-    floor: t('guide.floor2', '2. Kat'),
-    areas: [
-      t('guide.area2_1', 'Cerrahi Poliklinikleri'),
-      t('guide.area2_2', 'Kadın Doğum'),
-      t('guide.area2_3', 'Üroloji'),
-      t('guide.area2_4', 'Göz Hastalıkları'),
-      t('guide.area2_5', 'Kulak Burun Boğaz'),
-    ],
-  },
-  {
-    floor: t('guide.floor3', '3. Kat'),
-    areas: [
-      t('guide.area3_1', 'Pediatri (Çocuk Sağlığı)'),
-      t('guide.area3_2', 'Ağız ve Diş Sağlığı'),
-      t('guide.area3_3', 'Psikiyatri'),
-      t('guide.area3_4', 'Beslenme ve Diyet'),
-    ],
-  },
-  {
-    floor: t('guide.floor4', '4. Kat ve Üzeri'),
-    areas: [
-      t('guide.area4_1', 'Yatan Hasta Servisleri'),
-      t('guide.area4_2', 'Yoğun Bakım Ünitesi'),
-      t('guide.area4_3', 'Ameliyathane Katı'),
-      t('guide.area4_4', 'Yenidoğan Ünitesi'),
-    ],
-  },
-];
 
 const helpPoints = (t: any) => [
   {
@@ -136,7 +85,7 @@ const HospitalGuidePage = () => {
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage:
-              "url('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2400&q=80')",
+              "url('https://images.unsplash.com/photo-1504439468489-c8920d796a29?ixlib=rb-4.0.3&auto=format&fit=crop&w=2400&q=80')",
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0a1628]/95 via-[#0a1628]/80 to-[#0a1628]/50" />
@@ -215,74 +164,7 @@ const HospitalGuidePage = () => {
         </div>
       </section>
 
-      {/* ─── FLOOR PLANS ─── */}
-      <section className="bg-white py-20 lg:py-28">
-        <div className="container-custom">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-2xl mb-14"
-          >
-            <div className="flex items-center gap-3 mb-5">
-              <span className="block h-px w-[60px] bg-accent" />
-              <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">
-                {t('guide.floorTag', 'Kat Planları')}
-              </span>
-            </div>
-            <h2 className="text-4xl lg:text-5xl font-black text-secondary leading-tight mb-4">
-              {t('guide.floorTitle', 'Bölüm')}{' '}
-              <span className="text-primary">{t('guide.floorHighlight', 'Konumları')}</span>
-            </h2>
-            <p className="text-gray-500 text-lg">
-              {t('guide.floorDesc', 'Hastanelerimizin genel kat planı yapısı. Her hastanenin mimari yapısına göre küçük farklılıklar olabilir.')}
-            </p>
-          </motion.div>
 
-          <div className="space-y-4">
-            {floorPlans(t).map((fp, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className="bg-gray-50 rounded-2xl p-6 lg:p-8 border border-gray-100"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-sm">
-                    {i}
-                  </div>
-                  <h3 className="text-xl font-bold text-secondary">{fp.floor}</h3>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {fp.areas.map((area, j) => (
-                    <span
-                      key={j}
-                      className="inline-flex items-center gap-1.5 text-sm bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600"
-                    >
-                      <FaMapSigns className="text-accent text-xs" />
-                      {area}
-                    </span>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mt-8 bg-primary/[0.04] border-l-4 border-primary rounded-r-2xl p-6"
-          >
-            <p className="text-gray-600 text-sm leading-relaxed">
-              <strong className="text-secondary">{t('guide.floorNoteTitle', 'Not:')}</strong>{' '}
-              {t('guide.floorNoteDesc', 'Kat planları hastane bazında değişiklik gösterebilir. Detaylı bilgi için danışma masalarımızdan veya 444 50 58 numaralı çağrı merkezimizden yardım alabilirsiniz.')}
-            </p>
-          </motion.div>
-        </div>
-      </section>
 
       {/* ─── HELP POINTS ─── */}
       <section className="bg-gray-50 py-20 lg:py-28">

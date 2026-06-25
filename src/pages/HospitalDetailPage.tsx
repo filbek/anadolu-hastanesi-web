@@ -485,10 +485,12 @@ const HospitalDetailPage = () => {
                   <FaCalendarAlt className="mr-3 text-accent" /> {t('hospital.corporateInfo', 'Kurumsal Bilgiler')}
                 </h3>
                 <ul className="space-y-4">
-                  <li className="flex items-center text-gray-600 bg-neutral/50 p-4 rounded-2xl">
-                    <div className="w-2 h-2 rounded-full bg-primary mr-3" />
-                    <span className="text-sm font-medium">{t('hospital.jci', 'JCI Uluslararası Akreditasyon')}</span>
-                  </li>
+                  {hospital.slug?.includes('silivri') && (
+                    <li className="flex items-center text-gray-600 bg-neutral/50 p-4 rounded-2xl">
+                      <div className="w-2 h-2 rounded-full bg-primary mr-3" />
+                      <span className="text-sm font-medium">{t('hospital.jci', 'JCI Uluslararası Akreditasyon')}</span>
+                    </li>
+                  )}
                   <li className="flex items-center text-gray-600 bg-neutral/50 p-4 rounded-2xl">
                     <div className="w-2 h-2 rounded-full bg-primary mr-3" />
                     <span className="text-sm font-medium">{t('hospital.modernTech', 'Modern Teknolojik Altyapı')}</span>

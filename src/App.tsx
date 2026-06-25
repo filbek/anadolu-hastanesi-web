@@ -36,9 +36,9 @@ const PatientFeedbackPage = lazy(() => import('./pages/PatientFeedbackPage'))
 const ComplaintPolicyPage = lazy(() => import('./pages/ComplaintPolicyPage'))
 const GebeOkuluPage = lazy(() => import('./pages/GebeOkuluPage'))
 const EmergencyServicesPage = lazy(() => import('./pages/EmergencyServicesPage'))
-const SocialResponsibilityPage = lazy(() => import('./pages/SocialResponsibilityPage'))
+// const SocialResponsibilityPage = lazy(() => import('./pages/SocialResponsibilityPage'))
 const CareerPage = lazy(() => import('./pages/CareerPage'))
-const MediaPage = lazy(() => import('./pages/MediaPage'))
+// const MediaPage = lazy(() => import('./pages/MediaPage'))
 const TransportationPage = lazy(() => import('./pages/TransportationPage'))
 const HospitalGuidePage = lazy(() => import('./pages/HospitalGuidePage'))
 const MedicalCentersPage = lazy(() => import('./pages/MedicalCentersPage'))
@@ -139,9 +139,8 @@ function App() {
             <Route path="sikayet-politikasi" element={<ComplaintPolicyPage />} />
             <Route path="gebe-okulu" element={<GebeOkuluPage />} />
             <Route path="acil-servis" element={<EmergencyServicesPage />} />
-            <Route path="sosyal-sorumluluk" element={<SocialResponsibilityPage />} />
+            <Route path="sosyal-sorumluluk" element={<Navigate to="/404" replace />} />
             <Route path="kariyer" element={<CareerPage />} />
-            <Route path="basinda-biz" element={<MediaPage />} />
             <Route path="ulasim" element={<TransportationPage />} />
             <Route path="hastane-ici-rehber" element={<HospitalGuidePage />} />
             <Route path="merkezlerimiz" element={<MedicalCentersPage />} />

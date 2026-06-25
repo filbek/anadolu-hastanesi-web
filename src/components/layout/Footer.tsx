@@ -110,8 +110,6 @@ const Footer = () => {
                 { name: t('footerLinks.management'), path: '/yonetim' },
                 { name: t('footerLinks.qualityManagement'), path: '/kalite-yonetimi' },
                 { name: t('footerLinks.news'), path: '/bizden-haberler' },
-                { name: t('footerLinks.media', 'Basında Biz'), path: '/basinda-biz' },
-                { name: t('footerLinks.socialResp', 'Sosyal Sorumluluk'), path: '/sosyal-sorumluluk' },
                 { name: t('footerLinks.career', 'Kariyer'), path: '/kariyer' },
               ].map((link) => (
                 <li key={link.name}>
@@ -135,7 +133,6 @@ const Footer = () => {
               {[
                 { name: t('footerLinks.patientRights'), path: '/hasta-haklari' },
                 { name: t('footerLinks.emergency', 'Acil Servis'), path: '/acil-servis' },
-                { name: t('footerLinks.patientInfo', 'Hasta Bilgilendirme'), path: '/saglik-rehberi/hasta-bilgilendirme' },
                 { name: t('footerLinks.companionRules'), path: '/refakat-politikasi-ve-refakatci-kurallari' },
                 { name: t('footerLinks.visitHours'), path: '/ziyaret-kurallari-ve-saatleri' },
                 { name: t('footerLinks.complaintPolicy'), path: '/sikayet-politikasi' },
