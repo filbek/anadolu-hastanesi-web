@@ -8,6 +8,7 @@ export interface PatientFeedback {
   subject?: string;
   message: string;
   hospital_id?: number;
+  source?: 'hasta' | 'personel';
   is_read: boolean;
   is_responded: boolean;
   admin_notes?: string;
@@ -28,10 +29,21 @@ export async function getPatientFeedback(): Promise<PatientFeedback[]> {
 }
 
 export async function createPatientFeedback(feedback: Omit<PatientFeedback, 'id' | 'created_at' | 'is_read' | 'is_responded'>) {
-  const { data, error } = await supabase
+  const payload = { ...feedback, is_read: false, is_responded: false } as Record<string, any>;
+
+  let { data, error } = await supabase
     .from('patient_feedback')
-    .insert([{ ...feedback, is_read: false, is_responded: false }])
+    .insert([payload])
     .select();
+
+  // 'source' kolonu henüz eklenmemişse (migration çalıştırılmadıysa) o alan olmadan tekrar dene
+  if (error && 'source' in payload && /source/i.test(error.message || '')) {
+    const { source: _omit, ...withoutSource } = payload;
+    ({ data, error } = await supabase
+      .from('patient_feedback')
+      .insert([withoutSource])
+      .select());
+  }
 
   if (error) {
     console.error('Error creating patient feedback:', error);

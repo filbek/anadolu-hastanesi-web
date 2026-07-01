@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { FaHandshake, FaPlus, FaSave, FaTrash, FaFileImport, FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { FaHandshake, FaPlus, FaSave, FaTrash, FaFileImport, FaArrowUp, FaArrowDown, FaAngleDoubleUp } from 'react-icons/fa';
 import { useHospitals } from '../../hooks/useHospitals';
 import {
   getContractedByHospital,
@@ -23,6 +23,8 @@ const AdminContractedInstitutions = () => {
   const [loading, setLoading] = useState(false);
   const [savingId, setSavingId] = useState<number | 'new' | null>(null);
   const [importing, setImporting] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  const pendingScrollRef = useRef(false);
 
   // İlk hastaneyi seç
   useEffect(() => {
@@ -52,9 +54,22 @@ const AdminContractedInstitutions = () => {
     setRows((prev) => prev.map((r, i) => (i === index ? { ...r, ...patch } : r)));
   };
 
+  // Yeni kart eklendikten sonra ona kaydır ve kategori adı alanına odaklan.
+  useEffect(() => {
+    if (!pendingScrollRef.current || !listRef.current) return;
+    pendingScrollRef.current = false;
+    const cards = listRef.current.querySelectorAll('[data-category-card]');
+    const lastCard = cards[cards.length - 1] as HTMLElement | undefined;
+    if (lastCard) {
+      lastCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      (lastCard.querySelector('input[type="text"]') as HTMLInputElement | null)?.focus();
+    }
+  }, [rows.length]);
+
   const addRow = () => {
     if (activeHospitalId === null) return;
     const maxOrder = rows.reduce((m, r) => Math.max(m, r.display_order || 0), 0);
+    pendingScrollRef.current = true;
     setRows((prev) => [
       ...prev,
       {
@@ -84,12 +99,15 @@ const AdminContractedInstitutions = () => {
       display_order: row.display_order || 0,
       is_active: row.is_active,
     };
-    if (row.id && row.id > 0) {
-      await updateContractedInstitution(row.id, payload);
-    } else {
-      await createContractedInstitution(payload);
-    }
+    const { error } =
+      row.id && row.id > 0
+        ? await updateContractedInstitution(row.id, payload)
+        : await createContractedInstitution(payload);
     setSavingId(null);
+    if (error) {
+      alert(`Kategori kaydedilemedi: ${error.message || 'Bilinmeyen hata'}`);
+      return;
+    }
     if (activeHospitalId !== null) loadRows(activeHospitalId);
   };
 
@@ -116,6 +134,25 @@ const AdminContractedInstitutions = () => {
     updateRow(target, { display_order: aOrder });
     if (a.id > 0) await updateContractedInstitution(a.id, { display_order: bOrder });
     if (b.id > 0) await updateContractedInstitution(b.id, { display_order: aOrder });
+    if (activeHospitalId !== null) loadRows(activeHospitalId);
+  };
+
+  const moveToTop = async (index: number) => {
+    if (index <= 0) return;
+    const original = rows;
+    const reordered = [...original];
+    const [moved] = reordered.splice(index, 1);
+    reordered.unshift(moved);
+    // Yeni sıraya göre display_order'ları 1..n olarak yeniden ata
+    const withOrder = reordered.map((r, i) => ({ ...r, display_order: i + 1 }));
+    setRows(withOrder);
+    // Yalnızca sırası değişen kayıtlı satırları DB'ye yaz
+    const prevOrder = new Map(original.map((r) => [r.id, r.display_order]));
+    await Promise.all(
+      withOrder
+        .filter((r) => r.id > 0 && prevOrder.get(r.id) !== r.display_order)
+        .map((r) => updateContractedInstitution(r.id, { display_order: r.display_order }))
+    );
     if (activeHospitalId !== null) loadRows(activeHospitalId);
   };
 
@@ -208,9 +245,9 @@ const AdminContractedInstitutions = () => {
           <p>Bu şube için henüz kategori eklenmemiş. "Kategori Ekle" ile başlayabilirsiniz.</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4" ref={listRef}>
           {rows.map((row, index) => (
-            <div key={row.id || `new-${index}`} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div key={row.id || `new-${index}`} data-category-card className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
               <div className="flex flex-wrap items-center gap-3 mb-4">
                 <input
                   type="text"
@@ -220,6 +257,9 @@ const AdminContractedInstitutions = () => {
                   className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg font-semibold text-primary focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <div className="flex items-center gap-1">
+                  <button onClick={() => moveToTop(index)} disabled={index === 0} className="p-2 text-gray-400 hover:text-primary disabled:opacity-30" title="En üste taşı">
+                    <FaAngleDoubleUp />
+                  </button>
                   <button onClick={() => moveRow(index, -1)} disabled={index === 0} className="p-2 text-gray-400 hover:text-primary disabled:opacity-30" title="Yukarı taşı">
                     <FaArrowUp />
                   </button>

@@ -14,11 +14,14 @@ import {
 import { useHospitals } from '../../hooks/useHospitals';
 import { supabase } from '../../lib/supabase';
 import { sendFormEmail } from '../../services/emailService';
+import TurnstileWidget from '../common/TurnstileWidget';
+import { verifyTurnstile, turnstileEnabled } from '../../services/turnstileService';
 
 const SecondOpinionSection = () => {
   const { t } = useTranslation();
   const { data: hospitals = [], isLoading: hospitalsLoading } = useHospitals();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -60,12 +63,22 @@ const SecondOpinionSection = () => {
       alert(t('secondOpinion.consentAlert', 'Lütfen KVKK aydınlatma metnini onaylayın.'));
       return;
     }
-    if (!formData.captcha) {
+    if (turnstileEnabled ? !captchaToken : !formData.captcha) {
       alert(t('secondOpinion.captchaAlert', 'Lütfen güvenlik doğrulamasını tamamlayın.'));
       return;
     }
 
     setSubmitting(true);
+
+    if (turnstileEnabled) {
+      const captchaOk = await verifyTurnstile(captchaToken);
+      if (!captchaOk) {
+        setSubmitting(false);
+        setCaptchaToken(null);
+        alert(t('common.captchaFailed', 'Doğrulama başarısız oldu. Lütfen tekrar deneyin.'));
+        return;
+      }
+    }
     try {
       let fileUrl = null;
       const file = fileInputRef.current?.files?.[0];
@@ -402,17 +415,21 @@ const SecondOpinionSection = () => {
                   </span>
                 </label>
 
-                {/* Captcha placeholder */}
-                <label className="flex items-center gap-3 cursor-pointer p-4 bg-white rounded-xl border border-gray-200 w-fit">
-                  <input
-                    type="checkbox"
-                    name="captcha"
-                    checked={formData.captcha}
-                    onChange={handleChange}
-                    className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
-                  />
-                  <span className="text-sm text-gray-600">{t('secondOpinion.captcha', 'Ben robot değilim')}</span>
-                </label>
+                {/* Bot koruması */}
+                {turnstileEnabled ? (
+                  <TurnstileWidget onVerify={setCaptchaToken} />
+                ) : (
+                  <label className="flex items-center gap-3 cursor-pointer p-4 bg-white rounded-xl border border-gray-200 w-fit">
+                    <input
+                      type="checkbox"
+                      name="captcha"
+                      checked={formData.captcha}
+                      onChange={handleChange}
+                      className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm text-gray-600">{t('secondOpinion.captcha', 'Ben robot değilim')}</span>
+                  </label>
+                )}
 
                 {/* Submit */}
                 <button

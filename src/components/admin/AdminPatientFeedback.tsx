@@ -9,6 +9,7 @@ const AdminPatientFeedback = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'unread' | 'unresponded'>('all');
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'hasta' | 'personel'>('all');
   const [noteId, setNoteId] = useState<number | null>(null);
   const [noteText, setNoteText] = useState('');
 
@@ -25,6 +26,10 @@ const AdminPatientFeedback = () => {
     const matchesSearch = i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       i.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (i.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+    // Eski kayıtlarda source olmayabilir → 'hasta' varsayılır
+    const rowSource = i.source || 'hasta';
+    const matchesSource = sourceFilter === 'all' || rowSource === sourceFilter;
+    if (!matchesSource) return false;
     if (filter === 'unread') return matchesSearch && !i.is_read;
     if (filter === 'unresponded') return matchesSearch && !i.is_responded;
     return matchesSearch;
@@ -90,6 +95,12 @@ const AdminPatientFeedback = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
+          <select value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value as any)}
+            className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <option value="all">{t('admin.feedbackSourceAll', 'Tüm Kaynaklar')}</option>
+            <option value="hasta">{t('admin.feedbackSourcePatient', 'Hasta')}</option>
+            <option value="personel">{t('admin.feedbackSourceEmployee', 'Çalışan')}</option>
+          </select>
           <select value={filter} onChange={(e) => setFilter(e.target.value as any)}
             className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
             <option value="all">{t('admin.all', 'Tümü')}</option>
@@ -104,8 +115,11 @@ const AdminPatientFeedback = () => {
           <div key={item.id} className={`bg-white rounded-lg shadow-sm p-6 ${!item.is_read ? 'border-l-4 border-primary' : ''}`}>
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center flex-wrap gap-2 mb-2">
                   <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                  {(item.source || 'hasta') === 'personel'
+                    ? <span className="bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded-full font-medium">{t('admin.feedbackSourceEmployee', 'Çalışan')}</span>
+                    : <span className="bg-sky-100 text-sky-700 text-xs px-2 py-0.5 rounded-full font-medium">{t('admin.feedbackSourcePatient', 'Hasta')}</span>}
                   {!item.is_read && <span className="bg-primary text-white text-xs px-2 py-0.5 rounded-full">{t('admin.new', 'Yeni')}</span>}
                   {item.is_responded && <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">{t('admin.answered', 'Cevaplandı')}</span>}
                 </div>

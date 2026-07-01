@@ -8,6 +8,8 @@ import LastUpdated from '../components/ui/LastUpdated'
 import HospitalMap from '../components/common/HospitalMap'
 import { supabase } from '../lib/supabase'
 import { sendFormEmail } from '../services/emailService'
+import TurnstileWidget from '../components/common/TurnstileWidget'
+import { verifyTurnstile, turnstileEnabled } from '../services/turnstileService'
 
 const getMapEmbedUrl = (hospital: any) => {
   if (hospital.latitude && hospital.longitude) {
@@ -24,6 +26,7 @@ const ContactPage = () => {
   const { data: hospitals = [], isLoading: hospitalsLoading } = useHospitals();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -35,6 +38,21 @@ const ContactPage = () => {
     const subjectRaw = String(fd.get('subject') || '').trim();
     const subject = subjectRaw === t('common.selectSubject') ? '' : subjectRaw;
     const message = String(fd.get('message') || '').trim();
+
+    if (turnstileEnabled) {
+      if (!captchaToken) {
+        alert(t('common.captchaRequired', 'Lütfen "robot değilim" doğrulamasını tamamlayın.'));
+        return;
+      }
+      setSubmitting(true);
+      const captchaOk = await verifyTurnstile(captchaToken);
+      if (!captchaOk) {
+        setSubmitting(false);
+        setCaptchaToken(null);
+        alert(t('common.captchaFailed', 'Doğrulama başarısız oldu. Lütfen tekrar deneyin.'));
+        return;
+      }
+    }
 
     setSubmitting(true);
     try {
@@ -326,6 +344,7 @@ const ContactPage = () => {
                     {t('common.consentText')} <span className="text-coral-500" aria-hidden="true">*</span>
                   </label>
                 </div>
+                <TurnstileWidget onVerify={setCaptchaToken} />
                 <button
                   type="submit"
                   disabled={submitting}

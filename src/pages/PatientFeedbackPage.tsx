@@ -7,6 +7,8 @@ import LastUpdated from '../components/ui/LastUpdated';
 import { useHospitals } from '../hooks/useHospitals';
 import { createPatientFeedback } from '../services/patientFeedbackService';
 import { sendFormEmail } from '../services/emailService';
+import TurnstileWidget from '../components/common/TurnstileWidget';
+import { verifyTurnstile, turnstileEnabled } from '../services/turnstileService';
 
 const getFeedbackTypes = (t: any) => [
   { value: 'oneri', label: t('feedback.typeSuggestion', 'Öneri'), icon: '💡', color: 'bg-blue-50 border-blue-200 text-blue-700' },
@@ -17,10 +19,18 @@ const getFeedbackTypes = (t: any) => [
 const PatientFeedbackPage = () => {
   const { t } = useTranslation();
   const { data: hospitalsData, isLoading: hospitalsLoading } = useHospitals();
+  // Form kime ait: 'hasta' (hasta/ziyaretçi) veya 'personel' (çalışan)
+  const [audience, setAudience] = useState<'hasta' | 'personel'>('hasta');
+  // Sadece personel için: isim vermeden (anonim) gönderme
+  const [anonymous, setAnonymous] = useState(false);
   const [selectedType, setSelectedType] = useState('oneri');
   const [selectedHospital, setSelectedHospital] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+
+  // Personel + anonim seçiliyken isim/soyisim gizlenir ve zorunlu olmaz
+  const isAnonymous = audience === 'personel' && anonymous;
   const [formData, setFormData] = useState({
     name: '',
     surname: '',
@@ -46,19 +56,36 @@ const PatientFeedbackPage = () => {
       return;
     }
 
+    if (turnstileEnabled) {
+      if (!captchaToken) {
+        alert(t('common.captchaRequired', 'Lütfen "robot değilim" doğrulamasını tamamlayın.'));
+        return;
+      }
+      setSubmitting(true);
+      const captchaOk = await verifyTurnstile(captchaToken);
+      if (!captchaOk) {
+        setSubmitting(false);
+        setCaptchaToken(null);
+        alert(t('common.captchaFailed', 'Doğrulama başarısız oldu. Lütfen tekrar deneyin.'));
+        return;
+      }
+    }
+
     const hospital = hospitalsData?.find(h => h.slug === selectedHospital || h.name === selectedHospital);
     const hospital_id = hospital?.id ? Number(hospital.id) : undefined;
-    const subject = `${getFeedbackTypes(t).find((ft: any) => ft.value === selectedType)?.label || t('feedback.defaultSubject', 'Geri Bildirim')}${formData.department ? ` - ${formData.department}` : ''}`;
-    const fullName = `${formData.name} ${formData.surname}`.trim();
+    const audienceLabel = audience === 'personel' ? t('feedback.audienceEmployee', 'Çalışan') : t('feedback.audiencePatient', 'Hasta');
+    const subject = `[${audienceLabel}] ${getFeedbackTypes(t).find((ft: any) => ft.value === selectedType)?.label || t('feedback.defaultSubject', 'Geri Bildirim')}${formData.department ? ` - ${formData.department}` : ''}`;
+    const fullName = isAnonymous ? t('feedback.anonymous', 'Anonim') : `${formData.name} ${formData.surname}`.trim();
 
     setSubmitting(true);
     const { error } = await createPatientFeedback({
       name: fullName,
-      email: formData.email || undefined,
-      phone: formData.phone || undefined,
+      email: isAnonymous ? undefined : (formData.email || undefined),
+      phone: isAnonymous ? undefined : (formData.phone || undefined),
       subject,
       message: formData.message,
       hospital_id,
+      source: audience,
     });
 
     if (error) {
@@ -70,9 +97,10 @@ const PatientFeedbackPage = () => {
     // Geri bildirimi admin panelinde belirlenen e-posta adresine de gönder (bloklamaz)
     await sendFormEmail('feedback', {
       name: fullName,
-      email: formData.email,
-      phone: formData.phone,
+      email: isAnonymous ? '' : formData.email,
+      phone: isAnonymous ? '' : formData.phone,
       subject,
+      source: audienceLabel,
       hospital: hospital?.name,
       department: formData.department,
       message: formData.message,
@@ -235,6 +263,27 @@ const PatientFeedbackPage = () => {
               <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-8 lg:p-10">
                 <h2 className="text-2xl font-black text-secondary mb-6">{t('feedback.formTitle', 'Geri Bildirim Formu')}</h2>
 
+                {/* Kime ait — Hasta / Çalışan sekmesi */}
+                <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl mb-6" role="tablist" aria-label={t('feedback.audienceLabel', 'Formu dolduran')}>
+                  {[
+                    { value: 'hasta' as const, label: t('feedback.audiencePatientTab', 'Hasta / Ziyaretçi') },
+                    { value: 'personel' as const, label: t('feedback.audienceEmployeeTab', 'Çalışan Personel') },
+                  ].map((tab) => (
+                    <button
+                      key={tab.value}
+                      type="button"
+                      role="tab"
+                      aria-selected={audience === tab.value}
+                      onClick={() => { setAudience(tab.value); if (tab.value === 'hasta') setAnonymous(false); }}
+                      className={`py-2.5 rounded-lg text-sm font-bold transition-all ${
+                        audience === tab.value ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Feedback type */}
                   <div>
@@ -279,63 +328,84 @@ const PatientFeedbackPage = () => {
                     </select>
                   </div>
 
-                  {/* Name / Surname */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-bold text-secondary mb-2">Ad *</label>
+                  {/* Anonim seçeneği — yalnızca çalışan personel için */}
+                  {audience === 'personel' && (
+                    <label className="flex items-start gap-3 cursor-pointer group bg-amber-50 border border-amber-200 rounded-xl p-4">
                       <input
-                        id="name"
-                        name="name"
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={handleChange}
-                        placeholder="Adınız"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-secondary placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                        type="checkbox"
+                        checked={anonymous}
+                        onChange={(e) => setAnonymous(e.target.checked)}
+                        className="mt-0.5 w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary flex-shrink-0"
                       />
-                    </div>
-                    <div>
-                      <label htmlFor="surname" className="block text-sm font-bold text-secondary mb-2">Soyad *</label>
-                      <input
-                        id="surname"
-                        name="surname"
-                        type="text"
-                        required
-                        value={formData.surname}
-                        onChange={handleChange}
-                        placeholder="Soyadınız"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-secondary placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                      />
-                    </div>
-                  </div>
+                      <span className="text-sm text-amber-900 leading-relaxed">
+                        <strong>{t('feedback.anonymousTitle', 'Anonim gönder')}</strong>
+                        <br />
+                        <span className="text-amber-700">{t('feedback.anonymousDesc', 'İsim vermek istemiyorsanız işaretleyin. Ad, soyad ve iletişim bilgileriniz alınmaz.')}</span>
+                      </span>
+                    </label>
+                  )}
 
-                  {/* Phone / Email */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="phone" className="block text-sm font-bold text-secondary mb-2">Telefon</label>
-                      <input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="05XX XXX XX XX"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-secondary placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                      />
+                  {/* Name / Surname — anonimde gizlenir */}
+                  {!isAnonymous && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="name" className="block text-sm font-bold text-secondary mb-2">Ad *</label>
+                        <input
+                          id="name"
+                          name="name"
+                          type="text"
+                          required={!isAnonymous}
+                          value={formData.name}
+                          onChange={handleChange}
+                          placeholder="Adınız"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-secondary placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="surname" className="block text-sm font-bold text-secondary mb-2">Soyad *</label>
+                        <input
+                          id="surname"
+                          name="surname"
+                          type="text"
+                          required={!isAnonymous}
+                          value={formData.surname}
+                          onChange={handleChange}
+                          placeholder="Soyadınız"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-secondary placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-bold text-secondary mb-2">E-Posta</label>
-                      <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="ornek@mail.com"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-secondary placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                      />
+                  )}
+
+                  {/* Phone / Email — anonimde gizlenir */}
+                  {!isAnonymous && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="phone" className="block text-sm font-bold text-secondary mb-2">Telefon</label>
+                        <input
+                          id="phone"
+                          name="phone"
+                          type="tel"
+                          value={formData.phone}
+                          onChange={handleChange}
+                          placeholder="05XX XXX XX XX"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-secondary placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="email" className="block text-sm font-bold text-secondary mb-2">E-Posta</label>
+                        <input
+                          id="email"
+                          name="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          placeholder="ornek@mail.com"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-secondary placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Department */}
                   <div>
@@ -387,6 +457,9 @@ const PatientFeedbackPage = () => {
                       {t('feedback.kvkkSuffix', 'okudum ve onaylıyorum.')} *
                     </span>
                   </label>
+
+                  {/* Bot koruması */}
+                  <TurnstileWidget onVerify={setCaptchaToken} />
 
                   {/* Submit */}
                   <button
