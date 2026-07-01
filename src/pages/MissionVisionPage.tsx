@@ -1,45 +1,39 @@
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
-import { FaUserMd, FaHeart, FaStar, FaGlobe, FaCogs, FaLeaf, FaChevronRight } from 'react-icons/fa';
+import { FaUserMd, FaHeart, FaStar, FaGlobe, FaChevronRight, FaHandshake, FaUsers, FaBalanceScale, FaFilePdf } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
 
 const values = (t: any) => [
   {
     number: '01',
-    icon: <FaUserMd />,
-    title: t('mission.values1Title', 'Hasta ve Çalışan Güvenliği'),
-    desc: t('mission.values1Desc', 'Tüm hizmet süreçlerinde hastalarımızın ve çalışanlarımızın güvenliğinin en üst düzeyde sağlanması amaçlanmaktadır. Risk yönetimi ve sürekli iyileştirme kültürü ile hasta bakım süreçleri optimize edilmektedir.'),
+    icon: <FaHandshake />,
+    title: t('mission.values1Title', 'İnsana Değer ve Güvenilirlik'),
+    desc: t('mission.values1Desc', 'İnsana değer veririz, güvenilir olmak vazgeçilmezimizdir.'),
   },
   {
     number: '02',
-    icon: <FaHeart />,
-    title: t('mission.values2Title', 'Etik ve Hasta Haklarına Saygı'),
-    desc: t('mission.values2Desc', 'Tıbbi etik ve hasta haklarına uygun hizmet sunarak adil ve eşitlikçi bir sağlık anlayışı benimsenmektedir.'),
+    icon: <FaStar />,
+    title: t('mission.values2Title', 'Hizmette Fark Yaratmak'),
+    desc: t('mission.values2Desc', 'Sunduğumuz her türlü hizmetle fark yaratırız.'),
   },
   {
     number: '03',
-    icon: <FaStar />,
-    title: t('mission.values3Title', 'Sürekli İyileştirme ve Yenilikçilik'),
-    desc: t('mission.values3Desc', 'Sağlık hizmetlerinde kanıta dayalı tıp uygulamalarını benimseyerek bilimsel ve teknolojik gelişmeler öncülüğünde hizmet verilmektedir.'),
+    icon: <FaUserMd />,
+    title: t('mission.values3Title', 'Bilimsellik ve Sürekli Gelişim'),
+    desc: t('mission.values3Desc', 'Bilimsel yaklaşımlara ve sürekli gelişime inanırız.'),
   },
   {
     number: '04',
-    icon: <FaGlobe />,
-    title: t('mission.values4Title', 'Hasta Odaklılık ve Memnuniyet'),
-    desc: t('mission.values4Desc', 'Hasta memnuniyetini ölçerek, değerlendirerek ve iyileştirme faaliyetleri yürüterek hizmet kalitesinin sürekli artırılması benimsenmektedir.'),
+    icon: <FaUsers />,
+    title: t('mission.values4Title', 'Çevik ve Başarılı Takım'),
+    desc: t('mission.values4Desc', 'Çevik, hedef odaklı ve başarı azmi yüksek bir takımız.'),
   },
   {
     number: '05',
-    icon: <FaCogs />,
-    title: t('mission.values5Title', 'Ekip Çalışması ve Katılımcı Yönetim'),
-    desc: t('mission.values5Desc', 'Tüm çalışanlarımız; katılımcı yönetim anlayışıyla süreçlere aktif katkı sağlamaya teşvik edilir. Multidisipliner iş birliği ile etkili ve verimli sağlık hizmet anlayışı benimsenmektedir.'),
-  },
-  {
-    number: '06',
-    icon: <FaLeaf />,
-    title: t('mission.values6Title', 'Sürdürülebilirlik ve Çevreye Duyarlılık'),
-    desc: t('mission.values6Desc', 'Atık yönetimi, enerji verimliliği ve çevresel sürdürülebilirlik ilkelerine uygun hareket etmek amaçlanmaktadır. Toplum sağlığı bilincini artırmaya yönelik projeler geliştirerek sosyal sorumluluk bilinciyle hizmet vermek benimsenmektedir.'),
+    icon: <FaBalanceScale />,
+    title: t('mission.values5Title', 'Etik ve İş Ahlakı'),
+    desc: t('mission.values5Desc', 'Etik ilkelerimiz ve iş ahlakımızla örnek gösteriliriz.'),
   },
 ];
 
@@ -145,10 +139,10 @@ const MissionVisionPage = () => {
                   {t('mission.visionTag', 'Vizyonumuz')}
                 </p>
                 <h2 className="text-3xl xl:text-4xl font-black text-white leading-snug mb-8">
-                  {t('mission.visionTitle', 'Sağlıkta Güvenilir Lider Olmak')}
+                  {t('mission.visionTitle', 'Dünyada Referans Gösterilen Organizasyon')}
                 </h2>
                 <p className="text-white/80 text-lg leading-relaxed">
-                  {t('mission.visionDesc', "Ulusal ve uluslararası standartlarda, yenilikçi ve öncü sağlık hizmetleri sunarak bölgenin ve Türkiye'nin en güvenilir, tercih edilen sağlık kurumları zinciri olmak.")}
+                  {t('mission.visionDesc', 'Çalışanlarımız ile birlikte sürekli gelişerek, evrensel standartlardaki sağlık hizmeti anlayışımız ve yarattığımız bilimsel katkılarımız ile dünyada referans gösterilen bir organizasyon olmayı hedefleriz.')}
                 </p>
               </div>
 
@@ -182,10 +176,10 @@ const MissionVisionPage = () => {
                   {t('mission.missionTag', 'Misyonumuz')}
                 </p>
                 <h2 className="text-3xl xl:text-4xl font-black text-secondary leading-snug mb-8">
-                  {t('mission.missionTitle', 'İnsan Odaklı Sağlık Hizmeti')}
+                  {t('mission.missionTitle', 'Sağlıklı Bir Hayat İçin')}
                 </h2>
                 <p className="text-gray-600 text-lg leading-relaxed">
-                  {t('mission.missionDesc', 'Toplumun her kesimine ulaşılabilir, etik ilkelere bağlı, hasta ve çalışan memnuniyetini ön planda tutan, çağdaş, modern ve şefkatli sağlık hizmeti sunmak.')}
+                  {t('mission.missionDesc', 'Tüm insanların sağlıklı bir hayat sürmesi için çalışırız.')}
                 </p>
               </div>
 
@@ -198,6 +192,25 @@ const MissionVisionPage = () => {
               </div>
             </motion.div>
           </div>
+
+          {/* PDF Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-12 flex justify-center"
+          >
+            <a
+              href="/uploads/vizyon-misyon-degerler.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 px-6 py-3.5 bg-white border border-slate-200 hover:border-primary text-secondary hover:text-primary font-bold rounded-xl shadow-sm hover:shadow-md transition-all duration-300 group"
+            >
+              <FaFilePdf className="text-red-500 text-xl group-hover:scale-110 transition-transform" />
+              <span>{t('mission.viewPdf', 'Vizyon, Misyon ve Değerler Belgesi (PDF)')}</span>
+            </a>
+          </motion.div>
         </div>
       </section>
 
