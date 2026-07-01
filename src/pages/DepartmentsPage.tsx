@@ -157,7 +157,7 @@ const DepartmentsPage = () => {
           {/* Hastane şubesi sekmeleri */}
           {hospitalTabs.length > 0 && (
             <div
-              className="flex flex-wrap justify-center gap-2 mb-6"
+              className="flex flex-wrap justify-center gap-2 mt-10 mb-8"
               role="tablist"
               aria-label={t('departments.hospitalTabsLabel', 'Hastane şubesine göre bölümler')}
             >

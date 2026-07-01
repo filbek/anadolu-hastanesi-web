@@ -41,6 +41,7 @@ const CareerPage = lazy(() => import('./pages/CareerPage'))
 // const MediaPage = lazy(() => import('./pages/MediaPage'))
 const TransportationPage = lazy(() => import('./pages/TransportationPage'))
 const HospitalGuidePage = lazy(() => import('./pages/HospitalGuidePage'))
+const ContractedInstitutionsPage = lazy(() => import('./pages/ContractedInstitutionsPage'))
 const MedicalCentersPage = lazy(() => import('./pages/MedicalCentersPage'))
 const SecondOpinionPage = lazy(() => import('./pages/SecondOpinionPage'))
 const CookiePolicyPage = lazy(() => import('./pages/CookiePolicyPage'))
@@ -143,6 +144,7 @@ function App() {
             <Route path="kariyer" element={<CareerPage />} />
             <Route path="ulasim" element={<TransportationPage />} />
             <Route path="hastane-ici-rehber" element={<HospitalGuidePage />} />
+            <Route path="anlasmali-kurumlar" element={<ContractedInstitutionsPage />} />
             <Route path="merkezlerimiz" element={<MedicalCentersPage />} />
             <Route path="cerez-politikasi" element={<CookiePolicyPage />} />
             <Route path="kvkk" element={<KvkkPage />} />

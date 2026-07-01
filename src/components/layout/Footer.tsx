@@ -138,6 +138,7 @@ const Footer = () => {
                 { name: t('footerLinks.complaintPolicy'), path: '/sikayet-politikasi' },
                 { name: t('footerLinks.feedback'), path: '/sizi-dinliyoruz' },
                 { name: t('footerLinks.hospitalGuide', 'Hastane İçi Rehber'), path: '/hastane-ici-rehber' },
+                { name: t('footerLinks.contractedInstitutions', 'Anlaşmalı Kurumlar'), path: '/anlasmali-kurumlar' },
                 { name: t('footerLinks.transport', 'Ulaşım'), path: '/ulasim' },
                 { name: t('footerLinks.prenatalSchool'), path: '/gebe-okulu' },
               ].map((link) => (

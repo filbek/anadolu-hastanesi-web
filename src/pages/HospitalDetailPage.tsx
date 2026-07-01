@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { useTranslation } from 'react-i18next'
@@ -36,6 +36,24 @@ const HospitalDetailPage = () => {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
   const images: string[] = hospital?.images || []
+
+  // Bu şubede sunulan bölümler (Bölümlerimiz sayfasıyla senkron):
+  //   (bu şubede aktif doktoru olan bölümler)  ∪  (admin'in eklediği department_ids)
+  const hospitalDeptIds = useMemo(() => {
+    const set = new Set<number>()
+    ;((hospital as any)?.department_ids ?? []).forEach((depId: any) => {
+      if (depId != null) set.add(Number(depId))
+    })
+    ;(doctors ?? []).forEach((d: any) => {
+      if (d.department_id != null) set.add(Number(d.department_id))
+    })
+    return set
+  }, [hospital, doctors])
+
+  const visibleDepartments = useMemo(
+    () => (departments ?? []).filter((dep: any) => hospitalDeptIds.has(Number(dep.id))),
+    [departments, hospitalDeptIds]
+  )
 
   useEffect(() => {
     if (lightboxIndex === null) return
@@ -244,16 +262,16 @@ const HospitalDetailPage = () => {
                           {t('hospital.allDepartments', 'Tüm Bölümlerimiz')} <FaArrowRight />
                         </Link>
                       </div>
-                      {departmentsLoading ? (
+                      {departmentsLoading || doctorsLoading ? (
                         <div className="flex justify-center py-16">
                           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
                         </div>
-                      ) : (
+                      ) : visibleDepartments.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {departments?.map((dep) => (
+                          {visibleDepartments.map((dep: any) => (
                             <Link
                               key={dep.id}
-                              to={`/bolumlerimiz/${dep.slug}`}
+                              to={`/bolumlerimiz/${dep.slug}?hastane=${hospital.id}`}
                               className="flex items-center p-4 bg-gray-50 rounded-2xl border border-gray-100 group hover:border-primary/30 hover:bg-primary/5 transition-colors"
                             >
                               <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-primary shadow-sm mr-4 group-hover:scale-110 transition-transform flex-shrink-0">
@@ -265,6 +283,11 @@ const HospitalDetailPage = () => {
                               <FaChevronRight className="ml-auto text-gray-300 group-hover:text-primary transition-colors flex-shrink-0" />
                             </Link>
                           ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-16 text-gray-400">
+                          <FaStethoscope className="text-5xl mx-auto mb-4 opacity-30" />
+                          <p className="font-medium">{t('hospital.noDepartments', 'Bu şube için bölüm bilgisi henüz eklenmemiş.')}</p>
                         </div>
                       )}
                     </motion.div>
