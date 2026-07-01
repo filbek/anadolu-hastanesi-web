@@ -73,7 +73,7 @@ INSERT INTO hospitals (
   'Silivri Anadolu Hastanesi',
   'silivri-anadolu-hastanesi',
   'Silivri ve çevresine modern tıp altyapısı ve uzman kadrosuyla kapsamlı sağlık hizmeti sunuyoruz.',
-  'Alibey Mah. Atatürk Bulvarı No:42, Silivri / İstanbul',
+  'Mimar Sinan Mahallesi, Mimar Sinan Caddesi No:72, 34570 Silivri',
   '0212 728 10 00',
   'silivri@anadoluhastaneleri.com',
   'Pazartesi - Cumartesi: 08:00 - 20:00, Pazar: 09:00 - 18:00',

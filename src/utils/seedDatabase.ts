@@ -5,7 +5,7 @@ const hospitals = [
     name: 'Silivri Anadolu Hastanesi',
     slug: 'silivri-anadolu-hastanesi',
     description: 'Silivri ve çevresine modern tıp altyapısı ve uzman kadrosuyla kapsamlı sağlık hizmeti sunuyoruz.',
-    address: 'Alibey Mah. Atatürk Bulvarı No:42, Silivri / İstanbul',
+    address: 'Mimar Sinan Mahallesi, Mimar Sinan Caddesi No:72, 34570 Silivri',
     phone: '0212 728 10 00',
     email: 'silivri@anadoluhastaneleri.com',
     working_hours: 'Pazartesi - Cumartesi: 08:00 - 20:00, Pazar: 09:00 - 18:00',

@@ -165,7 +165,7 @@ const Footer = () => {
                   <div>
                     <span className="text-white/80">Silivri Anadolu Hastanesi</span>
                     <br />
-                    Alibey Mah. Atatürk Bulvarı No:42, Silivri / İstanbul
+                    Mimar Sinan Mahallesi, Mimar Sinan Caddesi No:72, 34570 Silivri
                   </div>
                   <div>
                     <span className="text-white/80">Avcılar Anadolu Hastanesi</span>
