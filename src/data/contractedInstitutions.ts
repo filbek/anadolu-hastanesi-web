@@ -237,7 +237,7 @@ export const contractedInstitutions: Record<string, ContractedCategory[]> = {
         'Avcılar Sosyal Yardımlaşma Vakfı - Kaymakamlık',
         'Küçükçekmece Adliyesi',
         'İstanbul Cumhuriyet Başsavcılığı / Adalet Bakanlığı',
-        'Zafer Muhtarlık',
+        'Esenyurt Zafer Mah. Muhtarlığı',
       ],
     },
     {

@@ -62,6 +62,7 @@ const AdminTestConnection = lazy(() => import('./components/admin/AdminTestConne
 const AdminVideoContent = lazy(() => import('./components/admin/AdminVideoContent'))
 const AdminQualityCertificates = lazy(() => import('./components/admin/AdminQualityCertificates'))
 const AdminPatientInfo = lazy(() => import('./components/admin/AdminPatientInfo'))
+const AdminContractedInstitutions = lazy(() => import('./components/admin/AdminContractedInstitutions'))
 const AdminSettings = lazy(() => import('./components/admin/AdminSettings'))
 const AdminHomeSettings = lazy(() => import('./components/admin/AdminHomeSettings'))
 const AdminHealthTourism = lazy(() => import('./components/admin/AdminHealthTourism'))
@@ -181,6 +182,7 @@ function App() {
               <Route path="video-content" element={<AdminVideoContent />} />
               <Route path="quality-certificates" element={<AdminQualityCertificates />} />
               <Route path="patient-info" element={<AdminPatientInfo />} />
+              <Route path="contracted-institutions" element={<AdminContractedInstitutions />} />
               <Route path="test-connection" element={<AdminTestConnection />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route path="hero-slides" element={<AdminHeroSlides />} />

@@ -1,16 +1,17 @@
 import { useMemo, useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useTranslation } from 'react-i18next'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   FaSearch, FaHandshake, FaGraduationCap, FaIndustry, FaTshirt, FaBoxOpen,
   FaCogs, FaHardHat, FaUtensils, FaHeartbeat, FaTruck, FaHotel, FaUsers,
-  FaLandmark, FaStore, FaBuilding,
+  FaLandmark, FaStore, FaBuilding, FaChevronDown,
 } from 'react-icons/fa'
 import PageBanner from '../components/common/PageBanner'
 import { useHospitals } from '../hooks/useHospitals'
 import { useLocalizedList } from '../hooks/useLocalizedList'
-import { contractedInstitutions, type ContractedCategory } from '../data/contractedInstitutions'
+import { useContractedInstitutions } from '../hooks/useContractedInstitutions'
+import { type ContractedCategory } from '../data/contractedInstitutions'
 
 // Kategori başlığına göre ikon eşlemesi (Türkçe küçük harfe duyarsız anahtar kelimeler)
 const getCategoryIcon = (category: string) => {
@@ -40,26 +41,49 @@ const normalize = (str: string) =>
 
 const ContractedInstitutionsPage = () => {
   const { t } = useTranslation()
-  const { data: hospitalsRaw = [], isLoading } = useHospitals({ onlyPublished: true })
+  const { data: hospitalsRaw = [], isLoading: hospitalsLoading } = useHospitals({ onlyPublished: true })
   const hospitals = useLocalizedList(hospitalsRaw, ['name'])
-  const [activeSlug, setActiveSlug] = useState<string>('')
+  const { data: rows = [], isLoading: rowsLoading } = useContractedInstitutions()
+  const isLoading = hospitalsLoading || rowsLoading
+  const [activeHospitalId, setActiveHospitalId] = useState<string>('')
   const [searchTerm, setSearchTerm] = useState('')
+  // Açık olan kategoriler (accordion). Varsayılan: hepsi kapalı.
+  const [openCats, setOpenCats] = useState<Set<string>>(new Set())
+
+  const toggleCategory = (category: string) => {
+    setOpenCats((prev) => {
+      const next = new Set(prev)
+      next.has(category) ? next.delete(category) : next.add(category)
+      return next
+    })
+  }
+
+  // DB satırlarını hastane id'sine göre kategori listelerine grupla
+  const categoriesByHospital = useMemo(() => {
+    const map = new Map<string, ContractedCategory[]>()
+    ;(rows as any[]).forEach((row) => {
+      const key = String(row.hospital_id)
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push({ category: row.category, items: row.items || [] })
+    })
+    return map
+  }, [rows])
 
   // Yalnızca anlaşmalı kurum verisi olan şubeleri sekme olarak göster
   const hospitalTabs = useMemo(
-    () => (hospitals as any[]).filter((h) => (contractedInstitutions[h.slug]?.length ?? 0) > 0),
-    [hospitals]
+    () => (hospitals as any[]).filter((h) => (categoriesByHospital.get(String(h.id))?.length ?? 0) > 0),
+    [hospitals, categoriesByHospital]
   )
 
   // İlk yüklemede verisi olan ilk şubeyi seç
   useEffect(() => {
-    if (!activeSlug && hospitalTabs.length > 0) {
-      setActiveSlug(hospitalTabs[0].slug)
+    if (!activeHospitalId && hospitalTabs.length > 0) {
+      setActiveHospitalId(String(hospitalTabs[0].id))
     }
-  }, [hospitalTabs, activeSlug])
+  }, [hospitalTabs, activeHospitalId])
 
-  const activeHospital = (hospitals as any[]).find((h) => h.slug === activeSlug)
-  const categories: ContractedCategory[] = contractedInstitutions[activeSlug] ?? []
+  const activeHospital = (hospitals as any[]).find((h) => String(h.id) === activeHospitalId)
+  const categories: ContractedCategory[] = categoriesByHospital.get(activeHospitalId) ?? []
 
   // Aramaya göre kategori ve kurumları filtrele
   const filteredCategories = useMemo(() => {
@@ -108,14 +132,14 @@ const ContractedInstitutionsPage = () => {
           >
             {hospitalTabs.map((hospital: any) => (
               <button
-                key={hospital.slug}
+                key={hospital.id}
                 type="button"
                 role="tab"
-                aria-selected={activeSlug === hospital.slug}
+                aria-selected={activeHospitalId === String(hospital.id)}
                 className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
-                  activeSlug === hospital.slug ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10 border border-gray-200'
+                  activeHospitalId === String(hospital.id) ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10 border border-gray-200'
                 }`}
-                onClick={() => { setActiveSlug(hospital.slug); setSearchTerm('') }}
+                onClick={() => { setActiveHospitalId(String(hospital.id)); setSearchTerm('') }}
               >
                 {hospital.name}
               </button>
@@ -167,35 +191,64 @@ const ContractedInstitutionsPage = () => {
             <p className="text-text-light">{t('contracted.noResultsDesc', 'Arama kriterinize uygun kurum bulunamadı.')}</p>
           </div>
         ) : (
-          <div className="space-y-8">
-            {filteredCategories.map((cat, idx) => (
-              <motion.section
-                key={cat.category}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.05 }}
-                transition={{ duration: 0.4, delay: Math.min(idx * 0.04, 0.3) }}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
-              >
-                <div className="flex items-center gap-4 px-6 py-5 bg-primary/5 border-b border-gray-100">
-                  <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg flex-shrink-0">
-                    {getCategoryIcon(cat.category)}
-                  </div>
-                  <h2 className="text-lg font-bold text-primary">{cat.category}</h2>
-                  <span className="ml-auto text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                    {cat.items.length}
-                  </span>
-                </div>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1 p-6">
-                  {cat.items.map((item) => (
-                    <li key={item} className="flex items-start gap-2.5 py-1.5 text-sm text-gray-700">
-                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </motion.section>
-            ))}
+          <div className="space-y-4">
+            {filteredCategories.map((cat, idx) => {
+              // Aramada eşleşen kategoriler otomatik açılır; aksi halde kullanıcı tıklamasına bağlı
+              const isOpen = searchTerm.trim() ? true : openCats.has(cat.category)
+              const panelId = `contracted-panel-${idx}`
+              return (
+                <motion.section
+                  key={cat.category}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.05 }}
+                  transition={{ duration: 0.4, delay: Math.min(idx * 0.04, 0.3) }}
+                  className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleCategory(cat.category)}
+                    aria-expanded={isOpen}
+                    aria-controls={panelId}
+                    className="w-full flex items-center gap-4 px-6 py-5 bg-primary/5 hover:bg-primary/10 transition-colors text-left"
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg flex-shrink-0">
+                      {getCategoryIcon(cat.category)}
+                    </div>
+                    <h2 className="text-lg font-bold text-primary">{cat.category}</h2>
+                    <span className="ml-auto text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+                      {cat.items.length}
+                    </span>
+                    <FaChevronDown
+                      aria-hidden="true"
+                      className={`text-primary/60 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        id={panelId}
+                        key="panel"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1 p-6 border-t border-gray-100">
+                          {cat.items.map((item) => (
+                            <li key={item} className="flex items-start gap-2.5 py-1.5 text-sm text-gray-700">
+                              <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.section>
+              )
+            })}
           </div>
         )}
 
