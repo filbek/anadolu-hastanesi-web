@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { useTranslation } from 'react-i18next'
@@ -7,6 +7,8 @@ import SectionTitle from '../components/ui/SectionTitle'
 import { FaSearch } from 'react-icons/fa'
 
 import { useDepartments } from '../hooks/useDepartments'
+import { useDoctors } from '../hooks/useDoctors'
+import { useHospitals } from '../hooks/useHospitals'
 import { useLocalizedList } from '../hooks/useLocalizedList'
 
 const containerVariants = {
@@ -29,9 +31,48 @@ const itemVariants = {
 const DepartmentsPage = () => {
   const { t } = useTranslation();
   const { data: departmentsRaw = [], isLoading } = useDepartments({ onlyPublished: true })
+  const { data: doctorsRaw = [] } = useDoctors()
+  const { data: hospitalsRaw = [] } = useHospitals({ onlyPublished: true })
   const departments = useLocalizedList(departmentsRaw, ['name', 'description'])
+  const hospitals = useLocalizedList(hospitalsRaw, ['name'])
   const [searchTerm, setSearchTerm] = useState('')
   const [activeCategory, setActiveCategory] = useState('all')
+  // Seçili hastane şubesi: 'all' = tüm bölümler, aksi halde hastane id'si (string)
+  const [activeHospital, setActiveHospital] = useState<string>('all')
+
+  // Her hastane şubesinde gösterilecek bölüm id'lerini hibrit olarak hesapla:
+  //   (o şubede aktif doktoru olan bölümler)  ∪  (admin'in "her zaman göster" seçtiği department_ids)
+  // Doktordan türeyen kısım: bir doktorun tek hospital_id + tek department_id'si olduğundan
+  // "bu şubede hangi bölümler var" bilgisini doktor kayıtlarından çıkarıyoruz.
+  const hospitalDeptMap = useMemo(() => {
+    const map = new Map<string, Set<number>>()
+    // Önce admin tarafından hastaneye elle eklenmiş bölümler (tanı/hizmet birimleri vb.)
+    ;(hospitalsRaw as any[]).forEach((h) => {
+      const set = new Set<number>()
+      ;(h.department_ids ?? []).forEach((id: any) => {
+        if (id != null) set.add(Number(id))
+      })
+      map.set(String(h.id), set)
+    })
+    // Sonra doktoru bulunan bölümleri ekle
+    ;(doctorsRaw as any[]).forEach((doc) => {
+      if (doc.hospital_id == null || doc.department_id == null) return
+      const key = String(doc.hospital_id)
+      if (!map.has(key)) map.set(key, new Set())
+      map.get(key)!.add(Number(doc.department_id))
+    })
+    return map
+  }, [doctorsRaw, hospitalsRaw])
+
+  // Sadece en az bir bölümü olan şubeleri sekme olarak göster,
+  // hastanelerin display_order sırasını koru.
+  const hospitalTabs = useMemo(
+    () => (hospitals as any[]).filter((h) => (hospitalDeptMap.get(String(h.id))?.size ?? 0) > 0),
+    [hospitals, hospitalDeptMap]
+  )
+
+  // Aktif şubeye ait bölüm id'leri (şube seçili değilse null = tümü)
+  const activeHospitalDeptIds = activeHospital === 'all' ? null : hospitalDeptMap.get(activeHospital) ?? new Set<number>()
 
   const defaultDescriptions: Record<string, string> = {
     'acil-servis': t('deptDesc.acilServis', '7/24 kesintisiz acil sağlık hizmeti sunan modern acil servisimizde uzman hekimlerimizle anında müdahale.'),
@@ -82,12 +123,13 @@ const DepartmentsPage = () => {
     return dept.description || defaultDescriptions[dept.slug] || t('departments.defaultDesc', '{{name}} birimimizde uzman kadromuzla hizmet vermekteyiz.', { name: dept.name })
   }
 
-  const filteredDepartments = departments.filter((department: { name: string; description?: string; category: string; slug?: string }) => {
+  const filteredDepartments = departments.filter((department: { id: number; name: string; description?: string; category: string; slug?: string }) => {
     const desc = getDeptDescription(department)
     const matchesSearch = department.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       desc.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = activeCategory === 'all' || department.category === activeCategory
-    return matchesSearch && matchesCategory
+    const matchesHospital = activeHospitalDeptIds === null || activeHospitalDeptIds.has(Number(department.id))
+    return matchesSearch && matchesCategory && matchesHospital
   })
 
   const categories = [
@@ -111,6 +153,41 @@ const DepartmentsPage = () => {
             title={t('departments.title', 'Bölümlerimiz')}
             subtitle={t('departments.subtitle', 'Anadolu Hastaneleri Grubu olarak, alanında uzman doktorlarımız ve modern teknolojimizle sağlığınız için hizmet veriyoruz.')}
           />
+
+          {/* Hastane şubesi sekmeleri */}
+          {hospitalTabs.length > 0 && (
+            <div
+              className="flex flex-wrap justify-center gap-2 mb-6"
+              role="tablist"
+              aria-label={t('departments.hospitalTabsLabel', 'Hastane şubesine göre bölümler')}
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeHospital === 'all'}
+                className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  activeHospital === 'all' ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
+                }`}
+                onClick={() => setActiveHospital('all')}
+              >
+                {t('departments.allHospitals', 'Tüm Şubeler')}
+              </button>
+              {hospitalTabs.map((hospital: any) => (
+                <button
+                  key={hospital.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeHospital === String(hospital.id)}
+                  className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
+                    activeHospital === String(hospital.id) ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
+                  }`}
+                  onClick={() => setActiveHospital(String(hospital.id))}
+                >
+                  {hospital.name}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="max-w-xl mx-auto mb-8">
             <div className="relative">
@@ -175,7 +252,7 @@ const DepartmentsPage = () => {
                     <h3 className="text-xl font-semibold mb-2 text-primary">{department.name}</h3>
                     <p className="text-text-light text-sm mb-4">{getDeptDescription(department)}</p>
                     <Link
-                      to={`/bolumlerimiz/${department.slug}`}
+                      to={activeHospital === 'all' ? `/bolumlerimiz/${department.slug}` : `/bolumlerimiz/${department.slug}?hastane=${activeHospital}`}
                       aria-label={t('departments.moreInfoAbout', '{{name}} hakkında detaylı bilgi', { name: department.name })}
                       className="inline-block text-sm font-medium text-primary hover:text-primary-dark transition-colors"
                     >

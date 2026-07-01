@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from 'react-query';
-import { FaSave, FaArrowLeft, FaImage, FaMapMarkerAlt, FaPhone, FaEnvelope, FaUpload, FaTrash, FaEye, FaGripVertical } from 'react-icons/fa';
+import { FaSave, FaArrowLeft, FaImage, FaMapMarkerAlt, FaPhone, FaEnvelope, FaUpload, FaTrash, FaEye, FaGripVertical, FaStethoscope } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
 import TranslationsPanel from './TranslationsPanel';
 import { supabase } from '../../lib/supabase';
 import { createHospital, updateHospital, uploadHospitalImage } from '../../services/hospitalService';
 import { CACHE_KEYS } from '../../services';
+import { useDepartments } from '../../hooks/useDepartments';
+import { useDoctors } from '../../hooks/useDoctors';
 import type { Hospital } from '../../lib/supabase';
 
 type HospitalFormData = Omit<Hospital, 'id' | 'created_at'> & {
@@ -44,8 +46,11 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
     is_active: true,
     display_order: 1,
     images: [],
+    department_ids: [],
     translations: {}
   });
+  const { data: allDepartments = [] } = useDepartments();
+  const { data: allDoctors = [] } = useDoctors();
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploadingMainImage, setUploadingMainImage] = useState(false);
@@ -80,6 +85,7 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
     hero_title: data.hero_title || '',
     hero_subtitle: data.hero_subtitle || '',
     map_url: data.map_url || '',
+    department_ids: Array.isArray(data.department_ids) ? data.department_ids.map((n: any) => Number(n)) : [],
     translations: data.translations || {},
   });
 
@@ -103,6 +109,26 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
       .replace(/[^\w\s-]/g, '')
       .replace(/\s+/g, '-')
       .substring(0, 60);
+  };
+
+  // Bu şubede zaten aktif doktoru olan bölüm id'leri — bunlar sekmede
+  // otomatik gösterilir, ayrıca işaretlemeye gerek yoktur.
+  const currentHospitalId = id ?? formData.id;
+  const autoShownDeptIds = new Set<number>(
+    (allDoctors as any[])
+      .filter((d) => currentHospitalId != null && String(d.hospital_id) === String(currentHospitalId) && d.department_id != null)
+      .map((d) => Number(d.department_id))
+  );
+
+  const toggleDepartment = (deptId: number) => {
+    setFormData(prev => {
+      const current = prev.department_ids || [];
+      const exists = current.includes(deptId);
+      return {
+        ...prev,
+        department_ids: exists ? current.filter(id => id !== deptId) : [...current, deptId],
+      };
+    });
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -428,6 +454,58 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Bölüm Görünürlüğü — Şube Sekmesi */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-primary mb-1 flex items-center">
+              <FaStethoscope className="mr-2" />
+              {t('admin.hospitalForm.deptVisibilityTitle', 'Bölüm Görünürlüğü (Şube Sekmesi)')}
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              {t(
+                'admin.hospitalForm.deptVisibilityHint',
+                'Bölümlerimiz sayfasında bu şube sekmesinde gösterilecek bölümler. Doktoru olan bölümler otomatik listelenir; burada işaretledikleriniz (Radyoloji, Laboratuvar, Acil gibi doktor kaydı olmayan birimler) doktor olmasa da her zaman gösterilir.'
+              )}
+            </p>
+
+            {allDepartments.length === 0 ? (
+              <p className="text-sm text-gray-400 italic">
+                {t('admin.hospitalForm.noDepartments', 'Bölüm bulunamadı.')}
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-96 overflow-y-auto pr-1">
+                {allDepartments.map((dept: any) => {
+                  const isAuto = autoShownDeptIds.has(Number(dept.id));
+                  const isChecked = isAuto || (formData.department_ids || []).includes(Number(dept.id));
+                  return (
+                    <label
+                      key={dept.id}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${
+                        isAuto
+                          ? 'bg-gray-50 border-gray-200 cursor-not-allowed'
+                          : 'border-gray-200 hover:bg-primary/5 cursor-pointer'
+                      }`}
+                      title={isAuto ? t('admin.hospitalForm.autoShownTooltip', 'Bu bölümde şubeye ait doktor olduğu için otomatik gösterilir.') : ''}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        disabled={isAuto}
+                        onChange={() => toggleDepartment(Number(dept.id))}
+                        className="shrink-0"
+                      />
+                      <span className="flex-1 text-gray-700">{dept.name}</span>
+                      {isAuto && (
+                        <span className="shrink-0 text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">
+                          {t('admin.hospitalForm.autoBadge', 'Doktordan otomatik')}
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 

@@ -51,6 +51,9 @@ export type Hospital = {
   hero_subtitle?: string;
   map_url?: string;
   is_published?: boolean;
+  // Bu şubede "her zaman göster" denilen bölüm id'leri (doktor kaydı olmasa da).
+  // Bölümlerimiz sayfasındaki şube sekmelerinde doktorlardan türeyen listeye eklenir.
+  department_ids?: number[];
   translations?: Translations;
   created_at: string;
   updated_at?: string;

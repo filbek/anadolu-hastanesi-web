@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -33,9 +33,21 @@ function getDepartmentProcess(deptName: string, t: any): { title: string; steps:
 const DepartmentDetailPage = () => {
   const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams] = useSearchParams();
+  // Bölümlerimiz sayfasında bir şube sekmesi seçiliyken gelinirse ?hastane=<id> ile gelir
+  const hospitalFilter = searchParams.get('hastane') || '';
   const { data: department, isLoading: isDeptLoading } = useDepartment(slug || '');
-  const { data: doctors = [], isLoading: isDoctorsLoading } = useDoctorsByDepartment(department?.id || 0);
+  const { data: allDoctors = [], isLoading: isDoctorsLoading } = useDoctorsByDepartment(department?.id || 0);
   const { data: otherDepartments = [] } = useDepartments({ onlyPublished: true });
+
+  // Şube filtresi varsa yalnızca o hastanenin doktorlarını göster
+  const doctors = hospitalFilter
+    ? allDoctors.filter((d: any) => String(d.hospital_id) === hospitalFilter)
+    : allDoctors;
+  // Filtrelenen şubenin adı (rozet ve "tüm şubeler" bağlantısı için)
+  const filteredHospitalName = hospitalFilter
+    ? (allDoctors.find((d: any) => String(d.hospital_id) === hospitalFilter) as any)?.hospitals?.name || ''
+    : '';
 
   const [activeTab, setActiveTab] = useState('about');
 
@@ -218,8 +230,21 @@ const DepartmentDetailPage = () => {
 
                     {/* Doctors Section */}
                     <div className="mt-12">
-                      <h3 className="text-xl font-bold text-primary mb-6 flex items-center">
-                        <div className="w-2 h-8 bg-accent rounded-full mr-3" /> {t('deptDetail.featuredDoctors', 'Bölüm Doktorlarımız')}
+                      <h3 className="text-xl font-bold text-primary mb-6 flex items-center flex-wrap gap-x-3 gap-y-2">
+                        <span className="flex items-center">
+                          <div className="w-2 h-8 bg-accent rounded-full mr-3" /> {t('deptDetail.featuredDoctors', 'Bölüm Doktorlarımız')}
+                        </span>
+                        {filteredHospitalName && (
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                            {filteredHospitalName}
+                            <Link
+                              to={`/bolumlerimiz/${department.slug}`}
+                              className="text-xs font-semibold underline hover:no-underline"
+                            >
+                              {t('deptDetail.allBranches', 'Tüm şubeler')}
+                            </Link>
+                          </span>
+                        )}
                       </h3>
                       {isDoctorsLoading ? (
                         <div className="flex justify-center py-12">
@@ -268,6 +293,13 @@ const DepartmentDetailPage = () => {
                             </Link>
                           ))}
                         </div>
+                      ) : filteredHospitalName ? (
+                        <p className="text-text-light italic">
+                          {t('deptDetail.noDoctorsAtBranch', '{{hospital}} şubesinde bu bölüme ait doktor bulunmamaktadır.', { hospital: filteredHospitalName })}{' '}
+                          <Link to={`/bolumlerimiz/${department.slug}`} className="text-primary font-medium underline hover:no-underline not-italic">
+                            {t('deptDetail.showAllBranchDoctors', 'Tüm şubelerdeki doktorları gör')}
+                          </Link>
+                        </p>
                       ) : (
                         <p className="text-text-light italic">{t('deptDetail.noDoctors', 'Bu bölümde henüz doktor bulunmamaktadır.')}</p>
                       )}
