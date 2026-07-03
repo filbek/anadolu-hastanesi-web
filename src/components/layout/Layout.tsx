@@ -4,7 +4,6 @@ import Header from './Header'
 import Footer from './Footer'
 import EmergencyBanner from './EmergencyBanner'
 import ScrollToTop from '../ui/ScrollToTop'
-import FloatingActions from './FloatingActions'
 
 const Layout = () => {
   const location = useLocation()
@@ -28,7 +27,6 @@ const Layout = () => {
       </main>
       <Footer />
       <ScrollToTop />
-      <FloatingActions />
     </div>
   )
 }
