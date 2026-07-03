@@ -99,7 +99,7 @@ const StatsSection = () => {
   const isInView = useInView(ref, { once: true, amount: 0.2 })
 
   return (
-    <section className="relative py-24 md:py-32 bg-surface overflow-hidden">
+    <section className="relative py-24 md:py-32 bg-white overflow-hidden">
       {/* Decorative SVG Pattern */}
       <div className="absolute inset-0 opacity-[0.025] pointer-events-none">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -144,7 +144,7 @@ const StatsSection = () => {
               }}
               className="text-center group"
             >
-              <div className="w-14 h-14 mx-auto mb-6 rounded-2xl bg-white shadow-soft flex items-center justify-center text-ocean-500 transition-all duration-300 group-hover:shadow-card group-hover:scale-105">
+              <div className="w-14 h-14 mx-auto mb-6 rounded-2xl bg-surface border border-neutral-100/50 flex items-center justify-center text-ocean-500 transition-all duration-300 group-hover:bg-white group-hover:shadow-card group-hover:scale-105">
                 {stat.icon}
               </div>
               <Counter value={stat.value} suffix={stat.suffix} inView={isInView} />

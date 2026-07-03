@@ -20,9 +20,6 @@ const HomePage = () => {
       {/* 2. Quick Action Ribbon — Glassmorphism band */}
       <QuickActionRibbon />
 
-      {/* 3. Stats — Numbers with proof */}
-      <StatsSection />
-
       {/* 4. Hospital Branches — Asymmetric grid */}
       <HospitalBranches />
 
@@ -31,6 +28,9 @@ const HomePage = () => {
 
       {/* 6. Doctors — Masonry grid, B&W to color */}
       <DoctorsSlider />
+
+      {/* 3. Stats — Numbers with proof */}
+      <StatsSection />
 
       {/* 7. Second Opinion — Dark, immersive CTA */}
       <SecondOpinionSection />
