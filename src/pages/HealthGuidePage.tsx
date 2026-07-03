@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect, useMemo } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
@@ -13,23 +13,33 @@ const HealthGuidePage = () => {
   const { t } = useTranslation();
   const { data: articlesRaw = [], isLoading } = useHealthArticles()
   const articles = useLocalizedList(articlesRaw, ['title', 'excerpt', 'category'])
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedType, setSelectedType] = useState('');
-  const [filteredArticles, setFilteredArticles] = useState(articles);
+  
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '')
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '')
+  const [selectedType, setSelectedType] = useState(searchParams.get('type') || '')
+  const [filteredArticles, setFilteredArticles] = useState(articles)
 
+  // Sync state with URL search params when they change (e.g. navigation)
   useEffect(() => {
-    setFilteredArticles(articles)
+    setSelectedCategory(searchParams.get('category') || '')
+    setSelectedType(searchParams.get('type') || '')
+    setSearchTerm(searchParams.get('search') || '')
+  }, [searchParams])
+
+  // Compute categories list safely
+  const categories = useMemo(() => {
+    return [...new Set(articles.map((article: any) => article.category).filter(Boolean))].sort()
   }, [articles])
 
-  const categories = [...new Set(articles.map((article: any) => article.category))];
-
-  const handleSearch = () => {
+  // Filter articles reactively whenever search/filters or articles list changes
+  useEffect(() => {
     const filtered = articles.filter((article: any) => {
       const excerpt = article.excerpt || article.content?.substring(0, 120) || ''
-      const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const matchesSearch = searchTerm === '' ||
+        (article.title && article.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
         excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        article.category.toLowerCase().includes(searchTerm.toLowerCase());
+        (article.category && article.category.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesCategory = selectedCategory === '' || article.category === selectedCategory;
       const matchesType = selectedType === '' || article.type === selectedType;
@@ -38,13 +48,21 @@ const HealthGuidePage = () => {
     });
     
     setFilteredArticles(filtered);
+  }, [searchTerm, selectedCategory, selectedType, articles]);
+
+  const handleSearch = () => {
+    const params: Record<string, string> = {}
+    if (searchTerm) params.search = searchTerm
+    if (selectedCategory) params.category = selectedCategory
+    if (selectedType) params.type = selectedType
+    setSearchParams(params)
   };
 
   const resetFilters = () => {
-    setSearchTerm('');
-    setSelectedCategory('');
-    setSelectedType('');
-    setFilteredArticles(articles);
+    setSearchTerm('')
+    setSelectedCategory('')
+    setSelectedType('')
+    setSearchParams({})
   };
 
   const getTypeIcon = (type: string) => {

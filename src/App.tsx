@@ -31,7 +31,7 @@ const PatientRightsPage = lazy(() => import('./pages/PatientRightsPage'))
 const AboutHospitalPage = lazy(() => import('./pages/AboutHospitalPage'))
 const ChairmanMessagePage = lazy(() => import('./pages/ChairmanMessagePage'))
 const QualityManagementPage = lazy(() => import('./pages/QualityManagementPage'))
-const NewsPage = lazy(() => import('./pages/NewsPage'))
+// const NewsPage = lazy(() => import('./pages/NewsPage'))
 const PatientFeedbackPage = lazy(() => import('./pages/PatientFeedbackPage'))
 const ComplaintPolicyPage = lazy(() => import('./pages/ComplaintPolicyPage'))
 const GebeOkuluPage = lazy(() => import('./pages/GebeOkuluPage'))
@@ -136,7 +136,9 @@ function App() {
             <Route path="hakkimizda" element={<AboutHospitalPage />} />
             <Route path="baskanin-mesaji" element={<ChairmanMessagePage />} />
             <Route path="kalite-yonetimi" element={<QualityManagementPage />} />
-            <Route path="bizden-haberler" element={<NewsPage />} />
+            {/* Bizden Haberler disabled for now - reactivate by uncommenting */}
+            {/* <Route path="bizden-haberler" element={<NewsPage />} /> */}
+            <Route path="bizden-haberler" element={<Navigate to="/404" replace />} />
             <Route path="sizi-dinliyoruz" element={<PatientFeedbackPage />} />
             <Route path="sikayet-politikasi" element={<ComplaintPolicyPage />} />
             <Route path="gebe-okulu" element={<GebeOkuluPage />} />

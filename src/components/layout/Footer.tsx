@@ -109,7 +109,7 @@ const Footer = () => {
                 { name: t('footerLinks.missionVision'), path: '/misyon-vizyon-ve-degerlerimiz' },
                 { name: t('footerLinks.management'), path: '/yonetim' },
                 { name: t('footerLinks.qualityManagement'), path: '/kalite-yonetimi' },
-                { name: t('footerLinks.news'), path: '/bizden-haberler' },
+                // { name: t('footerLinks.news'), path: '/bizden-haberler' },
                 { name: t('footerLinks.career', 'Kariyer'), path: '/kariyer' },
               ].map((link) => (
                 <li key={link.name}>
