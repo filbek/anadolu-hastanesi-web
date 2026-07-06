@@ -915,7 +915,7 @@
     "logout": "Çıkış Yap"
   },
   "home": {
-    "accJci": "Joint Commission International",
+    "accJci": "Uluslararası Kalite Standartları",
     "accIso9001": "Kalite Yönetim Sistemi",
     "accIso14001": "Çevre Yönetim Sistemi",
     "accTse": "Türk Standartları Enstitüsü",
@@ -924,7 +924,7 @@
     "trustKvkk": "KVKK Uyumlu",
     "trustPatientRights": "Hasta Hakları Koruması",
     "trustEmergency": "7/24 Acil Servis",
-    "trustJci": "JCI Akreditasyonu",
+    "trustJci": "Uluslararası Akreditasyon",
     "accreditation": "Akreditasyon",
     "trustLabel": "Güven ve Kalite",
     "accreditationsTitle": "Akreditasyonlarımız",
@@ -979,10 +979,10 @@
     "heroTitle1": "Geleceğin",
     "heroHighlight1": "Sağlığı, Bugün",
     "heroSubtitle1": "Çeyrek asırlık tecrübemiz, dünya standartlarındaki teknolojimiz ve 150'yi aşkın uzman kadromuzla sağlığınızın geleceğini şekillendiriyoruz.",
-    "heroBadge2": "JCI Akredite",
+    "heroBadge2": "Uluslararası Standartlar",
     "heroTitle2": "Sınırsız",
     "heroHighlight2": "Güven, Mükemmellik",
-    "heroSubtitle2": "Joint Commission International akreditasyonu ile uluslararası standartlarda, hasta güvenliği ve kalite yönetiminde zirvedeyiz.",
+    "heroSubtitle2": "Uluslararası akreditasyon ve kalite standartları ile dünya standartlarında, hasta güvenliği ve kalite yönetiminde zirvedeyiz.",
     "qualityStandards": "Kalite Standartlarımız",
     "heroBadge3": "7/24 Kesintisiz Hizmet",
     "heroTitle3": "Her An",
@@ -1107,7 +1107,7 @@
   "about": {
     "milestone2005Title": "Kuruluş",
     "milestone2010Title": "Global Standartlar",
-    "milestone2010Desc": "JCI Akreditasyonu ile kalitemizi tescilledik.",
+    "milestone2010Desc": "Uluslararası kalite akreditasyonu ile kalitemizi tescilledik.",
     "milestone2015Title": "Teknoloji Hamlesi",
     "milestone2015Desc": "Robotik cerrahi ve yapay zeka entegrasyonu.",
     "milestone2023Title": "Geleceğin Sağlığı",
@@ -1427,7 +1427,7 @@
     "emergencyLabel": "Acil Servis:",
     "contactTransport": "İletişim & Ulaşım",
     "corporateInfo": "Kurumsal Bilgiler",
-    "jci": "JCI Uluslararası Akreditasyon",
+    "jci": "Uluslararası Kalite Standartları",
     "modernTech": "Modern Teknolojik Altyapı",
     "service247": "7/24 Kesintisiz Hizmet"
   },
@@ -1587,9 +1587,9 @@
     "resp4": "Diğer hastaların, ziyaretçilerin ve hastane personelinin haklarına saygı göstermek."
   },
   "cert": {
-    "jci": "JCI Akreditasyonu",
-    "jciDesc": "Joint Commission International tarafından verilen uluslararası kalite belgesi",
-    "jciIssuer": "Joint Commission International",
+    "jci": "Uluslararası Kalite Belgesi",
+    "jciDesc": "Uluslararası standartlarda sağlık hizmeti sunulduğunu tescilleyen kalite belgesi",
+    "jciIssuer": "Uluslararası Akreditasyon Kuruluşu",
     "iso9001": "ISO 9001:2015",
     "iso9001Desc": "Kalite Yönetim Sistemi Belgesi",
     "iso9001Issuer": "Türk Standartları Enstitüsü",

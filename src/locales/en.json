@@ -915,7 +915,7 @@
     "logout": "Logout"
   },
   "home": {
-    "accJci": "Joint Commission International",
+    "accJci": "International Quality Standards",
     "accIso9001": "Quality Management System",
     "accIso14001": "Environmental Management System",
     "accTse": "Turkish Standards Institution",
@@ -924,7 +924,7 @@
     "trustKvkk": "KVKK Compliant",
     "trustPatientRights": "Patient Rights Protection",
     "trustEmergency": "7/24 Emergency Service",
-    "trustJci": "JCI Accreditation",
+    "trustJci": "International Accreditation",
     "accreditation": "Accreditation",
     "trustLabel": "Trust and Quality",
     "accreditationsTitle": "Our Accreditations",
@@ -979,10 +979,10 @@
     "heroTitle1": "The Health of",
     "heroHighlight1": "the Future, Today",
     "heroSubtitle1": "With our quarter-century of experience, world-class technology and over 150 expert staff, we shape the future of your health.",
-    "heroBadge2": "JCI Accredited",
+    "heroBadge2": "International Standards",
     "heroTitle2": "Boundless",
     "heroHighlight2": "Trust, Excellence",
-    "heroSubtitle2": "With Joint Commission International accreditation, we are at the peak in international standards, patient safety and quality management.",
+    "heroSubtitle2": "We serve you at international standards, at the peak in patient safety and quality management, with our international quality standards.",
     "qualityStandards": "Our Quality Standards",
     "heroBadge3": "7/24 Uninterrupted Service",
     "heroTitle3": "We Are",
@@ -1107,7 +1107,7 @@
   "about": {
     "milestone2005Title": "Establishment",
     "milestone2010Title": "Global Standards",
-    "milestone2010Desc": "We certified our quality with JCI Accreditation.",
+    "milestone2010Desc": "We certified our quality with international accreditation.",
     "milestone2015Title": "Technology Initiative",
     "milestone2015Desc": "Robotic surgery and AI integration.",
     "milestone2023Title": "The Health of the Future",
@@ -1427,7 +1427,7 @@
     "emergencyLabel": "Emergency Service:",
     "contactTransport": "Contact & Transportation",
     "corporateInfo": "Corporate Information",
-    "jci": "JCI International Accreditation",
+    "jci": "International Quality Standards",
     "modernTech": "Modern Technological Infrastructure",
     "service247": "7/24 Uninterrupted Service"
   },
@@ -1587,9 +1587,9 @@
     "resp4": "To respect the rights of other patients, visitors and hospital staff."
   },
   "cert": {
-    "jci": "JCI Accreditation",
-    "jciDesc": "International quality certificate issued by Joint Commission International",
-    "jciIssuer": "Joint Commission International",
+    "jci": "International Quality Certificate",
+    "jciDesc": "Quality certificate proving that healthcare services are provided at international standards",
+    "jciIssuer": "International Accreditation Body",
     "iso9001": "ISO 9001:2015",
     "iso9001Desc": "Quality Management System Certificate",
     "iso9001Issuer": "Turkish Standards Institution",

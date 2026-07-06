@@ -13,7 +13,7 @@ const HealthTourismPage = () => {
   const { t } = useTranslation()
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
   const whyUs = [
-    { title: 'JCI Akreditasyonu', desc: 'Uluslararası standartlarda sağlık hizmeti sunduğumuzu belgeleyen JCI akreditasyonuna sahibiz.' },
+    { title: t('healthTourism.whyUsTitle1', 'Uluslararası Kalite Standartları'), desc: t('healthTourism.whyUsDesc1', 'Uluslararası standartlarda sağlık hizmeti sunduğumuzu belgeleyen kalite sertifikalarına sahibiz.') },
     { title: 'Uzman Doktor Kadrosu', desc: 'Alanında uzman ve uluslararası deneyime sahip doktorlarımızla hizmet veriyoruz.' },
     { title: 'Modern Teknoloji', desc: 'En son teknoloji tıbbi cihazlar ve tedavi yöntemleri kullanıyoruz.' },
     { title: 'Çok Dilli Hizmet', desc: 'İngilizce, Almanca, Arapça, Rusça ve daha birçok dilde hizmet sunuyoruz.' },

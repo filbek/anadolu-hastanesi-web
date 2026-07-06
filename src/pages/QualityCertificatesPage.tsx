@@ -9,15 +9,6 @@ const OriginalQualityCertificatesPage = () => {
   const { t } = useTranslation();
   const certificates = [
     {
-      id: 1,
-      name: t('cert.jci', 'JCI Akreditasyonu'),
-      description: t('cert.jciDesc', 'Joint Commission International tarafından verilen uluslararası kalite belgesi'),
-      issuer: t('cert.jciIssuer', 'Joint Commission International'),
-      date: '2023',
-      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400',
-      icon: FaAward
-    },
-    {
       id: 2,
       name: t('cert.iso9001', 'ISO 9001:2015'),
       description: t('cert.iso9001Desc', 'Kalite Yönetim Sistemi Belgesi'),

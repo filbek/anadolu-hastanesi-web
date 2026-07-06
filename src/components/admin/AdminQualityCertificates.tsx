@@ -43,18 +43,6 @@ const AdminQualityCertificates = () => {
       // Create sample certificates data since table might not exist
       const sampleCertificates: QualityCertificate[] = [
         {
-          id: 1,
-          name: 'JCI Akreditasyonu',
-          description: 'Joint Commission International tarafından verilen uluslararası kalite belgesi',
-          issuer: 'Joint Commission International',
-          issue_date: '2023-01-15',
-          image_url: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400',
-          is_active: true,
-          display_order: 1,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
           id: 2,
           name: 'ISO 9001:2015',
           description: 'Kalite Yönetim Sistemi Belgesi',

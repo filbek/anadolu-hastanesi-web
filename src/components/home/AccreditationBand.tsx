@@ -23,7 +23,6 @@ const AccreditationBand = () => {
   const { data: dbItems } = useAccreditations()
 
   const fallbackAccreditations: AccreditationItem[] = useMemo(() => [
-    { name: 'JCI', description: t('home.accJci', 'Joint Commission International'), icon: <FaShieldAlt /> },
     { name: 'ISO 9001', description: t('home.accIso9001', 'Kalite Yönetim Sistemi'), icon: <FaCertificate /> },
     { name: 'ISO 14001', description: t('home.accIso14001', 'Çevre Yönetim Sistemi'), icon: <FaCertificate /> },
     { name: 'TSE', description: t('home.accTse', 'Türk Standartları Enstitüsü'), icon: <FaCheckCircle /> },
@@ -34,7 +33,7 @@ const AccreditationBand = () => {
     { icon: <FaShieldAlt />, text: t('home.trustKvkk', 'KVKK Uyumlu') },
     { icon: <FaCheckCircle />, text: t('home.trustPatientRights', 'Hasta Hakları Koruması') },
     { icon: <FaStar />, text: t('home.trustEmergency', '7/24 Acil Servis') },
-    { icon: <FaCertificate />, text: t('home.trustJci', 'JCI Akreditasyonu') },
+    { icon: <FaCertificate />, text: t('home.trustJci', 'Uluslararası Akreditasyon') },
   ]
 
   function mapDbAccreditations(dbItems: any[]): AccreditationItem[] {

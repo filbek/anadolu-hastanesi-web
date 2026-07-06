@@ -22,7 +22,7 @@ const HealthTourismSection = () => {
   const floatingStats = [
     { value: '30+', label: t('home.statCountries', 'Ülke') },
     { value: '5000+', label: t('home.statInternationalPatients', 'Uluslararası Hasta') },
-    { value: 'JCI', label: t('home.statAccreditation', 'Akreditasyon') },
+    { value: 'SKS', label: t('home.statAccreditation', 'Akreditasyon') },
     { value: 'ISO', label: t('home.statCertificate', 'Sertifika') },
   ]
 

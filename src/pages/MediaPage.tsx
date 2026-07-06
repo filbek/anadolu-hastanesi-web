@@ -15,8 +15,8 @@ const mediaItems = (t: any) => [
     source: t('media.source1', 'Hürriyet Sağlık'),
     date: '12 Mart 2026',
     category: t('media.catHealth', 'Sağlık'),
-    title: t('media.item1Title', 'Anadolu Hastaneleri, JCI Akreditasyonunu Yeniledi'),
-    excerpt: t('media.item1Desc', 'Anadolu Hastaneleri Grubu, uluslararası sağlık kalite standartları olan JCI akreditasyonunu başarıyla yenileyerek hizmet kalitesini bir kez daha tescilledi.'),
+    title: t('media.item1Title', 'Anadolu Hastaneleri, Uluslararası Akreditasyonunu Yeniledi'),
+    excerpt: t('media.item1Desc', 'Anadolu Hastaneleri Grubu, uluslararası sağlık kalite standartları akreditasyonunu başarıyla yenileyerek hizmet kalitesini bir kez daha tescilledi.'),
     link: '#',
   },
   {

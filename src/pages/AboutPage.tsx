@@ -10,7 +10,7 @@ const OriginalAboutPage = () => {
   const { t } = useTranslation();
   const milestones = [
     { year: '2005', title: t('about.milestone2005Title', 'Kuruluş'), description: t('about.milestone2005Desc', "Şişli'de ilk butik hastanemizle yola çıktık."), icon: '🚀' },
-    { year: '2010', title: t('about.milestone2010Title', 'Global Standartlar'), description: t('about.milestone2010Desc', 'JCI Akreditasyonu ile kalitemizi tescilledik.'), icon: '💎' },
+    { year: '2010', title: t('about.milestone2010Title', 'Global Standartlar'), description: t('about.milestone2010Desc', 'Uluslararası kalite akreditasyonu ile kalitemizi tescilledik.'), icon: '💎' },
     { year: '2015', title: t('about.milestone2015Title', 'Teknoloji Hamlesi'), description: t('about.milestone2015Desc', 'Robotik cerrahi ve yapay zeka entegrasyonu.'), icon: '🤖' },
     { year: '2023', title: t('about.milestone2023Title', 'Geleceğin Sağlığı'), description: t('about.milestone2023Desc', '6 hastane ve 1 milyon+ mutlu hasta.'), icon: '🌟' },
   ];
