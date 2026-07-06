@@ -61,22 +61,22 @@ const QuickActionRibbon = () => {
                 <motion.div
                   whileHover={{ y: -2 }}
                   transition={{ duration: 0.2 }}
-                  className="group flex items-center gap-4 p-5 md:p-6 cursor-pointer transition-colors hover:bg-white/50"
+                  className="group flex flex-col md:flex-row items-center md:items-center justify-center md:justify-start text-center md:text-left gap-2 md:gap-4 p-4 sm:p-5 md:p-6 cursor-pointer transition-colors hover:bg-white/50"
                 >
                   <div
-                    className={`w-12 h-12 rounded-2xl ${action.bgColor} flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-110`}
+                    className={`w-11 h-11 md:w-12 md:h-12 rounded-2xl ${action.bgColor} flex items-center justify-center flex-shrink-0 transition-transform duration-300 group-hover:scale-110`}
                   >
                     <span className={action.color}>{action.icon}</span>
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-display font-semibold text-sm text-neutral-800 group-hover:text-primary-600 transition-colors">
+                    <h3 className="font-display font-semibold text-sm text-neutral-800 group-hover:text-primary-600 transition-colors leading-tight">
                       {action.title}
                     </h3>
                     <p className="text-xs text-neutral-500 hidden md:block truncate">
                       {action.desc}
                     </p>
                   </div>
-                  <FaChevronRight className="text-xs text-neutral-300 ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0" />
+                  <FaChevronRight className="hidden md:block text-xs text-neutral-300 ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0" />
                 </motion.div>
               )
 

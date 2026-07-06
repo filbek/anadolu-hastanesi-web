@@ -43,7 +43,7 @@ const Logo = ({ variant = 'default', clickable = true, size = 'default' }: LogoP
     <img
       src={customLogo || defaultLogo}
       alt="Anadolu Hastaneleri"
-      className={`h-full w-auto object-contain ${isLarge ? 'max-h-16' : 'max-h-12'} ${isWhite && !customLogo ? 'brightness-0 invert' : ''}`}
+      className={`w-auto object-contain ${isLarge ? 'h-11 sm:h-14 lg:h-16' : 'h-9 md:h-12'} ${isWhite && !customLogo ? 'brightness-0 invert' : ''}`}
       referrerPolicy="no-referrer"
       crossOrigin="anonymous"
       onError={() => setCustomLogo('')}
@@ -51,7 +51,11 @@ const Logo = ({ variant = 'default', clickable = true, size = 'default' }: LogoP
   )
 
   if (!clickable) {
-    return logoContent
+    return (
+      <span className={`flex items-center ${isLarge ? 'h-11 sm:h-14 lg:h-16' : 'h-9 md:h-12'}`}>
+        {logoContent}
+      </span>
+    )
   }
 
   return (
