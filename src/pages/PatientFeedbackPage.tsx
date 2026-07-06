@@ -266,7 +266,7 @@ const PatientFeedbackPage = () => {
                 {/* Kime ait — Hasta / Çalışan sekmesi */}
                 <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl mb-6" role="tablist" aria-label={t('feedback.audienceLabel', 'Formu dolduran')}>
                   {[
-                    { value: 'hasta' as const, label: t('feedback.audiencePatientTab', 'Hasta / Ziyaretçi') },
+                    { value: 'hasta' as const, label: t('feedback.audiencePatientTab', 'Hasta ve Yakınları') },
                     { value: 'personel' as const, label: t('feedback.audienceEmployeeTab', 'Çalışan Personel') },
                   ].map((tab) => (
                     <button
@@ -275,9 +275,8 @@ const PatientFeedbackPage = () => {
                       role="tab"
                       aria-selected={audience === tab.value}
                       onClick={() => { setAudience(tab.value); if (tab.value === 'hasta') setAnonymous(false); }}
-                      className={`py-2.5 rounded-lg text-sm font-bold transition-all ${
-                        audience === tab.value ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                      }`}
+                      className={`py-2.5 rounded-lg text-sm font-bold transition-all ${audience === tab.value ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                        }`}
                     >
                       {tab.label}
                     </button>
@@ -295,8 +294,8 @@ const PatientFeedbackPage = () => {
                           type="button"
                           onClick={() => setSelectedType(type.value)}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 font-bold text-sm transition-all duration-200 ${selectedType === type.value
-                              ? 'border-primary bg-primary/5 text-primary'
-                              : 'border-gray-200 text-gray-500 hover:border-primary/30'
+                            ? 'border-primary bg-primary/5 text-primary'
+                            : 'border-gray-200 text-gray-500 hover:border-primary/30'
                             }`}
                         >
                           <span className="text-2xl">{type.icon}</span>

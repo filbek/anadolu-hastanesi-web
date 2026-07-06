@@ -59,6 +59,7 @@ const AdminLayout = () => {
         { path: '/admin/patient-feedback', icon: FaClipboardList, label: 'Geri Bildirimler' },
         { path: '/admin/second-opinion', icon: FaEnvelope, label: 'İkinci Görüş Başvuruları' },
         { path: '/admin/quality-certificates', icon: FaAward, label: 'Kalite Sertifikaları' },
+        { path: '/admin/quality-committees', icon: FaClipboardList, label: 'Kalite Komiteleri' },
       ]
     },
     {
