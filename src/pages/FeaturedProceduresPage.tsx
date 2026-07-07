@@ -26,7 +26,6 @@ const groups = (t: any) => [
     items: [
       t('featuredProcedures.g1Item1', 'Girişimsel radyoloji uygulamaları'),
     ],
-    color: 'from-slate-500 to-slate-700',
   },
   {
     icon: <FaBrain />,
@@ -34,7 +33,6 @@ const groups = (t: any) => [
     items: [
       t('featuredProcedures.g2Item1', 'Full endoskopik (kapalı) fıtık ameliyatları'),
     ],
-    color: 'from-indigo-500 to-violet-600',
   },
   {
     icon: <FaWaveSquare />,
@@ -44,7 +42,6 @@ const groups = (t: any) => [
       t('featuredProcedures.g3Item2', 'Kök hücre ve eksozom tedavisi (sertleşme sorunu)'),
       t('featuredProcedures.g3Item3', 'HoLEP (prostat kazımadan lazer tedavisi)'),
     ],
-    color: 'from-cyan-500 to-blue-600',
   },
   {
     icon: <FaProcedures />,
@@ -53,7 +50,6 @@ const groups = (t: any) => [
       t('featuredProcedures.g4Item1', 'Obezite ameliyatları'),
       t('featuredProcedures.g4Item2', 'Şeker (diyabet) ameliyatları'),
     ],
-    color: 'from-teal-500 to-emerald-600',
   },
   {
     icon: <FaStethoscope />,
@@ -61,7 +57,6 @@ const groups = (t: any) => [
     items: [
       t('featuredProcedures.g5Item1', 'Rinoplasti (Piezo tekniği)'),
     ],
-    color: 'from-amber-500 to-orange-600',
   },
   {
     icon: <FaVenus />,
@@ -71,7 +66,6 @@ const groups = (t: any) => [
       t('featuredProcedures.g6Item2', 'Labiaplasti'),
       t('featuredProcedures.g6Item3', 'Genital PRP, eksozom ve dolgu uygulamaları'),
     ],
-    color: 'from-pink-500 to-fuchsia-600',
   },
   {
     icon: <FaBone />,
@@ -81,7 +75,6 @@ const groups = (t: any) => [
       t('featuredProcedures.g7Item2', 'Sinderella ayağı'),
       t('featuredProcedures.g7Item3', 'Omuz, diz ve kalça protez cerrahisi'),
     ],
-    color: 'from-orange-500 to-red-600',
   },
   {
     icon: <FaHeartbeat />,
@@ -92,7 +85,6 @@ const groups = (t: any) => [
       t('featuredProcedures.g8Item3', 'Sanal anjiyo uygulamaları'),
       t('featuredProcedures.g8Item4', 'Diyabetik ayak tedavisi'),
     ],
-    color: 'from-red-500 to-rose-600',
   },
   {
     icon: <FaCut />,
@@ -100,7 +92,6 @@ const groups = (t: any) => [
     items: [
       t('featuredProcedures.g9Item1', 'Eksozom ve PRP destekli saç ekimi'),
     ],
-    color: 'from-fuchsia-500 to-purple-600',
   },
   {
     icon: <FaChild />,
@@ -110,7 +101,6 @@ const groups = (t: any) => [
       t('featuredProcedures.g10Item2', 'İyontoforez (el-ayak terleme tedavisi)'),
       t('featuredProcedures.g10Item3', 'Hemipleji pediatrik rehabilitasyon'),
     ],
-    color: 'from-emerald-500 to-teal-600',
   },
   {
     icon: <FaRibbon />,
@@ -118,7 +108,6 @@ const groups = (t: any) => [
     items: [
       t('featuredProcedures.g11Item1', 'Kanser tedavileri'),
     ],
-    color: 'from-purple-500 to-violet-600',
   },
   {
     icon: <FaBaby />,
@@ -132,7 +121,6 @@ const groups = (t: any) => [
       t('featuredProcedures.g12Item6', 'Çocuklarda baş boyun cerrahisi'),
       t('featuredProcedures.g12Item7', 'Boşaltım sistemi ve üreme organlarına ait cerrahi hastalıklar'),
     ],
-    color: 'from-sky-500 to-cyan-600',
   },
 ];
 
@@ -209,7 +197,7 @@ const FeaturedProceduresPage = () => {
                 transition={{ delay: (i % 6) * 0.06 }}
                 className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col"
               >
-                <div className={`h-2 bg-gradient-to-r ${group.color}`} />
+                <div className="h-2 bg-primary-200" />
                 <div className="p-7 flex flex-col flex-1">
                   <div className="w-14 h-14 rounded-2xl bg-primary/8 text-primary flex items-center justify-center text-2xl mb-4 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
                     {group.icon}
