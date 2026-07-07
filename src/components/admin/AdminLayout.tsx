@@ -7,7 +7,7 @@ import {
   FaImages, FaFileAlt, FaPhone, FaGlobe, FaEnvelope,
   FaDatabase, FaVideo, FaAward, FaFilePdf, FaChevronRight,
   FaSlideshare, FaComments, FaChartBar, FaCertificate, FaClipboardList, FaHistory, FaUserTie,
-  FaBaby, FaHandshake
+  FaBaby, FaHandshake, FaSitemap
 } from 'react-icons/fa';
 
 const AdminLayout = () => {
@@ -60,6 +60,7 @@ const AdminLayout = () => {
         { path: '/admin/second-opinion', icon: FaEnvelope, label: 'İkinci Görüş Başvuruları' },
         { path: '/admin/quality-certificates', icon: FaAward, label: 'Kalite Sertifikaları' },
         { path: '/admin/quality-committees', icon: FaClipboardList, label: 'Kalite Komiteleri' },
+      { path: '/admin/organization-chart', icon: FaSitemap, label: 'Organizasyon Şeması' },
       ]
     },
     {

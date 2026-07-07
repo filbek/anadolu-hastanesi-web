@@ -81,6 +81,7 @@ const Footer = () => {
               {[
                 { name: t('footerLinks.hospitals'), path: '/hastanelerimiz' },
                 { name: t('footerLinks.departments'), path: '/bolumlerimiz' },
+                { name: t('footerLinks.featuredProcedures', 'Özellikli İşlemler'), path: '/ozellikli-islemler' },
                 { name: t('footerLinks.doctors'), path: '/doktorlar' },
                 { name: t('footerLinks.healthGuide'), path: '/saglik-rehberi' },
                 { name: t('footerLinks.healthTourism'), path: '/saglik-turizmi' },

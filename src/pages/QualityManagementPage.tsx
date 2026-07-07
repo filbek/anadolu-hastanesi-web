@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import {
   FaClipboardCheck,
   FaChevronRight,
-  FaSearchPlus,
-  FaSearchMinus,
-  FaTimes,
   FaUserShield,
   FaGraduationCap,
   FaBuilding,
@@ -33,6 +30,7 @@ import {
   FaProcedures,
   FaBaby,
   FaTasks,
+  FaSpinner,
 } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
 import { supabase } from '../lib/supabase';
@@ -84,10 +82,10 @@ const councils = (t: any) => [
 
 const QualityManagementPage = () => {
   const { t } = useTranslation();
-  const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
-  const [zoomScale, setZoomScale] = useState(1);
   const [dbCommittees, setDbCommittees] = useState<QualityCommittee[]>([]);
   const [qualityManager, setQualityManager] = useState<ManagerWithDoctor | null>(null);
+  const [orgChartUrl, setOrgChartUrl] = useState<string | null>(null);
+  const [orgChartLoading, setOrgChartLoading] = useState(true);
 
   useEffect(() => {
     const fetchCommittees = async () => {
@@ -127,8 +125,25 @@ const QualityManagementPage = () => {
       }
     };
 
+    const fetchOrgChart = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('site_settings')
+          .select('organization_chart_pdf_url')
+          .maybeSingle();
+
+        if (error) throw error;
+        setOrgChartUrl(data?.organization_chart_pdf_url || null);
+      } catch (error) {
+        console.error('Error fetching organization chart:', error);
+      } finally {
+        setOrgChartLoading(false);
+      }
+    };
+
     fetchCommittees();
     fetchQualityManager();
+    fetchOrgChart();
   }, []);
 
   const committees = dbCommittees.length > 0
@@ -247,36 +262,76 @@ const QualityManagementPage = () => {
               <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">Yapı</span>
             </div>
             <h2 className="text-4xl lg:text-5xl font-black text-secondary leading-tight mb-4">
-              {t('quality.orgTitle', 'Organizasyon')} <span className="text-primary">{t('quality.orgHighlight', 'Şeması')}</span>
+              {t('quality.orgTitle', 'Kalite Yönetim Birimi')} <span className="text-primary">{t('quality.orgHighlight', 'Organizasyon Şeması')}</span>
             </h2>
             <p className="text-gray-500 text-lg">
               {t('quality.orgDesc', 'Kalite yönetim sistemimizin temel yönetim kademeleri aşağıda gösterilmektedir.')}
             </p>
           </motion.div>
 
-          {/* Org Chart Visual - Image with Click to Zoom */}
+          {/* Org Chart - PDF (tıklayınca PDF açılır) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="flex justify-center"
           >
-            <div
-              className="relative group max-w-4xl w-full rounded-2xl overflow-hidden border border-gray-200 shadow-md bg-slate-50 cursor-pointer"
-              onClick={() => setIsZoomModalOpen(true)}
-            >
-              <img
-                src="/uploads/organizasyon-semasi.png"
-                alt={t('quality.orgTitle', 'Organizasyon Şeması')}
-                className="w-full h-auto object-contain max-h-[600px] mx-auto"
-              />
-              <div className="absolute inset-0 bg-[#0a1628]/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                <div className="bg-white/95 text-primary font-bold px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg scale-90 group-hover:scale-100 transition-transform duration-300">
-                  <FaSearchPlus />
-                  {t('quality.clickToZoom', 'Tıklayın ve Büyütün')}
-                </div>
+            {orgChartLoading ? (
+              <div className="max-w-4xl w-full rounded-2xl border border-gray-200 shadow-md bg-slate-50 h-[500px] flex items-center justify-center">
+                <FaSpinner className="animate-spin text-primary text-3xl" />
               </div>
-            </div>
+            ) : orgChartUrl ? (
+              <a
+                href={orgChartUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block max-w-4xl w-full rounded-2xl overflow-hidden border border-gray-200 shadow-md bg-slate-50 group cursor-pointer"
+              >
+                {/* PDF önizleme */}
+                <div className="relative w-full h-[420px] md:h-[600px] bg-white pointer-events-none">
+                  <object
+                    data={`${orgChartUrl}#toolbar=0&navpanes=0&view=FitH`}
+                    type="application/pdf"
+                    className="w-full h-full"
+                    aria-label={t('quality.orgHighlight', 'Organizasyon Şeması')}
+                  >
+                    <iframe
+                      src={orgChartUrl}
+                      title={t('quality.orgHighlight', 'Organizasyon Şeması')}
+                      className="w-full h-full"
+                    />
+                  </object>
+                  {/* Tıklama katmanı — tüm alan tıklanınca PDF açılır */}
+                  <div className="absolute inset-0 bg-[#0a1628]/0 group-hover:bg-[#0a1628]/40 transition-colors duration-300 flex items-center justify-center">
+                    <div className="bg-white/95 text-primary font-bold px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg scale-90 group-hover:scale-100 transition-transform duration-300">
+                      <FaExternalLinkAlt />
+                      {t('quality.openPdf', 'Tıklayın, PDF Açılsın')}
+                    </div>
+                  </div>
+                </div>
+                {/* Bilgi çubuğu */}
+                <div className="bg-white border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <FaFilePdf className="text-red-500 text-xl" />
+                    <span>{t('quality.orgFileName', 'Organizasyon Şeması (PDF)')}</span>
+                  </div>
+                  <span className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-bold rounded-xl group-hover:brightness-110 transition-all text-sm">
+                    <FaExternalLinkAlt className="text-xs" />
+                    {t('quality.openPdfButton', 'PDF Olarak Aç')}
+                  </span>
+                </div>
+              </a>
+            ) : (
+              <div className="max-w-4xl w-full rounded-2xl border border-dashed border-gray-300 shadow-sm bg-gray-50 h-[360px] flex flex-col items-center justify-center text-center px-6">
+                <FaFilePdf className="text-gray-300 text-5xl mb-4" />
+                <p className="text-gray-500 font-semibold">
+                  {t('quality.noPdfUploaded', 'Henüz organizasyon şeması yüklenmedi.')}
+                </p>
+                <p className="text-gray-400 text-sm mt-1">
+                  {t('quality.noPdfUploadedDesc', 'İçerik yöneticisi tarafından eklenecektir.')}
+                </p>
+              </div>
+            )}
           </motion.div>
         </div>
       </section>
@@ -465,98 +520,6 @@ const QualityManagementPage = () => {
           <LastUpdated date="22.06.2026" />
         </div>
       </section>
-
-      {/* Zoom Modal Overlay */}
-      <AnimatePresence>
-        {isZoomModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-[#0a1628]/95 backdrop-blur-md flex flex-col items-center justify-center p-4"
-          >
-            {/* Control bar */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-md px-6 py-3 rounded-full flex items-center gap-6 text-white z-[110] border border-white/10 shadow-2xl">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setZoomScale(prev => Math.max(0.5, prev - 0.25));
-                }}
-                className="hover:text-accent transition-colors p-1"
-                title={t('quality.zoomOut', 'Uzaklaştır')}
-              >
-                <FaSearchMinus size={18} />
-              </button>
-              <span className="text-sm font-semibold select-none w-12 text-center">
-                %{Math.round(zoomScale * 100)}
-              </span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setZoomScale(prev => Math.min(4, prev + 0.25));
-                }}
-                className="hover:text-accent transition-colors p-1"
-                title={t('quality.zoomIn', 'Yakınlaştır')}
-              >
-                <FaSearchPlus size={18} />
-              </button>
-              <div className="w-px h-5 bg-white/20" />
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setZoomScale(1);
-                }}
-                className="hover:text-accent transition-colors p-1 text-xs font-bold"
-                title={t('quality.resetZoom', 'Sıfırla')}
-              >
-                {t('quality.reset', 'SIFIRLA')}
-              </button>
-            </div>
-
-            {/* Close Button */}
-            <button
-              onClick={() => {
-                setIsZoomModalOpen(false);
-                setZoomScale(1);
-              }}
-              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white w-12 h-12 rounded-full flex items-center justify-center transition-colors z-[110] border border-white/10"
-              title={t('common.close', 'Kapat')}
-            >
-              <FaTimes size={20} />
-            </button>
-
-            {/* Image container */}
-            <div
-              className="w-full h-full flex items-center justify-center overflow-hidden relative cursor-grab active:cursor-grabbing"
-              onClick={() => {
-                setIsZoomModalOpen(false);
-                setZoomScale(1);
-              }}
-            >
-              <motion.div
-                drag
-                dragConstraints={{ left: -1000, right: 1000, top: -1000, bottom: 1000 }}
-                dragElastic={0.15}
-                className="flex items-center justify-center"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <motion.img
-                  src="/uploads/organizasyon-semasi.png"
-                  alt="Organizasyon Şeması"
-                  animate={{ scale: zoomScale }}
-                  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                  className="max-w-[90vw] max-h-[80vh] object-contain select-none pointer-events-none rounded-lg"
-                />
-              </motion.div>
-            </div>
-
-            {/* Navigation Instruction */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-xs text-center select-none bg-black/40 px-4 py-2 rounded-full pointer-events-none">
-              {t('quality.dragToPan', 'Görseli sürükleyerek kaydırabilir, arka plana tıklayarak kapatabilirsiniz.')}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 };

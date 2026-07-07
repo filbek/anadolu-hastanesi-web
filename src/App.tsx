@@ -43,6 +43,7 @@ const TransportationPage = lazy(() => import('./pages/TransportationPage'))
 const HospitalGuidePage = lazy(() => import('./pages/HospitalGuidePage'))
 const ContractedInstitutionsPage = lazy(() => import('./pages/ContractedInstitutionsPage'))
 const MedicalCentersPage = lazy(() => import('./pages/MedicalCentersPage'))
+const FeaturedProceduresPage = lazy(() => import('./pages/FeaturedProceduresPage'))
 const SecondOpinionPage = lazy(() => import('./pages/SecondOpinionPage'))
 const CookiePolicyPage = lazy(() => import('./pages/CookiePolicyPage'))
 const KvkkPage = lazy(() => import('./pages/KvkkPage'))
@@ -62,6 +63,7 @@ const AdminTestConnection = lazy(() => import('./components/admin/AdminTestConne
 const AdminVideoContent = lazy(() => import('./components/admin/AdminVideoContent'))
 const AdminQualityCertificates = lazy(() => import('./components/admin/AdminQualityCertificates'))
 const AdminQualityCommittees = lazy(() => import('./components/admin/AdminQualityCommittees'))
+const AdminOrganizationChart = lazy(() => import('./components/admin/AdminOrganizationChart'))
 const AdminPatientInfo = lazy(() => import('./components/admin/AdminPatientInfo'))
 const AdminContractedInstitutions = lazy(() => import('./components/admin/AdminContractedInstitutions'))
 const AdminSettings = lazy(() => import('./components/admin/AdminSettings'))
@@ -150,6 +152,7 @@ function App() {
             <Route path="hastane-ici-rehber" element={<HospitalGuidePage />} />
             <Route path="anlasmali-kurumlar" element={<ContractedInstitutionsPage />} />
             <Route path="merkezlerimiz" element={<MedicalCentersPage />} />
+            <Route path="ozellikli-islemler" element={<FeaturedProceduresPage />} />
             <Route path="cerez-politikasi" element={<CookiePolicyPage />} />
             <Route path="kvkk" element={<KvkkPage />} />
             <Route path="test" element={<TestPage />} />
@@ -185,6 +188,7 @@ function App() {
               <Route path="video-content" element={<AdminVideoContent />} />
               <Route path="quality-certificates" element={<AdminQualityCertificates />} />
               <Route path="quality-committees" element={<AdminQualityCommittees />} />
+              <Route path="organization-chart" element={<AdminOrganizationChart />} />
               <Route path="patient-info" element={<AdminPatientInfo />} />
               <Route path="contracted-institutions" element={<AdminContractedInstitutions />} />
               <Route path="test-connection" element={<AdminTestConnection />} />
