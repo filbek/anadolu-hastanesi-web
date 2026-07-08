@@ -46,21 +46,21 @@ const DepartmentsPage = () => {
   // "bu şubede hangi bölümler var" bilgisini doktor kayıtlarından çıkarıyoruz.
   const hospitalDeptMap = useMemo(() => {
     const map = new Map<string, Set<number>>()
-    // Önce admin tarafından hastaneye elle eklenmiş bölümler (tanı/hizmet birimleri vb.)
-    ;(hospitalsRaw as any[]).forEach((h) => {
-      const set = new Set<number>()
-      ;(h.department_ids ?? []).forEach((id: any) => {
-        if (id != null) set.add(Number(id))
+      // Önce admin tarafından hastaneye elle eklenmiş bölümler (tanı/hizmet birimleri vb.)
+      ; (hospitalsRaw as any[]).forEach((h) => {
+        const set = new Set<number>()
+          ; (h.department_ids ?? []).forEach((id: any) => {
+            if (id != null) set.add(Number(id))
+          })
+        map.set(String(h.id), set)
       })
-      map.set(String(h.id), set)
-    })
-    // Sonra doktoru bulunan bölümleri ekle
-    ;(doctorsRaw as any[]).forEach((doc) => {
-      if (doc.hospital_id == null || doc.department_id == null) return
-      const key = String(doc.hospital_id)
-      if (!map.has(key)) map.set(key, new Set())
-      map.get(key)!.add(Number(doc.department_id))
-    })
+      // Sonra doktoru bulunan bölümleri ekle
+      ; (doctorsRaw as any[]).forEach((doc) => {
+        if (doc.hospital_id == null || doc.department_id == null) return
+        const key = String(doc.hospital_id)
+        if (!map.has(key)) map.set(key, new Set())
+        map.get(key)!.add(Number(doc.department_id))
+      })
     return map
   }, [doctorsRaw, hospitalsRaw])
 
@@ -100,7 +100,7 @@ const DepartmentsPage = () => {
     'goz-sagligi-ve-hastaliklari': t('deptDesc.goz', 'Katarakt, glokom, lazer ve retina cerrahisi hizmetleri.'),
     'ic-hastaliklari-dahiliye': t('deptDesc.icHastaliklari', 'İç hastalıkları tanı ve tedavisinde deneyimli kadro.'),
     'kadin-hastaliklari-ve-dogum': t('deptDesc.kadinHastaliklari', 'Jinekolojik cerrahi, doğum ve tüp bebek hizmetleri.'),
-    'kalp-ve-damar-cerrahisi': t('deptDesc.kalpDamarCerrahi', 'Koroner bypass, kapak cerrahisi ve damarsal girişimler.'),
+    'kalp-ve-damar-cerrahisi': t('deptDesc.kalpDamarCerrahi', 'Koroner bypass, kapak cerrahisi ve vasküler (dama) girişimler.'),
     'kardiyoloji': t('deptDesc.kardiyoloji', 'Ekokardiyografi, anjiyografi ve stent uygulamaları.'),
     'kulak-burun-bogaz': t('deptDesc.kbb', 'Sinüzit, işitme kaybı ve KBB cerrahisi hizmetleri.'),
     'medikal-estetik': t('deptDesc.medikalEstetik', 'Botoks, dolgu, mezoterapi ve cilt gençleştirme uygulamaları.'),
@@ -165,9 +165,8 @@ const DepartmentsPage = () => {
                 type="button"
                 role="tab"
                 aria-selected={activeHospital === 'all'}
-                className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
-                  activeHospital === 'all' ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
-                }`}
+                className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${activeHospital === 'all' ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
+                  }`}
                 onClick={() => setActiveHospital('all')}
               >
                 {t('departments.allHospitals', 'Tüm Şubeler')}
@@ -178,9 +177,8 @@ const DepartmentsPage = () => {
                   type="button"
                   role="tab"
                   aria-selected={activeHospital === String(hospital.id)}
-                  className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
-                    activeHospital === String(hospital.id) ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
-                  }`}
+                  className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${activeHospital === String(hospital.id) ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
+                    }`}
                   onClick={() => setActiveHospital(String(hospital.id))}
                 >
                   {hospital.name}
@@ -213,9 +211,8 @@ const DepartmentsPage = () => {
                 key={cat.id}
                 type="button"
                 aria-pressed={activeCategory === cat.id}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  activeCategory === cat.id ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
-                }`}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeCategory === cat.id ? 'bg-primary text-white' : 'bg-white text-text-light hover:bg-primary/10'
+                  }`}
                 onClick={() => setActiveCategory(cat.id)}
               >
                 {cat.label}
@@ -238,28 +235,28 @@ const DepartmentsPage = () => {
           >
             {isLoading
               ? [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                  <div key={i} className="animate-pulse bg-white rounded-2xl h-48 shadow-sm" />
-                ))
+                <div key={i} className="animate-pulse bg-white rounded-2xl h-48 shadow-sm" />
+              ))
               : filteredDepartments.map((department: any) => (
-                  <motion.div
-                    key={department.id}
-                    variants={itemVariants}
-                    className="card text-center hover:-translate-y-2 group"
+                <motion.div
+                  key={department.id}
+                  variants={itemVariants}
+                  className="card text-center hover:-translate-y-2 group"
+                >
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <i className={`bi ${department.icon || 'bi-hospital'} text-2xl text-primary`}></i>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2 text-primary">{department.name}</h3>
+                  <p className="text-text-light text-sm mb-4">{getDeptDescription(department)}</p>
+                  <Link
+                    to={activeHospital === 'all' ? `/bolumlerimiz/${department.slug}` : `/bolumlerimiz/${department.slug}?hastane=${activeHospital}`}
+                    aria-label={t('departments.moreInfoAbout', '{{name}} hakkında detaylı bilgi', { name: department.name })}
+                    className="inline-block text-sm font-medium text-primary hover:text-primary-dark transition-colors"
                   >
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                      <i className={`bi ${department.icon || 'bi-hospital'} text-2xl text-primary`}></i>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2 text-primary">{department.name}</h3>
-                    <p className="text-text-light text-sm mb-4">{getDeptDescription(department)}</p>
-                    <Link
-                      to={activeHospital === 'all' ? `/bolumlerimiz/${department.slug}` : `/bolumlerimiz/${department.slug}?hastane=${activeHospital}`}
-                      aria-label={t('departments.moreInfoAbout', '{{name}} hakkında detaylı bilgi', { name: department.name })}
-                      className="inline-block text-sm font-medium text-primary hover:text-primary-dark transition-colors"
-                    >
-                      {t('common.moreInfo', 'Detaylı Bilgi')}
-                    </Link>
-                  </motion.div>
-                ))}
+                    {t('common.moreInfo', 'Detaylı Bilgi')}
+                  </Link>
+                </motion.div>
+              ))}
           </motion.div>
 
           {!isLoading && filteredDepartments.length === 0 && (

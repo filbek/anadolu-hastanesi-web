@@ -34,7 +34,7 @@ const TREATMENTS_BY_DEPT: Record<string, string[]> = {
   'goz-sagligi-ve-hastaliklari': ['Katarakt Ameliyatı', 'Lazer Tedavisi', 'Glokom Tedavisi', 'Retina Cerrahisi', 'Korne Hastalıkları'],
   'ic-hastaliklari-dahiliye': ['Dahiliye Muayenesi', 'Kronik Hastalık Takibi', 'Check-up', 'İç Hastalıkları Teşhis', 'Kan Hastalıkları'],
   'kadin-hastaliklari-ve-dogum': ['Normal Doğum', 'Sezaryen', 'Jinekolojik Cerrahi', 'Tüp Bebek', 'Menopoz Takibi'],
-  'kalp-ve-damar-cerrahisi': ['Koroner Bypass', 'Kalp Kapak Cerrahisi', 'Aort Cerrahisi', 'Varis Cerrahisi', 'Damarsal Girişimler'],
+  'kalp-ve-damar-cerrahisi': ['Koroner Bypass', 'Kalp Kapak Cerrahisi', 'Aort Cerrahisi', 'Varis Cerrahisi', 'vasküler (dama) girişimler'],
   'kardiyoloji': ['Ekokardiografi', 'EKG', 'Holter Takibi', 'Koroner Anjiyografi', 'Stent Uygulamaları'],
   'kulak-burun-bogaz': ['Sinüzit Tedavisi', 'Geniz Eti Ameliyatı', 'Bademcik Ameliyatı', 'İşitme Testleri', 'Kulak Cerrahisi'],
   'medikal-estetik': ['Botoks', 'Dolgu Uygulamaları', 'Mezoterapi', 'Lazer Epilasyon', 'Cilt Gençleştirme'],
