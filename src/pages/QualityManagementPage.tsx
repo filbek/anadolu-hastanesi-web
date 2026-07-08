@@ -345,7 +345,7 @@ const QualityManagementPage = () => {
               <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">Kalite Yapısı</span>
             </div>
             <h2 className="text-4xl lg:text-5xl font-black text-secondary leading-tight mb-4">
-              {t('quality.committeeTitle', 'Komiteler')}
+              {t('quality.committeeTitle', 'Komiteler ve Ekibi')}
             </h2>
           </motion.div>
 
@@ -396,7 +396,7 @@ const QualityManagementPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Kalite Standartları (SAS) */}
             <motion.a
-              href="https://dosyahastane.saglik.gov.tr/Eklenti/562647/0/sas-standartlaripdf.pdf"
+              href="https://tuska.tuseb.gov.tr"
               target="_blank"
               rel="noopener noreferrer"
               initial={{ opacity: 0, y: 20 }}
@@ -448,10 +448,10 @@ const QualityManagementPage = () => {
                 </span>
               </div>
               <h3 className="text-lg font-bold text-secondary mb-2">
-                {t('quality.accreditationTitle', 'Sağlıkta Kalite, Akreditasyon ve Çalışan Hakları')}
+                {t('quality.accreditationTitle', 'Sağlıkta Kalite, Akreditasyon ve Çalışan Hakları Daire Başkanlığı')}
               </h3>
               <p className="text-gray-500 text-sm leading-relaxed flex-1">
-                {t('quality.accreditationDesc', 'Sağlık Bakanlığı Sağlıkta Kalite, Akreditasyon ve Çalışan Hakları değerlendirme veri tabanı platformu.')}
+                {t('quality.accreditationDesc', 'Sağlık Bakanlığı Sağlıkta Kalite, Akreditasyon ve Çalışan Hakları Daire Başkanlığı değerlendirme veri tabanı platformu.')}
               </p>
               <span className="mt-4 inline-flex items-center gap-2 text-primary text-sm font-bold">
                 {t('quality.accreditationButton', 'Platforma Git')}
