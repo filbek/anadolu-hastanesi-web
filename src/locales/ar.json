@@ -18,7 +18,9 @@
       "diagnostic": "وحدات التشخيص",
       "articles": "المقالات",
       "videos": "محتوى الفيديو",
-      "patientInfo": "معلومات المريض"
+      "patientInfo": "معلومات المريض",
+      "allHospitals": "جميع المستشفيات",
+      "doctorsByHospital": "الأطباء حسب المستشفى"
     }
   },
   "hero": {
@@ -1634,6 +1636,7 @@
     "ctaDesc": "احجز موعداً في مستشفياتنا التي تقدم خدمة على المعايير الدولية"
   },
   "quality": {
+    "branchSelectorLabel": "اختر الفرع",
     "legalDocs": "الوثائق القانونية",
     "qualityStandards": "معايير الجودة",
     "standardsTag": "الجودة في الرعاية الصحية",

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaSave, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
+import type { Hospital } from '../../lib/supabase';
 import { COMMITTEE_ICONS, DEFAULT_COMMITTEE_ICON } from '../../lib/qualityCommittees';
 import type { QualityCommittee } from '../../lib/qualityCommittees';
 
@@ -11,11 +12,14 @@ const emptyForm = {
   icon: DEFAULT_COMMITTEE_ICON,
   display_order: 1,
   is_active: true,
+  hospital_id: '' as number | string,
 };
 
 const AdminQualityCommittees = () => {
   const { t } = useTranslation();
   const [committees, setCommittees] = useState<QualityCommittee[]>([]);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [hospitalFilter, setHospitalFilter] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,7 +29,21 @@ const AdminQualityCommittees = () => {
 
   useEffect(() => {
     fetchCommittees();
+    fetchHospitals();
   }, []);
+
+  const fetchHospitals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('hospitals')
+        .select('*')
+        .order('display_order', { ascending: true });
+      if (error) throw error;
+      setHospitals(data || []);
+    } catch (error) {
+      console.error('Error fetching hospitals:', error);
+    }
+  };
 
   const fetchCommittees = async () => {
     try {
@@ -45,10 +63,18 @@ const AdminQualityCommittees = () => {
     }
   };
 
+  const hospitalName = (id?: number | string | null) =>
+    hospitals.find((h) => String(h.id) === String(id))?.name || '';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
+      if (!formData.hospital_id) {
+        alert(t('admin.qualityCommittees.hospitalRequired', 'Lütfen bir şube seçin!'));
+        return;
+      }
+
       setSaving(true);
       const payload = {
         title: formData.title.trim(),
@@ -56,6 +82,7 @@ const AdminQualityCommittees = () => {
         icon: formData.icon,
         display_order: formData.display_order,
         is_active: formData.is_active,
+        hospital_id: formData.hospital_id,
         updated_at: new Date().toISOString(),
       };
 
@@ -125,16 +152,21 @@ const AdminQualityCommittees = () => {
       icon: committee.icon || DEFAULT_COMMITTEE_ICON,
       display_order: committee.display_order,
       is_active: committee.is_active,
+      hospital_id: committee.hospital_id ?? '',
     });
     setShowForm(true);
   };
 
   const openNewForm = () => {
     setEditingCommittee(null);
+    const scoped = hospitalFilter
+      ? committees.filter((c) => String(c.hospital_id) === hospitalFilter)
+      : committees;
     setFormData({
       ...emptyForm,
-      display_order: committees.length > 0
-        ? Math.max(...committees.map(c => c.display_order || 0)) + 1
+      hospital_id: hospitalFilter || hospitals[0]?.id || '',
+      display_order: scoped.length > 0
+        ? Math.max(...scoped.map(c => c.display_order || 0)) + 1
         : 1,
     });
     setShowForm(true);
@@ -145,10 +177,13 @@ const AdminQualityCommittees = () => {
     return <Icon className={className} />;
   };
 
-  const filteredCommittees = committees.filter(c =>
-    c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCommittees = committees.filter(c => {
+    const matchesSearch =
+      c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesHospital = !hospitalFilter || String(c.hospital_id) === hospitalFilter;
+    return matchesSearch && matchesHospital;
+  });
 
   if (loading) {
     return (
@@ -171,9 +206,9 @@ const AdminQualityCommittees = () => {
         </button>
       </div>
 
-      {/* Search */}
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-        <div className="relative">
+      {/* Search & Şube Filtresi */}
+      <div className="bg-white rounded-lg shadow-sm p-4 mb-6 flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
           <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <input
             type="text"
@@ -183,6 +218,16 @@ const AdminQualityCommittees = () => {
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           />
         </div>
+        <select
+          value={hospitalFilter}
+          onChange={(e) => setHospitalFilter(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary sm:w-64"
+        >
+          <option value="">{t('admin.qualityCommittees.allBranches', 'Tüm Şubeler')}</option>
+          {hospitals.map((h) => (
+            <option key={h.id} value={h.id}>{h.name}</option>
+          ))}
+        </select>
       </div>
 
       {/* Committees Grid */}
@@ -225,6 +270,12 @@ const AdminQualityCommittees = () => {
 
             <p className="text-gray-600 text-sm mb-4 line-clamp-3">{committee.description}</p>
 
+            {hospitalName(committee.hospital_id) && (
+              <div className="inline-block mb-2 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                {hospitalName(committee.hospital_id)}
+              </div>
+            )}
+
             <div className="text-xs text-gray-500">
               {t('admin.label.order', 'Sıra')}: {committee.display_order || 0}
             </div>
@@ -262,6 +313,23 @@ const AdminQualityCommittees = () => {
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('admin.qualityCommittees.hospital', 'Şube')}
+                </label>
+                <select
+                  value={formData.hospital_id}
+                  onChange={(e) => setFormData({ ...formData, hospital_id: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                >
+                  <option value="" disabled>{t('admin.qualityCommittees.selectHospital', 'Şube seçin')}</option>
+                  {hospitals.map((h) => (
+                    <option key={h.id} value={h.id}>{h.name}</option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t('admin.qualityCommittees.name', 'Komite Adı')}

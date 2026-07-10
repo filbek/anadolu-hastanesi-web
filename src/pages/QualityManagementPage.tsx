@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import {
   FaClipboardCheck,
   FaChevronRight,
+  FaChevronDown,
   FaUserShield,
   FaGraduationCap,
   FaBuilding,
@@ -31,10 +33,11 @@ import {
   FaBaby,
   FaTasks,
   FaSpinner,
+  FaHospital,
 } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
 import { supabase } from '../lib/supabase';
-import type { ManagementTeamMember, Doctor } from '../lib/supabase';
+import type { ManagementTeamMember, Doctor, Hospital } from '../lib/supabase';
 import { COMMITTEE_ICONS, DEFAULT_COMMITTEE_ICON } from '../lib/qualityCommittees';
 import type { QualityCommittee } from '../lib/qualityCommittees';
 
@@ -82,18 +85,67 @@ const councils = (t: any) => [
 
 const QualityManagementPage = () => {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [selectedHospitalId, setSelectedHospitalId] = useState<string | number | null>(null);
+  const [isBranchOpen, setIsBranchOpen] = useState(false);
   const [dbCommittees, setDbCommittees] = useState<QualityCommittee[]>([]);
   const [qualityManager, setQualityManager] = useState<ManagerWithDoctor | null>(null);
   const [orgChartUrl, setOrgChartUrl] = useState<string | null>(null);
   const [orgChartLoading, setOrgChartLoading] = useState(true);
 
+  // Şube listesini bir kere yükle; URL'deki ?hastane=<slug> varsa onu seç, yoksa ilk şube
   useEffect(() => {
+    const fetchHospitals = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('hospitals')
+          .select('*')
+          .eq('is_active', true)
+          .order('display_order', { ascending: true });
+
+        if (error) throw error;
+        const list = data || [];
+        setHospitals(list);
+
+        const slugParam = searchParams.get('hastane');
+        const fromSlug = slugParam ? list.find((h) => h.slug === slugParam) : null;
+        setSelectedHospitalId((fromSlug || list[0])?.id ?? null);
+      } catch (error) {
+        console.error('Error fetching hospitals:', error);
+      }
+    };
+
+    fetchHospitals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const selectedHospital = useMemo(
+    () => hospitals.find((h) => h.id === selectedHospitalId) || null,
+    [hospitals, selectedHospitalId]
+  );
+
+  const handleSelectHospital = (hospital: Hospital) => {
+    setSelectedHospitalId(hospital.id);
+    setIsBranchOpen(false);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('hastane', hospital.slug);
+      return next;
+    });
+  };
+
+  // Seçili şube değiştikçe komiteleri, kalite yöneticisini ve org şemasını yeniden çek
+  useEffect(() => {
+    if (!selectedHospitalId) return;
+
     const fetchCommittees = async () => {
       try {
         const { data, error } = await supabase
           .from('quality_committees')
           .select('*')
           .eq('is_active', true)
+          .eq('hospital_id', selectedHospitalId)
           .order('display_order', { ascending: true });
 
         if (error) throw error;
@@ -114,12 +166,13 @@ const QualityManagementPage = () => {
           `)
           .eq('is_active', true)
           .eq('role', 'quality_management_manager')
+          .eq('hospital_id', selectedHospitalId)
           .order('display_order', { ascending: true })
           .limit(1)
           .maybeSingle();
 
         if (error) throw error;
-        if (data) setQualityManager(data as ManagerWithDoctor);
+        setQualityManager((data as ManagerWithDoctor) || null);
       } catch (error) {
         console.error('Error fetching quality manager:', error);
       }
@@ -127,13 +180,15 @@ const QualityManagementPage = () => {
 
     const fetchOrgChart = async () => {
       try {
+        setOrgChartLoading(true);
         const { data, error } = await supabase
-          .from('site_settings')
-          .select('organization_chart_pdf_url')
+          .from('quality_org_charts')
+          .select('pdf_url')
+          .eq('hospital_id', selectedHospitalId)
           .maybeSingle();
 
         if (error) throw error;
-        setOrgChartUrl(data?.organization_chart_pdf_url || null);
+        setOrgChartUrl(data?.pdf_url || null);
       } catch (error) {
         console.error('Error fetching organization chart:', error);
       } finally {
@@ -144,7 +199,7 @@ const QualityManagementPage = () => {
     fetchCommittees();
     fetchQualityManager();
     fetchOrgChart();
-  }, []);
+  }, [selectedHospitalId]);
 
   const committees = dbCommittees.length > 0
     ? dbCommittees.map((c) => {
@@ -204,6 +259,49 @@ const QualityManagementPage = () => {
         </div>
       </section>
 
+      {/* ─── ŞUBE SEÇİCİ ─── */}
+      {hospitals.length > 1 && (
+        <section className="bg-gray-50 py-6 border-b border-gray-100">
+          <div className="container-custom">
+            <div className="relative max-w-xs">
+              <span className="block text-secondary/50 text-xs uppercase tracking-[0.2em] font-semibold mb-2">
+                {t('quality.branchSelectorLabel', 'Şube Seçin')}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsBranchOpen((v) => !v)}
+                className="w-full flex items-center justify-between gap-3 bg-white hover:bg-gray-50 border border-gray-200 shadow-sm rounded-xl px-5 py-3.5 text-secondary font-bold transition-colors"
+              >
+                <span className="flex items-center gap-2.5">
+                  <FaHospital className="text-primary" />
+                  {selectedHospital?.name || '...'}
+                </span>
+                <FaChevronDown className={`text-sm transition-transform ${isBranchOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isBranchOpen && (
+                <div className="absolute z-20 mt-2 w-full bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+                  {hospitals.map((h) => (
+                    <button
+                      key={h.id}
+                      type="button"
+                      onClick={() => handleSelectHospital(h)}
+                      className={`w-full text-left px-5 py-3 text-sm font-semibold transition-colors ${
+                        h.id === selectedHospitalId
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-secondary hover:bg-gray-50'
+                      }`}
+                    >
+                      {h.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
 
       {/* ─── KALİTE YÖNETİM BİRİMİ ─── */}
       <section className="bg-gray-50 py-20 lg:py-28">
@@ -221,13 +319,13 @@ const QualityManagementPage = () => {
             </p>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row items-center"
-          >
-            {qualityManager && (
+          {qualityManager ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row items-center"
+            >
               <div className="relative w-full md:w-2/5 h-64 md:h-auto md:min-h-[320px] flex-shrink-0">
                 <img
                   src={getMemberImage(qualityManager)}
@@ -236,20 +334,31 @@ const QualityManagementPage = () => {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/40 to-transparent md:bg-gradient-to-r" />
               </div>
-            )}
-            <div className="flex-1 p-8 md:p-12 text-center md:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold mb-4">
-                <FaUserShield />
-                {qualityManager?.title || t('quality.managerTitle', 'Kalite Yönetim Müdürü')}
+              <div className="flex-1 p-8 md:p-12 text-center md:text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold mb-4">
+                  <FaUserShield />
+                  {qualityManager.title || t('quality.managerTitle', 'Kalite Yönetim Müdürü')}
+                </div>
+                <h3 className="text-2xl md:text-3xl font-black text-secondary mb-3">
+                  {qualityManager.name}
+                </h3>
+                <p className="text-gray-500 leading-relaxed">
+                  {t('quality.managerBio', 'Kalite yönetim birimimiz; Sağlık Bakanlığı Sağlıkta Kalite Standartları (SAS/SKS) ve uluslararası akreditasyon standartlarına uyumun sağlanması, süreçlerin izlenmesi, iç denetimlerin yürütülmesi ve kalite iyileştirme faaliyetlerinin koordinasyonundan sorumludur.')}
+                </p>
               </div>
-              <h3 className="text-2xl md:text-3xl font-black text-secondary mb-3">
-                {qualityManager?.name || t('quality.managerName', 'Bilge BATUR')}
-              </h3>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12 text-center"
+            >
               <p className="text-gray-500 leading-relaxed">
                 {t('quality.managerBio', 'Kalite yönetim birimimiz; Sağlık Bakanlığı Sağlıkta Kalite Standartları (SAS/SKS) ve uluslararası akreditasyon standartlarına uyumun sağlanması, süreçlerin izlenmesi, iç denetimlerin yürütülmesi ve kalite iyileştirme faaliyetlerinin koordinasyonundan sorumludur.')}
               </p>
-            </div>
-          </motion.div>
+            </motion.div>
+          )}
         </div>
       </section>
 

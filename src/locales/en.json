@@ -18,7 +18,9 @@
       "diagnostic": "Diagnostic Units",
       "articles": "Articles",
       "videos": "Video Content",
-      "patientInfo": "Patient Information"
+      "patientInfo": "Patient Information",
+      "allHospitals": "All Hospitals",
+      "doctorsByHospital": "Doctors by Hospital"
     }
   },
   "hero": {
@@ -1634,6 +1636,7 @@
     "ctaDesc": "Make an appointment at our hospitals that provide international standard service"
   },
   "quality": {
+    "branchSelectorLabel": "Select Branch",
     "legalDocs": "Legal Documents",
     "qualityStandards": "Quality Standards",
     "standardsTag": "Quality in Healthcare",

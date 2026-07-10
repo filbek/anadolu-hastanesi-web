@@ -9,13 +9,16 @@ import {
   FaCheckCircle,
 } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
+import type { Hospital } from '../../lib/supabase';
 
 const STORAGE_BUCKET = 'quality-documents';
 const STORAGE_PATH = 'organization-chart';
 
 const AdminOrganizationChart = () => {
   const { t } = useTranslation();
-  const [settingsId, setSettingsId] = useState<number | null>(null);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [selectedHospitalId, setSelectedHospitalId] = useState<string | number | null>(null);
+  const [chartRowId, setChartRowId] = useState<number | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -26,23 +29,42 @@ const AdminOrganizationChart = () => {
   const persistedUrlRef = useRef<string>('');
 
   useEffect(() => {
-    fetchChart();
+    fetchHospitals();
   }, []);
 
-  const fetchChart = async () => {
+  useEffect(() => {
+    if (selectedHospitalId) fetchChart(selectedHospitalId);
+  }, [selectedHospitalId]);
+
+  const fetchHospitals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('hospitals')
+        .select('*')
+        .order('display_order', { ascending: true });
+      if (error) throw error;
+      const list = (data || []) as Hospital[];
+      setHospitals(list);
+      setSelectedHospitalId(list[0]?.id ?? null);
+    } catch (error) {
+      console.error('Error fetching hospitals:', error);
+      setLoading(false);
+    }
+  };
+
+  const fetchChart = async (hospitalId: string | number) => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('site_settings')
-        .select('id, organization_chart_pdf_url')
+        .from('quality_org_charts')
+        .select('id, pdf_url')
+        .eq('hospital_id', hospitalId)
         .maybeSingle();
 
       if (error) throw error;
-      if (data) {
-        setSettingsId(data.id ?? null);
-        setPdfUrl(data.organization_chart_pdf_url || '');
-        persistedUrlRef.current = data.organization_chart_pdf_url || '';
-      }
+      setChartRowId(data?.id ?? null);
+      setPdfUrl(data?.pdf_url || '');
+      persistedUrlRef.current = data?.pdf_url || '';
     } catch (error) {
       console.error('Error fetching organization chart:', error);
     } finally {
@@ -124,24 +146,29 @@ const AdminOrganizationChart = () => {
   };
 
   const handleSave = async () => {
+    if (!selectedHospitalId) return;
     try {
       setSaving(true);
-      const payload = { organization_chart_pdf_url: pdfUrl || null, updated_at: new Date().toISOString() };
+      const payload = {
+        hospital_id: selectedHospitalId,
+        pdf_url: pdfUrl || null,
+        updated_at: new Date().toISOString(),
+      };
 
-      if (settingsId) {
+      if (chartRowId) {
         const { error } = await supabase
-          .from('site_settings')
+          .from('quality_org_charts')
           .update(payload)
-          .eq('id', settingsId);
+          .eq('id', chartRowId);
         if (error) throw error;
       } else {
         const { data, error } = await supabase
-          .from('site_settings')
-          .insert([payload])
+          .from('quality_org_charts')
+          .upsert([payload], { onConflict: 'hospital_id' })
           .select('id')
           .single();
         if (error) throw error;
-        if (data?.id) setSettingsId(data.id);
+        if (data?.id) setChartRowId(data.id);
       }
 
       // Kaydetme başarılı: eğer PDF kaldırıldıysa (pdfUrl boş) veya değiştiyse,
@@ -161,20 +188,32 @@ const AdminOrganizationChart = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <FaSpinner className="animate-spin text-primary text-3xl" />
-      </div>
-    );
-  }
-
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-semibold text-primary">
           {t('admin.orgChart.title', 'Organizasyon Şeması')}
         </h1>
+        <div className="flex items-center gap-3">
+          <select
+            value={selectedHospitalId ?? ''}
+            onChange={(e) => setSelectedHospitalId(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            {hospitals.map((h) => (
+              <option key={h.id} value={h.id}>{h.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <FaSpinner className="animate-spin text-primary text-3xl" />
+        </div>
+      ) : (
+      <>
+      <div className="flex justify-end mb-6">
         <button
           onClick={handleSave}
           disabled={saving}
@@ -282,6 +321,8 @@ const AdminOrganizationChart = () => {
           'Yükleme sonrası "Kaydet" butonuna basmayı unutmayın. Değişiklik Kalite Yönetimi sayfasına yansıyacaktır.'
         )}
       </div>
+      </>
+      )}
     </div>
   );
 };

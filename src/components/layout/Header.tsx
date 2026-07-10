@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
@@ -16,6 +16,7 @@ import {
 } from 'react-icons/fa'
 import Logo from '../ui/Logo'
 import { useFocusTrap } from '../../hooks/useFocusTrap'
+import { useHospitals } from '../../hooks/useHospitals'
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -24,6 +25,7 @@ const Header = () => {
   const location = useLocation()
   const { t, i18n } = useTranslation()
   const mobileMenuRef = useFocusTrap<HTMLDivElement>(isOpen, () => setIsOpen(false))
+  const { data: hospitals = [] } = useHospitals({ onlyPublished: true })
 
   const toggleMenu = () => setIsOpen(!isOpen)
   const closeMenu = () => setIsOpen(false)
@@ -41,12 +43,13 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const menuItems = [
+  const menuItems = useMemo(() => [
     {
       title: t('nav.hospitals'),
       path: '/hastanelerimiz',
       icon: <FaRegHospital className="text-sm" />,
       dropdown: null,
+      navigable: true,
     },
     {
       title: t('nav.departments'),
@@ -58,11 +61,21 @@ const Header = () => {
         { name: t('header.dropdown.internal'), path: '/bolumlerimiz?kategori=dahili' },
         { name: t('header.dropdown.diagnostic'), path: '/bolumlerimiz?kategori=teshis' },
       ],
+      navigable: true,
     },
     {
       title: t('nav.doctors'),
       path: '/doktorlar',
-      dropdown: null,
+      icon: <FaStethoscope className="text-sm" />,
+      // Doktorlar doğrudan açılmaz; kullanıcı mutlaka bir şube (hastane) seçer.
+      navigable: false,
+      dropdown: hospitals
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name, 'tr'))
+        .map((h) => ({
+          name: h.name,
+          path: `/doktorlar?hastane=${encodeURIComponent(h.name)}`,
+        })),
     },
     {
       title: t('nav.healthGuide'),
@@ -70,20 +83,23 @@ const Header = () => {
       dropdown: [
         { name: t('header.dropdown.articles'), path: '/saglik-rehberi' },
       ],
+      navigable: true,
     },
     {
       title: t('nav.healthTourism'),
       path: '/saglik-turizmi',
       icon: <FaInfoCircle className="text-sm" />,
       dropdown: null,
+      navigable: true,
     },
     {
       title: t('nav.contact'),
       path: '/iletisim',
       icon: <FaPhoneAlt className="text-sm" />,
       dropdown: null,
+      navigable: true,
     },
-  ]
+  ], [t, hospitals])
 
   return (
     <header
@@ -108,33 +124,56 @@ const Header = () => {
                 if (!e.currentTarget.contains(e.relatedTarget as Node)) setActiveDropdown(null)
               }}
             >
-              <NavLink
-                to={item.path}
-                className={({ isActive }) =>
-                  `relative px-2.5 py-2 rounded-xl text-[13px] font-semibold tracking-tight transition-all duration-300 flex items-center gap-1 whitespace-nowrap ${
-                    isActive
-                      ? 'text-primary-600'
-                      : 'text-neutral-600 hover:text-primary-600'
-                  }`
-                }
-              >
-                {item.title}
-                {item.dropdown && (
-                  <FaChevronDown
-                    className={`text-[10px] transition-transform duration-300 ${
-                      activeDropdown === item.title ? 'rotate-180' : ''
+              {item.navigable ? (
+                <NavLink
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `relative px-2.5 py-2 rounded-xl text-[13px] font-semibold tracking-tight transition-all duration-300 flex items-center gap-1 whitespace-nowrap ${
+                      isActive
+                        ? 'text-primary-600'
+                        : 'text-neutral-600 hover:text-primary-600'
+                    }`
+                  }
+                >
+                  {item.title}
+                  {item.dropdown && (
+                    <FaChevronDown
+                      className={`text-[10px] transition-transform duration-300 ${
+                        activeDropdown === item.title ? 'rotate-180' : ''
+                      }`}
+                    />
+                  )}
+                  {/* Active indicator */}
+                  <span
+                    className={`absolute bottom-0 left-2.5 right-2.5 h-[2px] bg-coral-500 rounded-full transition-transform duration-300 origin-center ${
+                      location.pathname.startsWith(item.path) && item.path !== '/'
+                        ? 'scale-x-100'
+                        : 'scale-x-0 group-hover:scale-x-100'
                     }`}
                   />
-                )}
-                {/* Active indicator */}
-                <span
-                  className={`absolute bottom-0 left-2.5 right-2.5 h-[2px] bg-coral-500 rounded-full transition-transform duration-300 origin-center ${
-                    location.pathname.startsWith(item.path) && item.path !== '/'
-                      ? 'scale-x-100'
-                      : 'scale-x-0 group-hover:scale-x-100'
-                  }`}
-                />
-              </NavLink>
+                </NavLink>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveDropdown(
+                      activeDropdown === item.title ? null : item.title
+                    )
+                  }
+                  aria-haspopup="true"
+                  aria-expanded={activeDropdown === item.title}
+                  className="relative px-2.5 py-2 rounded-xl text-[13px] font-semibold tracking-tight transition-all duration-300 flex items-center gap-1 whitespace-nowrap text-neutral-600 hover:text-primary-600"
+                >
+                  {item.title}
+                  {item.dropdown && (
+                    <FaChevronDown
+                      className={`text-[10px] transition-transform duration-300 ${
+                        activeDropdown === item.title ? 'rotate-180' : ''
+                      }`}
+                    />
+                  )}
+                </button>
+              )}
 
               {/* Dropdown */}
               <AnimatePresence>
@@ -308,17 +347,24 @@ const Header = () => {
                   {menuItems.map((item) => (
                     <div key={item.title} className="border-b border-neutral-50 last:border-0">
                       <div className="flex items-center justify-between py-3">
-                        <NavLink
-                          to={item.path}
-                          className={({ isActive }) =>
-                            `text-base font-semibold ${
-                              isActive ? 'text-primary-600' : 'text-neutral-800'
-                            }`
-                          }
-                          onClick={closeMenu}
-                        >
-                          {item.title}
-                        </NavLink>
+                        {item.navigable ? (
+                          <NavLink
+                            to={item.path}
+                            className={({ isActive }) =>
+                              `text-base font-semibold ${
+                                isActive ? 'text-primary-600' : 'text-neutral-800'
+                              }`
+                            }
+                            onClick={closeMenu}
+                          >
+                            {item.title}
+                          </NavLink>
+                        ) : (
+                          <span className="text-base font-semibold text-neutral-800 flex items-center gap-2">
+                            {item.title}
+                            {item.dropdown && <FaChevronDown className="text-[10px] opacity-50" />}
+                          </span>
+                        )}
                       </div>
                       {item.dropdown && (
                         <div className="pl-3 pb-3 space-y-1">

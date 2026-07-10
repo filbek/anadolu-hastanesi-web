@@ -140,11 +140,19 @@ export type ManagementTeamMember = {
   role: 'board' | 'chief_physician' | 'assistant_chief' | 'health_care_manager' | 'it_unit' | 'general_manager_deputy' | 'financial_affairs_manager' | 'hospitality_services_manager' | 'quality_management_manager' | 'administrative';
   department?: string;
   doctor_id?: number | null;
+  hospital_id?: number | string | null;
   image?: string;
   display_order?: number;
   is_active?: boolean;
   created_at?: string;
   doctor?: Doctor | null;
+};
+
+export type QualityOrgChart = {
+  id: number;
+  hospital_id: number | string;
+  pdf_url: string | null;
+  updated_at?: string;
 };
 
 export type UserProfile = {

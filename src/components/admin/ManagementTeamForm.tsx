@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { FaSave, FaArrowLeft, FaImage, FaUserMd, FaSearch, FaTimes } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import type { ManagementTeamMember, Doctor } from '../../lib/supabase';
+import type { ManagementTeamMember, Doctor, Hospital } from '../../lib/supabase';
 
 interface ManagementTeamFormProps {
   member?: ManagementTeamMember;
@@ -32,12 +32,14 @@ const ManagementTeamForm = ({ member, onSave, onCancel }: ManagementTeamFormProp
   const doctorDropdownRef = useRef<HTMLDivElement>(null);
 
   const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [formData, setFormData] = useState<Partial<ManagementTeamMember>>({
     name: '',
     title: '',
     role: 'administrative',
     department: '',
     doctor_id: null,
+    hospital_id: null,
     image: '',
     display_order: 0,
     is_active: true,
@@ -59,7 +61,21 @@ const ManagementTeamForm = ({ member, onSave, onCancel }: ManagementTeamFormProp
       fetchMember(parseInt(id));
     }
     fetchDoctors();
+    fetchHospitals();
   }, [member, id]);
+
+  const fetchHospitals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('hospitals')
+        .select('*')
+        .order('display_order', { ascending: true });
+      if (error) throw error;
+      setHospitals((data || []) as Hospital[]);
+    } catch (error) {
+      console.error('Error fetching hospitals:', error);
+    }
+  };
 
   useEffect(() => {
     if (formData.doctor_id) {
@@ -307,6 +323,27 @@ const ManagementTeamForm = ({ member, onSave, onCancel }: ManagementTeamFormProp
                   />
                 </div>
               </div>
+
+              {formData.role === 'quality_management_manager' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Şube *</label>
+                  <select
+                    name="hospital_id"
+                    value={formData.hospital_id ?? ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, hospital_id: e.target.value || null }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    required
+                  >
+                    <option value="" disabled>Şube seçin</option>
+                    {hospitals.map(h => (
+                      <option key={h.id} value={h.id}>{h.name}</option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Kalite Yönetimi sayfasında bu şube seçildiğinde gösterilecek yönetici.
+                  </p>
+                </div>
+              )}
 
               <div ref={doctorDropdownRef}>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Bağlı Doktor (Opsiyonel)</label>

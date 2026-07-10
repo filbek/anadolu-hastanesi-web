@@ -220,9 +220,9 @@ const Footer = () => {
               </span>
               <span className="hidden sm:inline">|</span>
               <div className="flex items-center gap-3">
-                <a href="https://anadoluhastaneleri.com/gizlilikilkesi" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                <Link to="/gizlilik-politikasi" className="hover:text-white transition-colors">
                   {t('footer.terms')}
-                </a>
+                </Link>
                 <span>/</span>
                 <Link to="/cerez-politikasi" className="hover:text-white transition-colors">
                   {t('footer.cookies')}

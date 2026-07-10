@@ -34,6 +34,7 @@ export interface QualityCommittee {
   icon: string;
   display_order: number;
   is_active: boolean;
+  hospital_id?: number | string | null;
   created_at?: string;
   updated_at?: string;
 }

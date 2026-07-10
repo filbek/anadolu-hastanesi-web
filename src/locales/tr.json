@@ -18,7 +18,9 @@
       "diagnostic": "Teşhis Birimleri",
       "articles": "Makaleler",
       "videos": "Video İçerikler",
-      "patientInfo": "Hasta Bilgilendirme"
+      "patientInfo": "Hasta Bilgilendirme",
+      "allHospitals": "Tüm Hastaneler",
+      "doctorsByHospital": "Hastaneye Göre Doktorlar"
     }
   },
   "hero": {
@@ -1634,6 +1636,7 @@
     "ctaDesc": "Uluslararası standartlarda hizmet veren hastanelerimizden randevu alın"
   },
   "quality": {
+    "branchSelectorLabel": "Şube Seçin",
     "legalDocs": "Yasal Belgeler",
     "qualityStandards": "Kalite Standartları",
     "standardsTag": "Sağlıkta Kalite",
