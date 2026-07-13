@@ -7,7 +7,7 @@ import {
   FaImages, FaFileAlt, FaPhone, FaGlobe, FaEnvelope,
   FaDatabase, FaVideo, FaAward, FaFilePdf, FaChevronRight,
   FaSlideshare, FaComments, FaChartBar, FaCertificate, FaClipboardList, FaHistory, FaUserTie,
-  FaBaby, FaHandshake, FaSitemap
+  FaBaby, FaHandshake, FaSitemap, FaHandHoldingHeart
 } from 'react-icons/fa';
 
 const AdminLayout = () => {
@@ -41,6 +41,7 @@ const AdminLayout = () => {
         { path: '/admin/contact-info', icon: FaPhone, label: 'İletişim' },
         { path: '/admin/management-team', icon: FaUserTie, label: 'Yönetim Ekibi' },
         { path: '/admin/gebe-okulu', icon: FaBaby, label: 'Gebe Okulu' },
+        { path: '/admin/social-responsibility', icon: FaHandHoldingHeart, label: 'Sosyal Sorumluluk' },
       ]
     },
     {

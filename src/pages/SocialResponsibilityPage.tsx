@@ -1,96 +1,97 @@
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import {
   FaHeart,
-  FaLeaf,
-  FaHandHoldingMedical,
   FaChevronRight,
-  FaUsers,
-  FaTree,
-  FaGraduationCap,
   FaCalendarAlt,
+  FaHospital,
+  FaHandHoldingMedical,
 } from 'react-icons/fa';
-import LastUpdated from '../components/ui/LastUpdated';
+import { supabase } from '../lib/supabase';
+import type { Hospital } from '../lib/supabase';
+import AutoTranslate from '../components/common/AutoTranslate';
 
-const projects = (t: any) => [
-  {
-    icon: <FaHandHoldingMedical />,
-    title: t('csr.proj1Title', 'Ücretsiz Sağlık Taramaları'),
-    desc: t('csr.proj1Desc', 'Dezavantajlı bölgelerde yaşayan vatandaşlarımıza yönelik düzenli olarak ücretsiz sağlık taramaları, kan şekeri ölçümü ve tansiyon kontrolleri gerçekleştiriyoruz.'),
-    stat: t('csr.proj1Stat', '5.000+ Kişi'),
-  },
-  {
-    icon: <FaGraduationCap />,
-    title: t('csr.proj2Title', 'Sağlık Okuryazarlığı Eğitimleri'),
-    desc: t('csr.proj2Desc', 'Okullarda ve toplum merkezlerinde çocuklara ve yetişkinlere yönelik sağlık okuryazarlığı, ilk yardım ve beslenme eğitimleri veriyoruz.'),
-    stat: t('csr.proj2Stat', '120+ Etkinlik'),
-  },
-  {
-    icon: <FaUsers />,
-    title: t('csr.proj3Title', 'Gebe Okulu ve Aile Eğitimi'),
-    desc: t('csr.proj3Desc', 'Gebelik sürecinde anne adaylarına ve ailelere yönelik ücretsiz bilgilendirme seminerleri ve pratik atölyeler düzenliyoruz.'),
-    stat: t('csr.proj3Stat', '2.000+ Aile'),
-  },
-  {
-    icon: <FaHeart />,
-    title: t('csr.proj4Title', 'Bağış ve Destek Kampanyaları'),
-    desc: t('csr.proj4Desc', 'Ameliyat ve tedavi masraflarını karşılayamayan hastalarımız için sosyal destek projeleri ve bağış kampanyaları yürütüyoruz.'),
-    stat: t('csr.proj4Stat', '300+ Hasta'),
-  },
-];
-
-const sustainability = (t: any) => [
-  {
-    icon: <FaLeaf />,
-    title: t('csr.env1Title', 'Atık Yönetimi'),
-    desc: t('csr.env1Desc', 'Tıbbi ve evsel atıkların uluslararası standartlara uygun ayrıştırılması, sterilizasyonu ve geri dönüşümü sağlanmaktadır.'),
-  },
-  {
-    icon: <FaTree />,
-    title: t('csr.env2Title', 'Enerji Verimliliği'),
-    desc: t('csr.env2Desc', 'LED aydınlatma, invertör klima sistemleri ve güneş enerjisi kullanımı ile karbon ayak izimizi azaltıyoruz.'),
-  },
-  {
-    icon: <FaHeart />,
-    title: t('csr.env3Title', 'Yeşil Hastane'),
-    desc: t('csr.env3Desc', 'Hastane bahçelerimizde yerel bitki türleriyle yeşil alan oluşturma ve biyoçeşitliliği destekleme çalışmaları yürütüyoruz.'),
-  },
-];
-
-const events = (t: any) => [
-  {
-    date: t('csr.event1Date', '15 Nisan 2026'),
-    title: t('csr.event1Title', 'Dünya Sağlık Günü Ücretsiz Tarama'),
-    location: t('csr.event1Loc', 'Çanakkale Anadolu Hastanesi'),
-  },
-  {
-    date: t('csr.event2Date', '8 Mayıs 2026'),
-    title: t('csr.event2Title', 'Anne ve Çocuk Sağlığı Farkındalık Günü'),
-    location: t('csr.event2Loc', 'Silivri Anadolu Hastanesi'),
-  },
-  {
-    date: t('csr.event3Date', '5 Haziran 2026'),
-    title: t('csr.event3Title', 'Çevre Günü Ağaç Dikim Etkinliği'),
-    location: t('csr.event3Loc', 'Karadeniz Ereğli Anadolu Hastanesi'),
-  },
-];
+type CsrActivity = {
+  id: number;
+  title: string;
+  description: string;
+  image?: string | null;
+  event_date?: string | null;
+  hospital_id?: number | null;
+  is_active: boolean;
+  display_order: number;
+  hospitals?: { id: number; name: string; slug: string } | null;
+};
 
 const SocialResponsibilityPage = () => {
   const { t } = useTranslation();
+  const [activities, setActivities] = useState<CsrActivity[]>([]);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [selectedHospitalId, setSelectedHospitalId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [activitiesRes, hospitalsRes] = await Promise.all([
+          supabase
+            .from('social_responsibility_activities')
+            .select('*, hospitals:hospital_id(id, name, slug)')
+            .eq('is_active', true)
+            .order('display_order', { ascending: true })
+            .order('event_date', { ascending: false, nullsFirst: false }),
+          supabase
+            .from('hospitals')
+            .select('*')
+            .order('display_order', { ascending: true }),
+        ]);
+        setActivities((activitiesRes.data as unknown as CsrActivity[]) || []);
+        setHospitals(hospitalsRes.data || []);
+      } catch (error) {
+        console.error('Error fetching social responsibility activities:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Şube seçiliyken o şubenin etkinlikleri + tüm şubeler için girilen genel etkinlikler gösterilir
+  const filteredActivities = useMemo(() => {
+    if (!selectedHospitalId) return activities;
+    return activities.filter(
+      (a) => !a.hospital_id || a.hospital_id === selectedHospitalId,
+    );
+  }, [activities, selectedHospitalId]);
+
+  const formatDate = (date?: string | null) => {
+    if (!date) return null;
+    try {
+      return new Date(date).toLocaleDateString('tr-TR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+    } catch {
+      return date;
+    }
+  };
 
   return (
     <>
       <Helmet>
-        <title>{t('csr.pageTitle', 'Sosyal Sorumluluk')} | Anadolu Hastaneleri Grubu</title>
+        <title>{t('csr.pageTitle', 'Sosyal Sorumluluk Projeleri')} | Anadolu Hastaneleri Grubu</title>
         <meta
           name="description"
-          content={t('csr.metaDescription', 'Topluma katkı projelerimiz, çevre ve sürdürülebilirlik çalışmalarımız ile sağlık hizmetlerini toplumun her kesimine ulaştırıyoruz.')}
+          content={t('csr.metaDescription', 'Koruyucu sağlık ve sağlığın geliştirilmesine yönelik sosyal sorumluluk projelerimiz ve etkinliklerimiz.')}
         />
       </Helmet>
 
       {/* ─── HERO ─── */}
-      <section className="relative min-h-[480px] md:min-h-[540px] flex items-center overflow-hidden">
+      <section className="relative min-h-[420px] md:min-h-[480px] flex items-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
@@ -115,12 +116,12 @@ const SocialResponsibilityPage = () => {
               </span>
             </div>
             <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-6">
-              {t('csr.heroTitle1', 'Sosyal')}
+              {t('csr.heroTitle1', 'Sosyal Sorumluluk')}
               <br />
-              <span className="text-green-500">{t('csr.heroTitle2', 'Sorumluluk')}</span>
+              <span className="text-green-500">{t('csr.heroTitle2', 'Projeleri')}</span>
             </h1>
             <p className="text-white/70 text-lg md:text-xl leading-relaxed max-w-xl">
-              {t('csr.heroDesc', 'Sağlık hizmetlerini toplumun her kesimine ulaştırmak, çevreye duyarlı büyümek ve toplumsal fayda yaratmak için çalışıyoruz.')}
+              {t('csr.heroDesc', 'Koruyucu sağlık hizmetleri ve sağlığın geliştirilmesine yönelik etkinliklerimizle toplum sağlığına katkı sağlıyoruz.')}
             </p>
           </motion.div>
         </div>
@@ -132,142 +133,123 @@ const SocialResponsibilityPage = () => {
         </div>
       </section>
 
-      {/* ─── PROJECTS ─── */}
+      {/* ─── ETKİNLİKLER ─── */}
       <section className="bg-gray-50 py-20 lg:py-28">
         <div className="container-custom">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="max-w-2xl mb-14"
+            className="max-w-3xl mb-10"
           >
             <div className="flex items-center gap-3 mb-5">
               <span className="block h-px w-[60px] bg-accent" />
               <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">
-                {t('csr.projectsTag', 'Topluma Katkı')}
+                {t('csr.activitiesTag', 'Etkinliklerimiz')}
               </span>
             </div>
-            <h2 className="text-4xl lg:text-5xl font-black text-secondary leading-tight mb-4">
-              {t('csr.projectsTitle', 'Projelerimiz')}
+            <h2 className="text-3xl lg:text-4xl font-black text-secondary leading-tight mb-4">
+              {t('csr.activitiesTitle', 'Koruyucu Sağlık ve Sağlığın Geliştirilmesine Yönelik Etkinlikler')}
             </h2>
             <p className="text-gray-500 text-lg">
-              {t('csr.projectsDesc', 'Toplum sağlığını artırmaya yönelik sürdürdüğümüz sosyal sorumluluk projelerimiz.')}
+              {t('csr.activitiesDesc', 'Şubelerimizin toplum sağlığını korumak ve geliştirmek amacıyla düzenlediği etkinlikler.')}
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {projects(t).map((proj, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
+          {/* Şube Seçimi */}
+          {hospitals.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-10" role="group" aria-label={t('csr.selectBranch', 'Şube seçimi')}>
+              <button
+                onClick={() => setSelectedHospitalId(null)}
+                aria-pressed={!selectedHospitalId}
+                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                  !selectedHospitalId
+                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:border-primary hover:text-primary'
+                }`}
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-14 h-14 rounded-xl bg-primary/8 text-primary flex items-center justify-center text-2xl">
-                    {proj.icon}
+                {t('csr.allBranches', 'Tüm Şubeler')}
+              </button>
+              {hospitals.map((h) => (
+                <button
+                  key={h.id}
+                  onClick={() => setSelectedHospitalId(Number(h.id))}
+                  aria-pressed={selectedHospitalId === Number(h.id)}
+                  className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                    selectedHospitalId === Number(h.id)
+                      ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-primary hover:text-primary'
+                  }`}
+                >
+                  {h.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" />
+            </div>
+          ) : filteredActivities.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+              <div className="w-16 h-16 rounded-full bg-green-500/10 text-green-600 flex items-center justify-center text-2xl mx-auto mb-4">
+                <FaHandHoldingMedical />
+              </div>
+              <h3 className="text-xl font-bold text-secondary mb-2">
+                {t('csr.emptyTitle', 'Henüz etkinlik eklenmedi')}
+              </h3>
+              <p className="text-gray-500 text-sm max-w-md mx-auto">
+                {t('csr.emptyDesc', 'Bu şube için yaklaşan etkinlikler yakında burada paylaşılacaktır. Lütfen daha sonra tekrar kontrol ediniz.')}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredActivities.map((activity, i) => (
+                <motion.article
+                  key={activity.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: Math.min(i, 5) * 0.08 }}
+                  className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col"
+                >
+                  {activity.image && (
+                    <div className="aspect-[16/9] overflow-hidden">
+                      <img
+                        src={activity.image}
+                        alt={activity.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
+                  <div className="p-6 flex flex-col flex-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-4">
+                      {activity.event_date && (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary bg-primary/5 rounded-full px-3 py-1.5">
+                          <FaCalendarAlt className="text-[10px]" />
+                          {formatDate(activity.event_date)}
+                        </span>
+                      )}
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-green-700 bg-green-500/10 rounded-full px-3 py-1.5">
+                        <FaHospital className="text-[10px]" />
+                        {activity.hospitals?.name || t('csr.allBranches', 'Tüm Şubeler')}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-bold text-secondary mb-2">
+                      <AutoTranslate text={activity.title} />
+                    </h3>
+                    {activity.description && (
+                      <p className="text-gray-500 text-sm leading-relaxed whitespace-pre-line">
+                        <AutoTranslate text={activity.description} />
+                      </p>
+                    )}
                   </div>
-                  <span className="text-xs font-bold text-accent bg-accent/10 rounded-full px-3 py-1">
-                    {proj.stat}
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold text-secondary mb-2">{proj.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{proj.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── SUSTAINABILITY ─── */}
-      <section className="bg-white py-20 lg:py-28">
-        <div className="container-custom">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-2xl mb-14"
-          >
-            <div className="flex items-center gap-3 mb-5">
-              <span className="block h-px w-[60px] bg-green-500" />
-              <span className="text-xs uppercase tracking-[0.25em] text-green-500 font-bold">
-                {t('csr.sustainTag', 'Çevre ve Sürdürülebilirlik')}
-              </span>
+                </motion.article>
+              ))}
             </div>
-            <h2 className="text-4xl lg:text-5xl font-black text-secondary leading-tight mb-4">
-              {t('csr.sustainTitle', 'Yeşil')}{' '}
-              <span className="text-green-600">{t('csr.sustainHighlight', 'Gelecek')}</span>
-            </h2>
-            <p className="text-gray-500 text-lg">
-              {t('csr.sustainDesc', 'Çevresel sürdürülebilirlik ilkeleri doğrultusunda atık yönetiminden enerji verimliliğine kadar her alanda sorumlu davranıyoruz.')}
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {sustainability(t).map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="group bg-gray-50 rounded-2xl p-8 border border-gray-100 hover:border-green-200 hover:shadow-md transition-all duration-300"
-              >
-                <div className="w-14 h-14 rounded-xl bg-green-500/10 text-green-600 flex items-center justify-center text-2xl mb-5 group-hover:bg-green-500 group-hover:text-white transition-colors duration-300">
-                  {item.icon}
-                </div>
-                <h3 className="text-lg font-bold text-secondary mb-2">{item.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── EVENTS ─── */}
-      <section className="bg-gray-50 py-20 lg:py-28">
-        <div className="container-custom">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-2xl mb-14"
-          >
-            <div className="flex items-center gap-3 mb-5">
-              <span className="block h-px w-[60px] bg-accent" />
-              <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">
-                {t('csr.eventsTag', 'Yaklaşan Etkinlikler')}
-              </span>
-            </div>
-            <h2 className="text-4xl lg:text-5xl font-black text-secondary leading-tight mb-4">
-              {t('csr.eventsTitle', 'Etkinlik')}{' '}
-              <span className="text-primary">{t('csr.eventsHighlight', 'Takvimi')}</span>
-            </h2>
-          </motion.div>
-
-          <div className="space-y-4">
-            {events(t).map((evt, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="flex flex-col sm:flex-row sm:items-center gap-4 bg-white rounded-2xl p-6 border border-gray-100 shadow-sm"
-              >
-                <div className="flex-shrink-0 inline-flex items-center gap-2 text-sm font-bold text-primary bg-primary/5 rounded-xl px-4 py-2">
-                  <FaCalendarAlt className="text-xs" />
-                  {evt.date}
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-secondary">{evt.title}</h3>
-                  <p className="text-gray-400 text-sm">{evt.location}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          )}
         </div>
       </section>
 
@@ -278,7 +260,8 @@ const SocialResponsibilityPage = () => {
             <p className="text-accent text-xs uppercase tracking-[0.2em] font-bold mb-2">
               {t('common.brand', 'Anadolu Hastaneleri Grubu')}
             </p>
-            <h3 className="text-2xl md:text-3xl font-black text-white">
+            <h3 className="text-2xl md:text-3xl font-black text-white flex items-center gap-3">
+              <FaHeart className="text-accent" />
               {t('csr.ctaTitle', 'Sosyal Sorumluluk Projelerimize Destek Olun')}
             </h3>
           </motion.div>
@@ -292,13 +275,6 @@ const SocialResponsibilityPage = () => {
             {t('common.contactUs', 'İletişime Geçin')}
             <FaChevronRight className="text-sm" />
           </motion.a>
-        </div>
-      </section>
-
-      {/* ─── LAST UPDATED ─── */}
-      <section className="bg-white py-6 border-t border-gray-100">
-        <div className="container-custom">
-          <LastUpdated date="22.06.2026" />
         </div>
       </section>
     </>

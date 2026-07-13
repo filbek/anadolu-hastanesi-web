@@ -36,7 +36,7 @@ const PatientFeedbackPage = lazy(() => import('./pages/PatientFeedbackPage'))
 const ComplaintPolicyPage = lazy(() => import('./pages/ComplaintPolicyPage'))
 const GebeOkuluPage = lazy(() => import('./pages/GebeOkuluPage'))
 const EmergencyServicesPage = lazy(() => import('./pages/EmergencyServicesPage'))
-// const SocialResponsibilityPage = lazy(() => import('./pages/SocialResponsibilityPage'))
+const SocialResponsibilityPage = lazy(() => import('./pages/SocialResponsibilityPage'))
 const CareerPage = lazy(() => import('./pages/CareerPage'))
 // const MediaPage = lazy(() => import('./pages/MediaPage'))
 const TransportationPage = lazy(() => import('./pages/TransportationPage'))
@@ -83,6 +83,7 @@ const ManagementTeamForm = lazy(() => import('./components/admin/ManagementTeamF
 const AdminTranslations = lazy(() => import('./components/admin/AdminTranslations'))
 const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'))
 const AdminGebeOkulu = lazy(() => import('./components/admin/AdminGebeOkulu'))
+const AdminSocialResponsibility = lazy(() => import('./components/admin/AdminSocialResponsibility'))
 
 const HospitalForm = lazy(() => import('./components/admin/HospitalForm'))
 const DepartmentForm = lazy(() => import('./components/admin/DepartmentForm'))
@@ -147,7 +148,8 @@ function App() {
             <Route path="sikayet-politikasi" element={<ComplaintPolicyPage />} />
             <Route path="gebe-okulu" element={<GebeOkuluPage />} />
             <Route path="acil-servis" element={<EmergencyServicesPage />} />
-            <Route path="sosyal-sorumluluk" element={<Navigate to="/404" replace />} />
+            <Route path="sosyal-sorumluluk-projeleri" element={<SocialResponsibilityPage />} />
+            <Route path="sosyal-sorumluluk" element={<Navigate to="/sosyal-sorumluluk-projeleri" replace />} />
             <Route path="kariyer" element={<CareerPage />} />
             <Route path="ulasim" element={<TransportationPage />} />
             <Route path="hastane-ici-rehber" element={<HospitalGuidePage />} />
@@ -208,6 +210,7 @@ function App() {
               <Route path="management-team/edit/:id" element={<ManagementTeamForm />} />
               <Route path="second-opinion" element={<AdminSecondOpinion />} />
               <Route path="gebe-okulu" element={<AdminGebeOkulu />} />
+              <Route path="social-responsibility" element={<AdminSocialResponsibility />} />
             </Route>
           </Route>
         </Routes>
