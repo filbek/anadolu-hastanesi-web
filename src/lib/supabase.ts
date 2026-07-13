@@ -92,6 +92,7 @@ export type Doctor = {
   experience: string;
   about?: string;
   specialties?: string[];
+  treatments?: string[];
   is_active?: boolean;
   display_order?: number;
   translations?: Translations;

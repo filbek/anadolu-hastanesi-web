@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaSave, FaArrowLeft, FaImage, FaGraduationCap, FaStar } from 'react-icons/fa';
+import { FaSave, FaArrowLeft, FaImage, FaGraduationCap, FaStar, FaFileMedical } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 
@@ -16,6 +16,7 @@ interface Doctor {
   education: string[];
   experience: string;
   languages: string[];
+  treatments?: string[];
   image_url: string;
   email: string;
   phone: string;
@@ -65,6 +66,7 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
   const [loading, setLoading] = useState(false);
   const [educationInput, setEducationInput] = useState('');
   const [languageInput, setLanguageInput] = useState('');
+  const [treatmentsInput, setTreatmentsInput] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,6 +96,7 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
   useEffect(() => {
     if (doctor) {
       setFormData(doctor);
+      setTreatmentsInput((doctor.treatments || []).join('\n'));
     } else if (id) {
       fetchDoctor(parseInt(id));
     }
@@ -141,6 +144,7 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
           display_order: data.display_order ?? 1,
           created_at: data.created_at,
         });
+        setTreatmentsInput(Array.isArray(data.treatments) ? data.treatments.join('\n') : '');
       }
     } catch (error) {
       console.error('Error fetching doctor:', error);
@@ -194,6 +198,13 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
     }));
   };
 
+  // Yapıştırılan tedavi listesini satır satır ayır; baştaki madde işaretlerini (-, •, 1. vb.) temizle
+  const parseTreatments = (text: string): string[] =>
+    text
+      .split('\n')
+      .map((line) => line.replace(/^\s*(?:[-–—•*·]|\d+[.)])\s*/, '').trim())
+      .filter(Boolean);
+
   // Türkçe karakterleri de dikkate alan slug üretici
   const slugify = (s: string) =>
     s
@@ -220,6 +231,7 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
         education: (formData.education || []).join('\n'),
         experience: formData.experience,
         languages: formData.languages || [],
+        treatments: parseTreatments(treatmentsInput),
         image: formData.image_url,
         email: formData.email || null,
         phone: formData.phone || null,
@@ -479,6 +491,41 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
                     </span>
                   ))}
                 </div>
+              </div>
+
+              {/* Treatments */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                  <FaFileMedical className="mr-2" />
+                  {t('admin.label.treatments', 'Uygulanan Tedaviler')}
+                </label>
+                <textarea
+                  value={treatmentsInput}
+                  onChange={(e) => setTreatmentsInput(e.target.value)}
+                  rows={8}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder={t(
+                    'admin.label.treatmentsPlaceholder',
+                    'Her satıra bir tedavi yazın:\nKatarakt Ameliyatı\nLazer Tedavisi\nGlokom Tedavisi',
+                  )}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Doktorun ilettiği listeyi olduğu gibi yapıştırabilirsiniz — her satır bir tedavi olarak
+                  kaydedilir, baştaki madde işaretleri (-, •, 1.) otomatik temizlenir. Boş bırakılırsa
+                  doktor sayfasında bölüme göre genel liste gösterilir.
+                </p>
+                {parseTreatments(treatmentsInput).length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {parseTreatments(treatmentsInput).map((treatment, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+                      >
+                        {treatment}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

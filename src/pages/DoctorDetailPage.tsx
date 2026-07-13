@@ -95,7 +95,10 @@ const DoctorDetailPage = () => {
   const deptSlug = (doctor as any).departments?.slug || ''
   const hospitalName = (doctor as any).hospitals?.name || ''
   const hospitalSlug = (doctor as any).hospitals?.slug || ''
-  const treatments = getTreatments(deptName, deptSlug)
+  // Admin panelinden doktora özel tedavi listesi girildiyse onu göster; yoksa bölüme göre genel liste
+  const customTreatments: string[] = (Array.isArray((doctor as any).treatments) ? (doctor as any).treatments : [])
+    .filter((item: unknown): item is string => typeof item === 'string' && item.trim().length > 0)
+  const treatments: string[] = customTreatments.length > 0 ? customTreatments : getTreatments(deptName, deptSlug)
   const deptDescription = t('doctorDetail.deptDescTemplate', '{{deptName}} birimimizde, alanında uzman hekim kadromuz ve modern tıp teknolojilerimizle hastalarımıza en iyi sağlık hizmetini sunmayı ilke edindik. Teşhis ve tedavi süreçlerinde multidisipliner yaklaşım benimseyerek, her hastamız için kişiselleştirilmiş çözümler üretiyoruz.', { deptName })
 
   const hasEducation = doctor.education && doctor.education.trim().length > 0
