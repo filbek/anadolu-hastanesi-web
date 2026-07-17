@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { FaCalendarAlt, FaGraduationCap, FaHospital, FaStethoscope, FaAward, FaFileMedical, FaPhone, FaClock } from 'react-icons/fa'
+import { FaCalendarAlt, FaGraduationCap, FaHospital, FaStethoscope, FaAward, FaFileMedical, FaFilePdf, FaPhone, FaClock } from 'react-icons/fa'
 import { useDoctorDetail } from '../hooks/useDoctors'
 import { useLocalizedItem } from '../hooks/useLocalizedList'
 import SecondOpinionBanner from '../components/common/SecondOpinionBanner'
@@ -101,8 +101,13 @@ const DoctorDetailPage = () => {
   const treatments: string[] = customTreatments.length > 0 ? customTreatments : getTreatments(deptName, deptSlug)
   const deptDescription = t('doctorDetail.deptDescTemplate', '{{deptName}} birimimizde, alanında uzman hekim kadromuz ve modern tıp teknolojilerimizle hastalarımıza en iyi sağlık hizmetini sunmayı ilke edindik. Teşhis ve tedavi süreçlerinde multidisipliner yaklaşım benimseyerek, her hastamız için kişiselleştirilmiş çözümler üretiyoruz.', { deptName })
 
+  // Admin panelinden girilen özgeçmiş (about) alanı
+  const aboutText = (doctor as any).about as string | undefined
+  const hasAbout = Boolean(aboutText && aboutText.trim().length > 0)
   const hasEducation = doctor.education && doctor.education.trim().length > 0
   const hasExperience = doctor.experience && doctor.experience.trim().length > 0
+  const cvUrl = (doctor as any).cv_url as string | undefined
+  const hasCv = Boolean(cvUrl && cvUrl.trim().length > 0)
 
   return (
     <>
@@ -185,6 +190,16 @@ const DoctorDetailPage = () => {
                   >
                     <FaPhone className="mr-2" /> 444 50 58
                   </a>
+                  {hasCv && (
+                    <a
+                      href={cvUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-outline w-full justify-center"
+                    >
+                      <FaFilePdf className="mr-2" /> {t('doctorDetail.downloadCv', 'Özgeçmişi İndir')}
+                    </a>
+                  )}
                 </div>
               </div>
 
@@ -230,12 +245,19 @@ const DoctorDetailPage = () => {
                   <FaStethoscope className="text-ocean-500" />
                   {t('common.about', 'Hakkında')}
                 </h3>
-                <p className="text-text-light leading-relaxed mb-6">
-                  {deptDescription}
-                </p>
-                <p className="text-text-light leading-relaxed">
-                  {t('doctorDetail.aboutDesc', '{{name}}, {{hospital}} bünyesinde {{dept}} biriminde görev yapmaktadır. Modern teşhis ve tedavi yöntemlerini kullanarak hastalarına en güncel ve etkili sağlık hizmetini sunmaktadır.', { name: doctor.name, hospital: hospitalName, dept: deptName })}
-                </p>
+                {hasAbout ? (
+                  // Admin panelinden girilen özgeçmiş — satır/liste yapısını koru
+                  <p className="text-text-light leading-relaxed whitespace-pre-line">{aboutText}</p>
+                ) : (
+                  <>
+                    <p className="text-text-light leading-relaxed mb-6">
+                      {deptDescription}
+                    </p>
+                    <p className="text-text-light leading-relaxed">
+                      {t('doctorDetail.aboutDesc', '{{name}}, {{hospital}} bünyesinde {{dept}} biriminde görev yapmaktadır. Modern teşhis ve tedavi yöntemlerini kullanarak hastalarına en güncel ve etkili sağlık hizmetini sunmaktadır.', { name: doctor.name, hospital: hospitalName, dept: deptName })}
+                    </p>
+                  </>
+                )}
               </div>
 
               {/* Treatments */}

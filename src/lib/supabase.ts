@@ -91,6 +91,7 @@ export type Doctor = {
   education: string;
   experience: string;
   about?: string;
+  cv_url?: string;
   specialties?: string[];
   treatments?: string[];
   is_active?: boolean;

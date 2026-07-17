@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaSave, FaArrowLeft, FaImage, FaGraduationCap, FaStar, FaFileMedical } from 'react-icons/fa';
+import { FaSave, FaArrowLeft, FaImage, FaGraduationCap, FaStar, FaFileMedical, FaFilePdf, FaTrash, FaExternalLinkAlt } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 
@@ -18,6 +18,7 @@ interface Doctor {
   languages: string[];
   treatments?: string[];
   image_url: string;
+  cv_url?: string;
   email: string;
   phone: string;
   rating: number;
@@ -55,6 +56,7 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
     experience: '',
     languages: [],
     image_url: '',
+    cv_url: '',
     email: '',
     phone: '',
     rating: 5,
@@ -68,6 +70,10 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
   const [languageInput, setLanguageInput] = useState('');
   const [treatmentsInput, setTreatmentsInput] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingCv, setUploadingCv] = useState(false);
+
+  const CV_BUCKET = 'quality-documents';
+  const CV_PATH = 'doctor-cv';
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -90,6 +96,81 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
       alert('Resim yüklenirken hata oluştu: ' + (error?.message || ''));
     } finally {
       setUploadingImage(false);
+    }
+  };
+
+  // Public URL'den storage yolunu çıkarıp dosyayı siler (eski CV'ları temizlemek için).
+  // Yalnızca bizim bucket'ımıza ait URL'leri siler; harici URL'lere dokunmaz.
+  const deleteCvFromStorage = async (url: string) => {
+    if (!url) return;
+    const marker = `/object/public/${CV_BUCKET}/`;
+    const idx = url.indexOf(marker);
+    if (idx === -1) return;
+    const path = decodeURIComponent(url.slice(idx + marker.length));
+    if (!path) return;
+    try {
+      const { error } = await supabase.storage.from(CV_BUCKET).remove([path]);
+      if (error) console.error('Error deleting old CV:', error);
+    } catch (e) {
+      console.error('Error deleting old CV:', e);
+    }
+  };
+
+  const handleCvUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // PDF doğrulama
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    if (!isPdf) {
+      alert(t('admin.doctorForm.cvInvalidPdf', 'Lütfen geçerli bir PDF dosyası seçin!'));
+      e.target.value = '';
+      return;
+    }
+
+    // Boyut sınırı (20MB)
+    if (file.size > 20 * 1024 * 1024) {
+      alert(t('admin.doctorForm.cvSizeError', "Dosya boyutu 20MB'dan küçük olmalıdır!"));
+      e.target.value = '';
+      return;
+    }
+
+    setUploadingCv(true);
+    try {
+      const previousUrl = formData.cv_url || '';
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+      const fileName = `cv-${Date.now()}.${fileExt}`;
+      const filePath = `${CV_PATH}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(CV_BUCKET)
+        .upload(filePath, file, { contentType: 'application/pdf', upsert: true });
+
+      if (uploadError) {
+        alert(t('admin.doctorForm.cvUploadError', 'Özgeçmiş yüklenirken hata oluştu: ') + uploadError.message);
+        return;
+      }
+
+      const { data } = supabase.storage.from(CV_BUCKET).getPublicUrl(filePath);
+      setFormData((prev) => ({ ...prev, cv_url: data.publicUrl }));
+
+      // Eski dosyayı temizle (bizim bucket'ımıza aitse)
+      if (previousUrl && previousUrl !== data.publicUrl) {
+        await deleteCvFromStorage(previousUrl);
+      }
+    } catch (error: any) {
+      alert(t('admin.doctorForm.cvUploadError', 'Özgeçmiş yüklenirken hata oluştu: ') + (error?.message || ''));
+    } finally {
+      setUploadingCv(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveCv = async () => {
+    const previousUrl = formData.cv_url || '';
+    setFormData((prev) => ({ ...prev, cv_url: '' }));
+    if (previousUrl) {
+      await deleteCvFromStorage(previousUrl);
     }
   };
 
@@ -136,6 +217,7 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
           experience: data.experience || '',
           languages: Array.isArray(data.languages) ? data.languages : [],
           image_url: data.image || '',
+          cv_url: data.cv_url || '',
           email: data.email || '',
           phone: data.phone || '',
           rating: data.rating ?? 5,
@@ -233,6 +315,7 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
         languages: formData.languages || [],
         treatments: parseTreatments(treatmentsInput),
         image: formData.image_url,
+        cv_url: formData.cv_url || null,
         email: formData.email || null,
         phone: formData.phone || null,
         rating: formData.rating,
@@ -683,6 +766,97 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
                 className="mt-3 w-full h-32 object-cover rounded-lg"
               />
             )}
+          </div>
+
+          {/* CV (Özgeçmiş PDF) */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
+              <FaFilePdf className="mr-2" />
+              {t('admin.doctorForm.cv', 'Özgeçmiş (CV)')}
+            </h3>
+
+            {!formData.cv_url ? (
+              <label
+                htmlFor="doctor-cv-upload"
+                className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary transition-colors ${uploadingCv ? 'opacity-60 pointer-events-none' : ''}`}
+              >
+                <FaFilePdf className="text-2xl text-gray-400 mb-2" />
+                <span className="text-sm text-gray-500">
+                  {uploadingCv
+                    ? t('admin.doctorForm.cvUploading', 'Yükleniyor...')
+                    : t('admin.doctorForm.cvChoose', 'PDF özgeçmiş seç / sürükle')}
+                </span>
+                <span className="text-xs text-gray-400 mt-1">PDF · max 20MB</span>
+                <input
+                  id="doctor-cv-upload"
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  onChange={handleCvUpload}
+                  disabled={uploadingCv}
+                  className="hidden"
+                />
+              </label>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-surface rounded-lg">
+                  <div className="flex items-center min-w-0">
+                    <FaFilePdf className="text-red-500 mr-3 flex-shrink-0" />
+                    <span className="text-sm font-medium text-primary truncate">
+                      {t('admin.doctorForm.cvAttached', 'Özgeçmiş PDF yüklü')}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <a
+                    href={formData.cv_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors text-sm"
+                  >
+                    <FaExternalLinkAlt className="mr-2" />
+                    {t('admin.doctorForm.cvView', 'Görüntüle')}
+                  </a>
+                  <label
+                    htmlFor="doctor-cv-replace"
+                    className={`cursor-pointer inline-flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm ${uploadingCv ? 'opacity-60 pointer-events-none' : ''}`}
+                  >
+                    {uploadingCv
+                      ? t('admin.doctorForm.cvUploading', 'Yükleniyor...')
+                      : t('admin.doctorForm.cvReplace', 'Değiştir')}
+                    <input
+                      id="doctor-cv-replace"
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      onChange={handleCvUpload}
+                      disabled={uploadingCv}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCv}
+                    className="inline-flex items-center justify-center px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm"
+                    title={t('admin.doctorForm.cvRemove', 'Kaldır')}
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* veya URL ile */}
+            <div className="mt-3">
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                {t('admin.doctorForm.cvOrUrl', 'veya özgeçmiş URL\'si girin')}
+              </label>
+              <input
+                type="url"
+                value={formData.cv_url || ''}
+                onChange={(e) => setFormData({ ...formData, cv_url: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder="https://example.com/cv.pdf"
+              />
+            </div>
           </div>
         </div>
       </form>
