@@ -245,19 +245,12 @@ const DoctorDetailPage = () => {
                   <FaStethoscope className="text-ocean-500" />
                   {t('common.about', 'Hakkında')}
                 </h3>
-                {hasAbout ? (
-                  // Admin panelinden girilen özgeçmiş — satır/liste yapısını koru
-                  <p className="text-text-light leading-relaxed whitespace-pre-line">{aboutText}</p>
-                ) : (
-                  <>
-                    <p className="text-text-light leading-relaxed mb-6">
-                      {deptDescription}
-                    </p>
-                    <p className="text-text-light leading-relaxed">
-                      {t('doctorDetail.aboutDesc', '{{name}}, {{hospital}} bünyesinde {{dept}} biriminde görev yapmaktadır. Modern teşhis ve tedavi yöntemlerini kullanarak hastalarına en güncel ve etkili sağlık hizmetini sunmaktadır.', { name: doctor.name, hospital: hospitalName, dept: deptName })}
-                    </p>
-                  </>
-                )}
+                <p className="text-text-light leading-relaxed mb-6">
+                  {deptDescription}
+                </p>
+                <p className="text-text-light leading-relaxed">
+                  {t('doctorDetail.aboutDesc', '{{name}}, {{hospital}} bünyesinde {{dept}} biriminde görev yapmaktadır. Modern teşhis ve tedavi yöntemlerini kullanarak hastalarına en güncel ve etkili sağlık hizmetini sunmaktadır.', { name: doctor.name, hospital: hospitalName, dept: deptName })}
+                </p>
               </div>
 
               {/* Treatments */}
@@ -300,8 +293,16 @@ const DoctorDetailPage = () => {
                 </div>
               )}
 
-              {/* Empty state for education/experience if not filled */}
-              {!hasEducation && !hasExperience && (
+              {/* CV / Özgeçmiş Bilgileri */}
+              {hasAbout ? (
+                <div className="card">
+                  <h3 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+                    <FaGraduationCap className="text-ocean-500" />
+                    {t('doctorDetail.cvTitle', 'Özgeçmiş Bilgileri')}
+                  </h3>
+                  <p className="text-text-light leading-relaxed whitespace-pre-line">{aboutText}</p>
+                </div>
+              ) : (!hasEducation && !hasExperience) && (
                 <div className="card bg-surface/50 mb-8">
                   <div className="text-center py-10 px-6">
                     <div className="w-16 h-16 rounded-full bg-surface flex items-center justify-center mx-auto mb-4">
