@@ -1158,10 +1158,11 @@
   "login": {
     "errorInvalid": "Invalid login credentials. Please try again.",
     "errorGeneric": "An error occurred. Please try again.",
+    "errorNotAuthorized": "This account is not authorized to access the management panel.",
     "adminTitle": "Admin Login",
     "adminSubtitle": "Anadolu Hospitals Group Management Panel",
     "emailLabel": "Email Address",
-    "emailPlaceholder": "admin@anadoluhastaneleri.com",
+    "emailPlaceholder": "name@example.com",
     "passwordLabel": "Password",
     "passwordPlaceholder": "••••••••",
     "loggingIn": "Logging in...",

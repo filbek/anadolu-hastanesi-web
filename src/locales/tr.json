@@ -1158,10 +1158,11 @@
   "login": {
     "errorInvalid": "Giriş bilgileri hatalı. Lütfen tekrar deneyin.",
     "errorGeneric": "Bir hata oluştu. Lütfen tekrar deneyin.",
+    "errorNotAuthorized": "Bu hesabın yönetim paneline erişim yetkisi yok.",
     "adminTitle": "Admin Girişi",
     "adminSubtitle": "Anadolu Hastaneleri Grubu Yönetim Paneli",
     "emailLabel": "E-posta Adresi",
-    "emailPlaceholder": "admin@anadoluhastaneleri.com",
+    "emailPlaceholder": "ornek@eposta.com",
     "passwordLabel": "Şifre",
     "passwordPlaceholder": "••••••••",
     "loggingIn": "Giriş yapılıyor...",

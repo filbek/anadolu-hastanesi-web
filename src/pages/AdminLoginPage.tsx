@@ -19,13 +19,14 @@ const AdminLoginPage = () => {
 
   // Listen for user changes and redirect if admin
   useEffect(() => {
-    console.log('🔍 AdminLogin useEffect:', { loading, user: !!user, userProfile });
-
-    if (!loading && user && userProfile && (userProfile.role === 'admin' || userProfile.role === 'super_admin')) {
-      console.log('🚀 Redirecting to admin panel...');
-      navigate('/admin');
+    if (!loading && user && userProfile) {
+      if (userProfile.role === 'admin' || userProfile.role === 'super_admin') {
+        navigate('/admin');
+      } else {
+        setError(t('login.errorNotAuthorized', 'Bu hesabın yönetim paneline erişim yetkisi yok.'));
+      }
     }
-  }, [user, userProfile, loading, navigate]);
+  }, [user, userProfile, loading, navigate, t]);
 
   // If user is already logged in and is admin, redirect to admin dashboard
   if (!loading && user && userProfile && (userProfile.role === 'admin' || userProfile.role === 'super_admin')) {
@@ -38,23 +39,13 @@ const AdminLoginPage = () => {
     setError('');
 
     try {
-      const { data, error } = await signIn(formData);
-
-      console.log('📋 AdminLogin received:', { data, error });
+      const { error } = await signIn(formData);
 
       if (error) {
         setError(t('login.errorInvalid', 'Giriş bilgileri hatalı. Lütfen tekrar deneyin.'));
-      } else if (data?.user) {
-        console.log('✅ Login successful, checking if admin user');
-
-        // Check if admin user and redirect immediately
-        if (data.user.email === 'sagliktruizmi34@gmail.com' || data.user.email === 'bekir.filizdag@anadoluhastaneleri.com') {
-          console.log('🚀 Admin user detected, redirecting immediately');
-          navigate('/admin');
-        }
-      } else {
-        console.log('⚠️ No user data in response');
       }
+      // Başarılı girişte yönlendirme, profil rolü veritabanından
+      // yüklendikten sonra yukarıdaki useEffect ile yapılır
     } catch (err) {
       setError(t('login.errorGeneric', 'Bir hata oluştu. Lütfen tekrar deneyin.'));
     } finally {
@@ -119,7 +110,7 @@ const AdminLoginPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder={t('login.emailPlaceholder', 'admin@anadoluhastaneleri.com')}
+                  placeholder={t('login.emailPlaceholder', 'ornek@eposta.com')}
                 />
               </div>
             </div>

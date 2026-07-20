@@ -33,7 +33,7 @@ Tabloları ve örnek verileri oluşturmak için:
 ### Giriş Sayfası
 - **URL:** `http://localhost:5173/admin/login`
 - **E-posta:** `bekir.filizdag@anadoluhastaneleri.com`
-- **Şifre:** `Admin123!@#`
+- **Şifre:** `<güvenli-yerde-saklanır>`
 
 ### Admin Dashboard
 - **URL:** `http://localhost:5173/admin`
@@ -52,7 +52,7 @@ Tabloları ve örnek verileri oluşturmak için:
    - Bilgileri girin:
      ```
      Email: bekir.filizdag@anadoluhastaneleri.com
-     Password: Admin123!@#
+     Password: <REDACTED>
      Auto Confirm User: ✅ (işaretleyin)
      ```
 

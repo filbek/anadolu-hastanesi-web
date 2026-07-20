@@ -4,7 +4,7 @@
 
 ### Super Admin Hesabı
 - **📧 E-posta:** `sagliktruizmi34@gmail.com`
-- **🔑 Önerilen Şifre:** `SuperAdmin2024!`
+- **🔑 Önerilen Şifre:** `<güvenli-yerde-saklanır>`
 - **👑 Rol:** `super_admin`
 - **🆔 User ID:** `1a537923-d86c-442a-b83c-252124135347`
 
@@ -31,13 +31,13 @@
 ### Yöntem 1: Supabase Dashboard (Önerilen)
 1. **Dashboard'a Git:** https://supabase.com/dashboard/project/cfwwcxqpyxktikizjjxx/auth/users
 2. **Kullanıcıyı Bul:** `sagliktruizmi34@gmail.com`
-3. **Şifre Güncelle:** `SuperAdmin2024!`
+3. **Şifre Güncelle:** `<güvenli-yerde-saklanır>`
 
 ### Yöntem 2: SQL Editor
 ```sql
 -- Supabase Dashboard > SQL Editor'da çalıştırın
 UPDATE auth.users 
-SET encrypted_password = crypt('SuperAdmin2024!', gen_salt('bf'))
+SET encrypted_password = crypt('<REDACTED>', gen_salt('bf'))
 WHERE email = 'sagliktruizmi34@gmail.com';
 ```
 
@@ -69,7 +69,7 @@ WHERE email = 'sagliktruizmi34@gmail.com';
 ### Giriş Testi
 1. `http://localhost:3001/admin/login` sayfasına git
 2. E-posta: `sagliktruizmi34@gmail.com`
-3. Şifre: `SuperAdmin2024!` (güncellendikten sonra)
+3. Şifre: `<güvenli-yerde-saklanır>` (güncellendikten sonra)
 4. "Giriş Yap" butonuna tıkla
 5. Dashboard'a yönlendirilmelisin
 

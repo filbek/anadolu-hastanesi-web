@@ -32,9 +32,7 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
     }, 10000);
 
     // Get initial session
-    console.log('🚀 Supabase initialization started...');
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('📦 Initial session received:', session?.user?.email || 'No session');
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -43,41 +41,18 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       clearTimeout(loadingTimeout);
     }).catch(err => {
-      console.error('💥 Initial session error:', err);
+      console.error('Initial session error:', err);
       setLoading(false);
       clearTimeout(loadingTimeout);
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔄 Auth state change:', event, session?.user?.email);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        console.log('👤 User found, fetching profile...');
-
-        // Temporary fix: Set admin profile directly for known admin emails
-        if (session.user.email === 'sagliktruizmi34@gmail.com') {
-          console.log('🔧 Setting super admin profile directly');
-          setUserProfile({
-            id: session.user.id,
-            email: session.user.email,
-            full_name: 'Super Admin',
-            role: 'super_admin'
-          });
-        } else if (session.user.email === 'bekir.filizdag@anadoluhastaneleri.com') {
-          console.log('🔧 Setting admin profile directly');
-          setUserProfile({
-            id: session.user.id,
-            email: session.user.email,
-            full_name: 'Bekir Filizdag',
-            role: 'admin'
-          });
-        } else {
-          fetchUserProfile(session.user.id, session.user.email);
-        }
+        fetchUserProfile(session.user.id);
       } else {
-        console.log('❌ No user, clearing profile');
         setUserProfile(null);
       }
       setLoading(false);
@@ -88,10 +63,8 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const fetchUserProfile = async (userId: string, userEmail?: string) => {
+  const fetchUserProfile = async (userId: string) => {
     try {
-      console.log('🔍 Fetching profile for user:', userId);
-
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -99,57 +72,15 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
 
       if (error) {
-        console.error('❌ Profile fetch error:', error);
-
-        // If profile doesn't exist, create one for admin users
-        if (userEmail && (userEmail === 'sagliktruizmi34@gmail.com' || userEmail === 'bekir.filizdag@anadoluhastaneleri.com')) {
-          console.log('🔧 Creating missing admin profile...');
-          await createAdminProfile(userId, userEmail);
-          return;
-        }
+        console.error('Profile fetch error:', error);
         return;
       }
 
       if (data) {
-        console.log('✅ Profile fetched:', data);
         setUserProfile(data as UserProfile);
-      } else {
-        console.log('⚠️ No profile found, checking if admin user...');
-        if (userEmail && (userEmail === 'sagliktruizmi34@gmail.com' || userEmail === 'bekir.filizdag@anadoluhastaneleri.com')) {
-          console.log('🔧 Creating admin profile...');
-          await createAdminProfile(userId, userEmail);
-        }
       }
     } catch (error) {
-      console.error('💥 Error fetching user profile:', error);
-    }
-  };
-
-  const createAdminProfile = async (userId: string, email: string) => {
-    try {
-      const role = email === 'sagliktruizmi34@gmail.com' ? 'super_admin' : 'admin';
-      const fullName = email === 'sagliktruizmi34@gmail.com' ? 'Super Admin' : 'Bekir Filizdag';
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert([{
-          id: userId,
-          email,
-          full_name: fullName,
-          role
-        }])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('❌ Error creating admin profile:', error);
-        return;
-      }
-
-      console.log('✅ Admin profile created:', data);
-      setUserProfile(data as UserProfile);
-    } catch (error) {
-      console.error('💥 Error creating admin profile:', error);
+      console.error('Error fetching user profile:', error);
     }
   };
 
@@ -171,22 +102,14 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
       }
 
       if (data.user) {
-        // Create user profile
-        // Admin ve super_admin email için admin rolü ata
-        let role = 'user';
-        if (email === 'admin@anadoluhastaneleri.com') {
-          role = 'admin';
-        } else if (email === 'sagliktruizmi34@gmail.com') {
-          role = 'super_admin';
-        }
-
+        // Rol asla istemciden atanmaz; yetkilendirme veritabanında yapılır
         const { error: profileError } = await supabase.from('profiles').insert([
           {
             id: data.user.id,
             full_name,
             email,
             phone,
-            role,
+            role: 'user',
           },
         ]);
 
@@ -203,59 +126,20 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
 
   const signIn = async ({ email, password }: UserCredentials) => {
     try {
-      console.log('🔐 SignIn attempt with:', email);
-      console.log('🔗 Supabase client URL:', (supabase as any).supabaseUrl);
-
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) {
-        console.error('❌ SignIn error:', error);
-      } else {
-        console.log('✅ SignIn successful, full data:', data);
-        console.log('🔍 User object:', data.user);
-        console.log('🔍 Session object:', data.session);
-
-        if (data.user) {
-          console.log('✅ User found:', data.user.email);
-          console.log('🔍 User email check:', data.user.email, typeof data.user.email);
-          console.log('🔍 Email comparison:', data.user.email === 'sagliktruizmi34@gmail.com');
-
-          // Always set user and session first
-          setUser(data.user);
-          setSession(data.session);
-
-          // Immediately set profile for admin users
-          if (data.user.email === 'sagliktruizmi34@gmail.com') {
-            console.log('🔧 Setting super admin profile after login');
-            setUserProfile({
-              id: data.user.id,
-              email: data.user.email,
-              full_name: 'Super Admin',
-              role: 'super_admin'
-            });
-          } else if (data.user.email === 'bekir.filizdag@anadoluhastaneleri.com') {
-            console.log('🔧 Setting admin profile after login');
-            setUserProfile({
-              id: data.user.id,
-              email: data.user.email,
-              full_name: 'Bekir Filizdag',
-              role: 'admin'
-            });
-          } else {
-            console.log('⚠️ Not an admin email, fetching profile from database');
-            fetchUserProfile(data.user.id, data.user.email);
-          }
-        } else {
-          console.log('❌ No user in response data');
-        }
+      if (!error && data.user) {
+        setUser(data.user);
+        setSession(data.session);
+        // Rol bilgisi yalnızca veritabanındaki profilden okunur
+        await fetchUserProfile(data.user.id);
       }
 
       return { data, error };
     } catch (error) {
-      console.error('💥 SignIn exception:', error);
       return { error, data: null };
     }
   };
@@ -270,10 +154,16 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
         throw new Error('User not authenticated');
       }
 
+      // role, id ve email istemciden güncellenemez
+      const safeUpdates: Partial<UserProfile> = { ...profile };
+      delete safeUpdates.role;
+      delete safeUpdates.id;
+      delete safeUpdates.email;
+
       const { data, error } = await supabase
         .from('profiles')
         .update({
-          ...profile,
+          ...safeUpdates,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
@@ -285,7 +175,7 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
       // Update local state
       setUserProfile((prev) => {
         if (!prev) return null;
-        return { ...prev, ...profile };
+        return { ...prev, ...safeUpdates };
       });
 
       return { data, error: null };

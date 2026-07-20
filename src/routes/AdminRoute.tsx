@@ -5,8 +5,6 @@ import { useSupabase } from '../contexts/SupabaseContext'; // Supabase context'i
 const AdminRoute = () => {
   const { user, userProfile, loading } = useSupabase();
 
-  console.log('🔒 AdminRoute check:', { user: !!user, userProfile, loading });
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral">
@@ -17,11 +15,9 @@ const AdminRoute = () => {
 
   // Kullanıcı yoksa veya profil yüklenmemişse veya admin değilse login'e yönlendir
   if (!user || !userProfile || (userProfile.role !== 'admin' && userProfile.role !== 'super_admin')) {
-    console.log('❌ Admin access denied, redirecting to login');
     return <Navigate to="/admin/login" replace />;
   }
 
-  console.log('✅ Admin access granted');
   return <Outlet />;
 };
 

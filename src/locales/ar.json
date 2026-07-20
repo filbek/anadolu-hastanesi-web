@@ -1158,10 +1158,11 @@
   "login": {
     "errorInvalid": "بيانات تسجيل الدخول غير صحيحة. يرجى المحاولة مرة أخرى.",
     "errorGeneric": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+    "errorNotAuthorized": "هذا الحساب غير مصرح له بالوصول إلى لوحة الإدارة.",
     "adminTitle": "تسجيل دخول المسؤول",
     "adminSubtitle": "لوحة إدارة مجموعة مستشفيات الأناضول",
     "emailLabel": "عنوان البريد الإلكتروني",
-    "emailPlaceholder": "admin@anadoluhastaneleri.com",
+    "emailPlaceholder": "name@example.com",
     "passwordLabel": "كلمة المرور",
     "passwordPlaceholder": "••••••••",
     "loggingIn": "جاري تسجيل الدخول...",
