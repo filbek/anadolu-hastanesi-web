@@ -203,9 +203,9 @@ const QualityManagementPage = () => {
 
   const committees = dbCommittees.length > 0
     ? dbCommittees.map((c) => {
-        const Icon = COMMITTEE_ICONS[c.icon] || COMMITTEE_ICONS[DEFAULT_COMMITTEE_ICON];
-        return { icon: <Icon />, title: c.title, desc: c.description };
-      })
+      const Icon = COMMITTEE_ICONS[c.icon] || COMMITTEE_ICONS[DEFAULT_COMMITTEE_ICON];
+      return { icon: <Icon />, title: c.title, desc: c.description };
+    })
     : councils(t);
 
   return (
@@ -286,11 +286,10 @@ const QualityManagementPage = () => {
                       key={h.id}
                       type="button"
                       onClick={() => handleSelectHospital(h)}
-                      className={`w-full text-left px-5 py-3 text-sm font-semibold transition-colors ${
-                        h.id === selectedHospitalId
+                      className={`w-full text-left px-5 py-3 text-sm font-semibold transition-colors ${h.id === selectedHospitalId
                           ? 'bg-primary/10 text-primary'
                           : 'text-secondary hover:bg-gray-50'
-                      }`}
+                        }`}
                     >
                       {h.name}
                     </button>
@@ -454,7 +453,7 @@ const QualityManagementPage = () => {
               <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">Kalite Yapısı</span>
             </div>
             <h2 className="text-4xl lg:text-5xl font-black text-secondary leading-tight mb-4">
-              {t('quality.committeeTitle', 'Komiteler ve Ekibi')}
+              {t('quality.committeeTitle', 'Komiteler ve Ekip')}
             </h2>
           </motion.div>
 
