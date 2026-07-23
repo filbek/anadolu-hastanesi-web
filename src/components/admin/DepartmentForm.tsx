@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaSave, FaArrowLeft, FaImage, FaStethoscope } from 'react-icons/fa';
+import { FaSave, FaArrowLeft, FaImage, FaStethoscope, FaUpload, FaTrash, FaEye, FaGripVertical } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { uploadDepartmentImage } from '../../services/departmentService';
 import TranslationsPanel from './TranslationsPanel';
 import type { Translations } from '../../lib/supabase';
 
@@ -13,6 +14,7 @@ interface Department {
   description: string;
   icon: string;
   image_url: string;
+  images?: string[];
   color: string;
   is_active: boolean;
   display_order: number;
@@ -38,6 +40,7 @@ const DepartmentForm = ({ department, onSave, onCancel }: DepartmentFormProps = 
     description: '',
     icon: 'stethoscope',
     image_url: '',
+    images: [],
     color: '#1e40af',
     is_active: true,
     display_order: 1,
@@ -45,6 +48,12 @@ const DepartmentForm = ({ department, onSave, onCancel }: DepartmentFormProps = 
   });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploadingMainImage, setUploadingMainImage] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const mainImageRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
 
   const iconOptions = [
     { value: 'stethoscope', label: t('admin.departmentForm.iconStethoscope', 'Stetoskop') },
@@ -68,7 +77,7 @@ const DepartmentForm = ({ department, onSave, onCancel }: DepartmentFormProps = 
 
   useEffect(() => {
     if (department) {
-      setFormData(department);
+      setFormData({ ...department, images: department.images || [] });
     } else if (id) {
       fetchDepartment(parseInt(id));
     }
@@ -79,13 +88,151 @@ const DepartmentForm = ({ department, onSave, onCancel }: DepartmentFormProps = 
       setLoading(true);
       const { data, error } = await supabase.from('departments').select('*').eq('id', departmentId).single();
       if (error) throw error;
-      if (data) setFormData(data as Department);
+      if (data) setFormData({ ...(data as Department), images: (data as Department).images || [] });
     } catch (error) {
       console.error('Error fetching department:', error);
       alert(t('admin.errorFetching', 'Bölüm bilgileri yüklenemedi!'));
     } finally {
       setLoading(false);
     }
+  };
+
+  const resizeImage = async (
+    file: File,
+    maxWidth = 1600,
+    maxHeight = 1600,
+    quality = 0.85
+  ): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const resizedFile = new File(
+                [blob],
+                file.name.replace(/\.[^.]+$/, '.jpg'),
+                { type: 'image/jpeg', lastModified: Date.now() }
+              );
+              resolve(resizedFile);
+            } else {
+              reject(new Error('Canvas toBlob failed'));
+            }
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Image load failed'));
+      };
+
+      img.src = url;
+    });
+  };
+
+  const compressImage = async (file: File, targetKB = 400): Promise<File> => {
+    let compressed = await resizeImage(file, 1600, 1600, 0.85);
+
+    if (compressed.size > targetKB * 1024) {
+      compressed = await resizeImage(file, 1200, 1200, 0.75);
+    }
+
+    if (compressed.size > targetKB * 1024) {
+      compressed = await resizeImage(file, 800, 800, 0.65);
+    }
+
+    return compressed;
+  };
+
+  const handleMainImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert(t('admin.settings.invalidImage', 'Lütfen geçerli bir resim dosyası seçin!'));
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      alert(t('admin.settings.logoSizeError', 'Dosya boyutu 2MB\'dan küçük olmalıdır!'));
+      return;
+    }
+
+    try {
+      setUploadingMainImage(true);
+      const compressedFile = await compressImage(file);
+      const { url, error } = await uploadDepartmentImage(compressedFile);
+      if (error || !url) throw error;
+      setFormData(prev => ({ ...prev, image_url: url }));
+    } catch (err) {
+      console.error('Main image upload error:', err);
+      alert(t('admin.departmentForm.imageUploadError', 'Resim yüklenirken hata oluştu!'));
+    } finally {
+      setUploadingMainImage(false);
+      if (mainImageRef.current) mainImageRef.current.value = '';
+    }
+  };
+
+  const handleGalleryUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    const invalid = files.filter(f => !f.type.startsWith('image/'));
+    if (invalid.length > 0) {
+      alert(t('admin.settings.invalidImage', 'Lütfen geçerli resim dosyaları seçin!'));
+      return;
+    }
+
+    const oversized = files.filter(f => f.size > 2 * 1024 * 1024);
+    if (oversized.length > 0) {
+      alert(t('admin.settings.logoSizeError', 'Dosya boyutu 2MB\'dan küçük olmalıdır!'));
+      return;
+    }
+
+    setUploadingGallery(true);
+    const newImages: string[] = [];
+
+    for (const file of files) {
+      try {
+        const compressedFile = await compressImage(file);
+        const { url, error } = await uploadDepartmentImage(compressedFile);
+        if (error || !url) throw error;
+        newImages.push(url);
+      } catch (err) {
+        console.error('Gallery upload error:', err);
+      }
+    }
+
+    setFormData(prev => ({ ...prev, images: [...(prev.images || []), ...newImages] }));
+    setUploadingGallery(false);
+    if (galleryRef.current) galleryRef.current.value = '';
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: (prev.images || []).filter((_, i) => i !== index)
+    }));
   };
 
   const generateSlug = (name: string) => {
@@ -303,6 +450,35 @@ const DepartmentForm = ({ department, onSave, onCancel }: DepartmentFormProps = 
               {t('admin.label.image', 'Resim')}
             </h3>
 
+            <div className="flex items-center space-x-4 mb-3">
+              <input
+                ref={mainImageRef}
+                type="file"
+                accept="image/*"
+                onChange={handleMainImageUpload}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => mainImageRef.current?.click()}
+                disabled={uploadingMainImage}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {uploadingMainImage ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    {t('admin.uploading', 'Yükleniyor...')}
+                  </>
+                ) : (
+                  <>
+                    <FaUpload className="mr-2" />
+                    {'Resim Yükle'}
+                  </>
+                )}
+              </button>
+              <span className="text-sm text-gray-500">PNG, JPG (Max: 2MB)</span>
+            </div>
+
             <input
               type="url"
               value={formData.image_url}
@@ -317,6 +493,112 @@ const DepartmentForm = ({ department, onSave, onCancel }: DepartmentFormProps = 
                 className="mt-3 w-full h-32 object-cover rounded-lg"
               />
             )}
+          </div>
+
+          {/* Gallery */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-primary mb-4 flex items-center">
+              <FaImage className="mr-2" />
+              {t('admin.label.gallery', 'Bölüm Galerisi')}
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              {t('admin.departmentForm.galleryHint', 'Bölüm sayfasındaki "Hakkında" ve "Tedavi Süreci" sekmelerinde gösterilen görseller. Sıralamayı sürükleyerek değiştirebilirsiniz.')}
+            </p>
+
+            {formData.images && formData.images.length > 0 && (
+              <div className="grid grid-cols-3 gap-3 mb-3">
+                {formData.images.map((img, index) => (
+                  <div
+                    key={index}
+                    draggable
+                    onDragStart={() => setDraggedIndex(index)}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragOverIndex(index);
+                    }}
+                    onDragLeave={() => setDragOverIndex(null)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (draggedIndex === null || draggedIndex === index) return;
+                      const images = [...(formData.images || [])];
+                      const [moved] = images.splice(draggedIndex, 1);
+                      images.splice(index, 0, moved);
+                      setFormData(prev => ({ ...prev, images }));
+                      setDraggedIndex(null);
+                      setDragOverIndex(null);
+                    }}
+                    onDragEnd={() => {
+                      setDraggedIndex(null);
+                      setDragOverIndex(null);
+                    }}
+                    className={`
+                      relative group rounded-lg overflow-hidden border-2 transition-all
+                      ${draggedIndex === index ? 'opacity-50 scale-95 border-dashed border-blue-400' : 'border-transparent'}
+                      ${dragOverIndex === index && draggedIndex !== index ? 'border-blue-500 scale-105 shadow-lg' : ''}
+                      cursor-grab active:cursor-grabbing
+                    `}
+                  >
+                    <img
+                      src={img}
+                      alt={`Gallery ${index + 1}`}
+                      className="w-full h-24 object-cover"
+                    />
+                    <div className="absolute top-1 left-1 bg-black/40 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                      <FaGripVertical className="text-xs" />
+                    </div>
+                    <div className="absolute top-1 right-1 bg-black/60 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                      {index + 1}
+                    </div>
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => window.open(img, '_blank')}
+                        className="text-white hover:text-blue-300"
+                      >
+                        <FaEye />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeGalleryImage(index)}
+                        className="text-white hover:text-red-300"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center space-x-4">
+              <input
+                ref={galleryRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleGalleryUpload}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => galleryRef.current?.click()}
+                disabled={uploadingGallery}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              >
+                {uploadingGallery ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    {t('admin.uploading', 'Yükleniyor...')}
+                  </>
+                ) : (
+                  <>
+                    <FaUpload className="mr-2" />
+                    {'Galeri Yükle'}
+                  </>
+                )}
+              </button>
+              <span className="text-sm text-gray-500">Çoklu seçim (Max: 2MB/her resim)</span>
+            </div>
           </div>
         </div>
 

@@ -34,14 +34,14 @@ const ComplaintPolicyPage = () => {
     {
       icon: <FaComments />,
       title: t('complaint.channelFace', 'Yüz Yüze Görüşme'),
-      desc: t('complaint.channelFaceDesc', 'Hasta İlişkileri Bölümü yetkilileri ile yüz yüze görüşme talep edebilirsiniz.'),
+      desc: t('complaint.channelFaceDesc', 'Hasta Hakları Birimi yetkilileri ile yüz yüze görüşme talep edebilirsiniz.'),
       action: null,
       link: null,
     },
     {
       icon: <FaPhoneAlt />,
       title: t('complaint.channelPhone', 'Telefon'),
-      desc: t('complaint.channelPhoneDesc', 'Hasta İlişkileri Bölümü ile telefon aracılığıyla görüşme yapabilirsiniz.'),
+      desc: t('complaint.channelPhoneDesc', 'Hasta Hakları Birimi ile telefon aracılığıyla görüşme yapabilirsiniz.'),
       action: t('complaint.channelPhoneAction', 'Ara'),
       link: 'tel:4445058',
     },
@@ -65,7 +65,7 @@ const ComplaintPolicyPage = () => {
     {
       step: '01',
       title: t('complaint.step1Title', 'Başvurunun Alınması'),
-      desc: t('complaint.step1Desc', 'Hasta İlişkileri Bölümü, iletilen tüm görüş, öneri ve şikayeti kaydeder ve başvurana bilgi verir.'),
+      desc: t('complaint.step1Desc', 'Hasta Hakları Birimi, iletilen tüm görüş, öneri ve şikayeti kaydeder ve başvurana bilgi verir.'),
     },
     {
       step: '02',
@@ -155,7 +155,7 @@ const ComplaintPolicyPage = () => {
 
               <div className="space-y-5 text-gray-600 text-lg leading-relaxed">
                 <p>
-                  <strong className="text-secondary">Hasta İlişkileri Bölümü</strong> olarak; hastanelerimizden arzu ettiğiniz hizmeti almak ve sizlerin memnuniyetini sağlamak için çalışmaktayız.
+                  <strong className="text-secondary">Hasta Hakları Birimi</strong> olarak; hastanelerimizden arzu ettiğiniz hizmeti almak ve sizlerin memnuniyetini sağlamak için çalışmaktayız.
                 </p>
                 <p>
                   Hastanemizden hizmet alan tüm hasta ve yakınlarının hastanemiz ile ilgili <strong className="text-secondary">görüş ve düşüncelerini alır</strong>. Bildirilen tüm görüşleri ilgili departman yöneticileri ile değerlendirir ve sizlerin talepleri doğrultusunda hizmet kalitemizi artırmak için çalışırız.
@@ -164,7 +164,7 @@ const ComplaintPolicyPage = () => {
                   Değerlendirme sonrası alınan kararlar ve sonuçlar hakkında, bölüme bildirimi yapan hastamıza <strong className="text-secondary">geri dönüş yaparız</strong>.
                 </p>
                 <p>
-                  Hasta İlişkileri Bölümü, sizlerin memnuniyetine katkı sağladığı kadar, sizlerin de öneri ve görüşleriniz ile hastanemizin gelişimine katkı sağlar. Şikayetleriniz ve olumsuz görüşlerinizle de sadece Hasta İlişkileri Bölümümüz değil ilgili tüm üst düzey yöneticilerimiz <strong className="text-secondary">çözüm amaçlı ilgilenir</strong>.
+                  Hasta Hakları Birimi, sizlerin memnuniyetine katkı sağladığı kadar, sizlerin de öneri ve görüşleriniz ile hastanemizin gelişimine katkı sağlar. Şikayetleriniz ve olumsuz görüşlerinizle de sadece Hasta Hakları Birimimiz değil ilgili tüm üst düzey yöneticilerimiz <strong className="text-secondary">çözüm amaçlı ilgilenir</strong>.
                 </p>
               </div>
             </motion.div>

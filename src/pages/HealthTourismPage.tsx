@@ -23,7 +23,7 @@ const HealthTourismPage = () => {
   const services = [
     { icon: <FaGlobeAmericas />, title: 'Çok Dilli Hizmet', desc: 'İngilizce, Almanca, Arapça, Rusça ve daha birçok dilde hizmet sunuyoruz.' },
     { icon: <FaHotel />, title: 'Konaklama Desteği', desc: 'Tedavi süreciniz boyunca konaklama ihtiyaçlarınız için destek sağlıyoruz.' },
-    { icon: <FaAmbulance />, title: 'Transfer Hizmetleri', desc: 'Havalimanı-hastane-otel arasında özel transfer hizmetleri sunuyoruz.' },
+    { icon: <FaAmbulance />, title: 'Transfer Desteği', desc: 'Havalimanı-hastane-otel arasında özel Transfer Desteği sunuyoruz.' },
     { icon: <FaUserMd />, title: 'Uzman Doktorlar', desc: 'Alanında uzman ve uluslararası deneyime sahip doktorlarımızla hizmetinizdeyiz.' },
     { icon: <FaMicrochip />, title: 'Modern Teknoloji', desc: 'En son teknoloji tıbbi cihazlar ve tedavi yöntemleri kullanıyoruz.' },
     { icon: <FaUserFriends />, title: 'Hasta Refakatçi Desteği', desc: 'Tedavi sürecinizde size ve refakatçinize özel destek sağlıyoruz.' },

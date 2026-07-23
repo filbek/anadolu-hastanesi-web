@@ -13,7 +13,7 @@ const HealthTourismSection = () => {
   const services = [
     { icon: <FaGlobe />, title: t('home.serviceMultilingual', 'Çok Dilli Hizmet'), desc: t('home.serviceMultilingualDesc', 'İngilizce, Almanca, Arapça, Rusça ve daha birçok dilde hizmet.') },
     { icon: <FaHotel />, title: t('home.serviceAccommodation', 'Konaklama Desteği'), desc: t('home.serviceAccommodationDesc', 'Tedavi süreciniz boyunca konaklama ihtiyaçlarınız için destek.') },
-    { icon: <FaPlane />, title: t('home.serviceTransfer', 'Transfer Hizmetleri'), desc: t('home.serviceTransferDesc', 'Havalimanı-hastane-otel arasında özel transfer.') },
+    { icon: <FaPlane />, title: t('home.serviceTransfer', 'Transfer Desteği'), desc: t('home.serviceTransferDesc', 'Havalimanı-hastane-otel arasında özel transfer.') },
     { icon: <FaUserMd />, title: t('home.serviceExpertDoctors', 'Uzman Doktorlar'), desc: t('home.serviceExpertDoctorsDesc', 'Uluslararası deneyime sahip doktorlarımızla hizmetinizdeyiz.') },
     { icon: <FaHeartbeat />, title: t('home.serviceModernTech', 'Modern Teknoloji'), desc: t('home.serviceModernTechDesc', 'En son teknoloji tıbbi cihazlar ve tedavi yöntemleri.') },
     { icon: <FaWheelchair />, title: t('home.serviceCompanion', 'Hasta Refakatçi Desteği'), desc: t('home.serviceCompanionDesc', 'Tedavi sürecinizde size ve refakatçinize özel destek.') },

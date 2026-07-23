@@ -79,10 +79,10 @@ const VisitingRulesPage = () => {
             </h2>
             <div className="space-y-4 flex-grow">
               <p className="text-gray-600 text-sm">{t('visiting.icuDesc', 'Yoğun bakımlarda ziyaretler hastanın durumuna göre hekimin kararı ile yapılır. Genellikle ziyaret süresi 5 dakikayı aşmayacak şekilde düzenlenir.')}</p>
-              
+
               <div className="bg-gray-50 border border-gray-100 p-4 rounded-xl">
                 <h4 className="font-bold text-gray-800 mb-1">{t('visiting.icuAdult', 'Erişkin Yoğun Bakımlar')}</h4>
-                <p className="text-sm text-gray-600">{t('visiting.icuAdultDesc', 'Her gün saat 13:00 - 14:00 arası hekim bilgilendirmesi. Pazartesi, Çarşamba, Cuma günleri bilgilendirme sonrasında kısa ziyaret.')}</p>
+                <p className="text-sm text-gray-600">{t('visiting.icuAdultDesc', 'Haftanın hergünü 11:00  - 11:45 saatleri arası bilgilendirme sonrası kısa hasta ziyareti mevcuttur. ')}</p>
               </div>
 
               <div className="bg-gray-50 border border-gray-100 p-4 rounded-xl">
@@ -91,7 +91,7 @@ const VisitingRulesPage = () => {
               </div>
 
               <div className="bg-gray-50 border border-gray-100 p-4 rounded-xl">
-                <h4 className="font-bold text-gray-800 mb-1">{t('visiting.icuNewborn', 'Yenidoğan / Çocuk Yoğun Bakım')}</h4>
+                <h4 className="font-bold text-gray-800 mb-1">{t('visiting.icuNewborn', 'Yenidoğan ')}</h4>
                 <p className="text-sm text-gray-600">{t('visiting.icuNewbornDesc', 'Her gün saat 11:30 - 12:30 arası bilgilendirme. Hekimin uygun gördüğü günlerde ziyaret gerçekleştirilir.')}</p>
               </div>
             </div>
