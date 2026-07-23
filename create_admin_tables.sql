@@ -75,7 +75,7 @@ ON CONFLICT (slug) DO NOTHING;
 
 -- Insert default contact info
 INSERT INTO contact_info (main_phone, emergency_phone, email, address, working_hours, emergency_hours, whatsapp) VALUES 
-('+90 212 123 45 67', '+90 212 123 45 68', 'info@anadoluhastaneleri.com', 'Merkez Mah. Sağlık Cad. No:123\nŞişli/İstanbul', 'Pazartesi - Cuma: 08:00 - 18:00\nCumartesi: 09:00 - 17:00\nPazar: 10:00 - 16:00', '7/24 Acil Servis', '+90 212 123 45 69')
+('+90 212 444 50 58', '+90 212 123 45 68', 'info@anadoluhastaneleri.com', 'Merkez Mah. Sağlık Cad. No:123\nŞişli/İstanbul', 'Pazartesi - Cuma: 08:00 - 18:00\nCumartesi: 09:00 - 17:00\nPazar: 10:00 - 16:00', '7/24 Acil Servis', '+90 212 123 45 69')
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert default about content

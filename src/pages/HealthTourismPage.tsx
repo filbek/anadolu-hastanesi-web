@@ -388,7 +388,7 @@ const HealthTourismPage = () => {
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">{t('healthTourismPage.phoneLabel', 'Telefon')}</p>
-                    <a href="tel:+902121234567" className="text-primary font-medium">+90 212 123 45 67</a>
+                    <a href="tel:+902121234567" className="text-primary font-medium">+90 212 444 50 58</a>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -397,7 +397,7 @@ const HealthTourismPage = () => {
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">{t('healthTourismPage.whatsappLabel', 'WhatsApp')}</p>
-                    <a href="https://wa.me/902121234567" className="text-primary font-medium">+90 212 123 45 67</a>
+                    <a href="https://wa.me/902121234567" className="text-primary font-medium">+90 212 444 50 58</a>
                   </div>
                 </div>
               </div>

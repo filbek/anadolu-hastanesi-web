@@ -54,8 +54,8 @@ const DynamicPageRenderer = ({ slug, fallbackComponent: FallbackComponent, rende
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('common.pageNotFound','Sayfa Bulunamadı')}</h1>
-          <p className="text-gray-600">{t('common.pageNotFoundDesc','Aradığınız sayfa mevcut değil.')}</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('common.pageNotFound', 'Sayfa Bulunamadı')}</h1>
+          <p className="text-gray-600">{t('common.pageNotFoundDesc', 'Aradığınız sayfa mevcut değil.')}</p>
         </div>
       </div>
     );
@@ -252,10 +252,10 @@ const DynamicPageRenderer = ({ slug, fallbackComponent: FallbackComponent, rende
           stats = section.content ? JSON.parse(section.content) : [];
         } catch {
           stats = [
-            { label: t('common.stats.annualPatients','Yıllık Hasta'), value: '250.000+' },
-            { label: t('common.stats.expertDoctors','Uzman Doktor'), value: '150+' },
-            { label: t('common.stats.modernBeds','Modern Yatak'), value: '500+' },
-            { label: t('common.stats.successRate','Başarı Oranı'), value: '%98' }
+            { label: t('common.stats.annualPatients', 'Yıllık Hasta'), value: '250.000+' },
+            { label: t('common.stats.expertDoctors', 'Uzman Doktor'), value: '150+' },
+            { label: t('common.stats.modernBeds', 'Modern Yatak'), value: '500+' },
+            { label: t('common.stats.successRate', 'Başarı Oranı'), value: '%98' }
           ];
         }
 
@@ -297,7 +297,7 @@ const DynamicPageRenderer = ({ slug, fallbackComponent: FallbackComponent, rende
                       </div>
                       <div>
                         <div className="font-bold text-primary">{t.author}</div>
-                        <div className="text-xs text-text-light uppercase tracking-tighter">{t.role || t('common.patient','Hasta')}</div>
+                        <div className="text-xs text-text-light uppercase tracking-tighter">{t.role || t('common.patient', 'Hasta')}</div>
                       </div>
                     </div>
                   </div>
@@ -313,35 +313,35 @@ const DynamicPageRenderer = ({ slug, fallbackComponent: FallbackComponent, rende
             <div className="container-custom">
               <div className="max-w-6xl mx-auto bg-neutral rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row">
                 <div className="md:w-1/2 p-12 bg-primary text-white">
-                  <h3 className="text-2xl font-bold mb-8">{t('common.contactInfo','İletişim Bilgileri')}</h3>
+                  <h3 className="text-2xl font-bold mb-8">{t('common.contactInfo', 'İletişim Bilgileri')}</h3>
                   <div className="space-y-8">
                     <div className="flex items-start gap-4">
                       <div className="bg-white/10 p-3 rounded-lg">📞</div>
                       <div>
-                        <div className="text-sm opacity-60 uppercase mb-1">{t('common.phone','Telefon')}</div>
-                        <div className="text-lg font-medium">+90 212 123 45 67</div>
+                        <div className="text-sm opacity-60 uppercase mb-1">{t('common.phone', 'Telefon')}</div>
+                        <div className="text-lg font-medium">+90 212 444 50 58</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
                       <div className="bg-white/10 p-3 rounded-lg">✉️</div>
                       <div>
-                        <div className="text-sm opacity-60 uppercase mb-1">{t('common.email','E-posta')}</div>
+                        <div className="text-sm opacity-60 uppercase mb-1">{t('common.email', 'E-posta')}</div>
                         <div className="text-lg font-medium">info@anadoluhastaneleri.com</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
                       <div className="bg-white/10 p-3 rounded-lg">📍</div>
                       <div>
-                        <div className="text-sm opacity-60 uppercase mb-1">{t('common.address','Adres')}</div>
+                        <div className="text-sm opacity-60 uppercase mb-1">{t('common.address', 'Adres')}</div>
                         <div className="text-lg font-medium">İstanbul, Türkiye</div>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div className="md:w-1/2 p-12 flex flex-col justify-center">
-                  <h3 className="text-2xl font-bold text-primary mb-6">{t('common.onlineAppointment','Online Randevu')}</h3>
+                  <h3 className="text-2xl font-bold text-primary mb-6">{t('common.onlineAppointment', 'Online Randevu')}</h3>
                   <p className="text-text-light text-lg mb-8 leading-relaxed">
-                    {t('common.onlineAppointmentDesc','Size en yakın hastanemizi seçerek hemen online randevunuzu oluşturabilirsiniz.')}
+                    {t('common.onlineAppointmentDesc', 'Size en yakın hastanemizi seçerek hemen online randevunuzu oluşturabilirsiniz.')}
                   </p>
                   <a
                     href="https://anadoluhastaneleri.kendineiyibak.app/"
@@ -349,7 +349,7 @@ const DynamicPageRenderer = ({ slug, fallbackComponent: FallbackComponent, rende
                     rel="noopener noreferrer"
                     className="btn btn-accent inline-flex items-center justify-center gap-3 py-4 text-lg"
                   >
-                    {t('common.bookNow','Hemen Randevu Al')}
+                    {t('common.bookNow', 'Hemen Randevu Al')}
                   </a>
                 </div>
               </div>

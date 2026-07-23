@@ -35,7 +35,7 @@ const AdminSettings = () => {
     site_name: 'Anadolu Hastaneleri Grubu',
     site_description: 'Sağlığınız için en iyi hizmet, en son teknoloji ve uzman kadro.',
     site_keywords: 'hastane, sağlık, doktor, randevu, tıbbi, Anadolu, sağlık hizmetleri',
-    contact_phone: '+90 212 123 45 67',
+    contact_phone: '+90 212 444 50 58',
     contact_email: 'info@anadoluhastaneleri.com',
     contact_address: 'İstanbul, Türkiye',
     emergency_phone: '+90 212 123 45 68',

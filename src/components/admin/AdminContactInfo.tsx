@@ -23,7 +23,7 @@ interface ContactInfo {
 const AdminContactInfo = () => {
   const { t } = useTranslation();
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
-    main_phone: '+90 212 123 45 67',
+    main_phone: '+90 212 444 50 58',
     emergency_phone: '+90 212 123 45 68',
     email: 'info@anadoluhastaneleri.com',
     address: 'Merkez Mah. Sağlık Cad. No:123\nŞişli/İstanbul',
