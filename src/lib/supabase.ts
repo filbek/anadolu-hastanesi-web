@@ -73,6 +73,7 @@ export type Department = {
   hero_subtitle?: string;
   is_published?: boolean;
   display_order?: number;
+  image_url?: string;
   images?: string[];
   treatments?: any[]; // JSONB data
   equipment?: any[]; // JSONB data

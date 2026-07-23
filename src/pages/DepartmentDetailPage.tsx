@@ -77,7 +77,7 @@ const DepartmentDetailPage = () => {
   const treatments = Array.isArray(department.treatments) ? department.treatments : [];
   const equipment = Array.isArray(department.equipment) ? department.equipment : [];
   const images = Array.isArray(department.images) ? department.images : [];
-  const heroImage = images.length > 0 ? images[0] : 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=1200&q=80';
+  const heroImage = images[0] || department.image_url || 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=1200&q=80';
 
   const process = getDepartmentProcess(department.name, t);
 
@@ -336,7 +336,7 @@ const DepartmentDetailPage = () => {
                     </h2>
                     <div className="relative mb-8">
                       <img
-                        src={images[1] || images[0] || 'https://images.unsplash.com/photo-1587351021759-3e566b0805b8?auto=format&fit=crop&w=1200&q=80'}
+                        src={images[1] || images[0] || department.image_url || 'https://images.unsplash.com/photo-1587351021759-3e566b0805b8?auto=format&fit=crop&w=1200&q=80'}
                         alt={`${department.name} süreç görseli`}
                         className="w-full h-64 object-cover rounded-xl"
                         loading="eager"

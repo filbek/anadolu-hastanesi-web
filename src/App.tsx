@@ -1,9 +1,24 @@
-import { Suspense, lazy } from 'react'
-import { Routes, Route, Navigate, useParams } from 'react-router-dom'
+import { useEffect, Suspense, lazy } from 'react'
+import { Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import AdminLayout from './components/admin/AdminLayout'
 import LoadingSpinner from './components/ui/LoadingSpinner'
 import HomePage from './pages/HomePage'
+
+function useGtmPageTracking() {
+  const location = useLocation()
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.dataLayer) {
+      window.dataLayer.push({
+        event: 'page_view',
+        page_path: location.pathname + location.search,
+        page_title: document.title,
+      })
+    }
+  }, [location])
+}
+
 
 
 // Lazy loaded pages
@@ -99,6 +114,8 @@ function LegacyHospitalRedirect() {
 }
 
 function App() {
+  useGtmPageTracking()
+
   return (
     <>
       <Suspense fallback={<LoadingSpinner />}>

@@ -287,8 +287,8 @@ const QualityManagementPage = () => {
                       type="button"
                       onClick={() => handleSelectHospital(h)}
                       className={`w-full text-left px-5 py-3 text-sm font-semibold transition-colors ${h.id === selectedHospitalId
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-secondary hover:bg-gray-50'
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-secondary hover:bg-gray-50'
                         }`}
                     >
                       {h.name}
@@ -453,7 +453,7 @@ const QualityManagementPage = () => {
               <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">Kalite Yapısı</span>
             </div>
             <h2 className="text-4xl lg:text-5xl font-black text-secondary leading-tight mb-4">
-              {t('quality.committeeTitle', 'Komiteler ve Ekip')}
+              {t('quality.committeeTitle', 'Komiteler ve Ekipler')}
             </h2>
           </motion.div>
 
