@@ -86,13 +86,18 @@ const VisitingRulesPage = () => {
               </div>
 
               <div className="bg-gray-50 border border-gray-100 p-4 rounded-xl">
-                <h4 className="font-bold text-gray-800 mb-1">{t('visiting.icuKvc', 'KVC / Koroner Yoğun Bakım')}</h4>
-                <p className="text-sm text-gray-600">{t('visiting.icuKvcDesc', 'Hafta içi her gün 12:00 - 13:30 saatleri arası bilgilendirme ve ardından planlı ufak ziyaret.')}</p>
+                <h4 className="font-bold text-gray-800 mb-1">{t('visiting.icuKvc', 'KVC Yoğun Bakım')}</h4>
+                <p className="text-sm text-gray-600">{t('visiting.icuKvcDesc', 'Uygun görülen günlerde ziyaret saati 17:00\'den sonradır.')}</p>
               </div>
 
               <div className="bg-gray-50 border border-gray-100 p-4 rounded-xl">
-                <h4 className="font-bold text-gray-800 mb-1">{t('visiting.icuNewborn', 'Yenidoğan ')}</h4>
-                <p className="text-sm text-gray-600">{t('visiting.icuNewbornDesc', 'Her gün saat 11:30 - 12:30 arası bilgilendirme. Hekimin uygun gördüğü günlerde ziyaret gerçekleştirilir.')}</p>
+                <h4 className="font-bold text-gray-800 mb-1">{t('visiting.icuCoroner', 'Koroner Yoğun Bakım')}</h4>
+                <p className="text-sm text-gray-600">{t('visiting.icuCoronerDesc', 'Ziyaret saatleri hafta içi her gün 09:00 - 10:00 saatleri arasıdır.')}</p>
+              </div>
+
+              <div className="bg-gray-50 border border-gray-100 p-4 rounded-xl">
+                <h4 className="font-bold text-gray-800 mb-1">{t('visiting.icuNewborn', 'Yenidoğan Yoğun Bakım')}</h4>
+                <p className="text-sm text-gray-600">{t('visiting.icuNewbornDesc', 'Hasta yakınlarına hasta ziyareti Pazartesi ve Perşembe günü saat 15:00–15:30 arası, bilgi verilmesi ise her gün yapılmaktadır.')}</p>
               </div>
             </div>
           </motion.div>

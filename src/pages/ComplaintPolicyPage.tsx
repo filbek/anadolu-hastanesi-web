@@ -114,7 +114,7 @@ const ComplaintPolicyPage = () => {
           >
             <div className="flex items-center gap-2 mb-6">
               <span className="block h-px w-10 bg-accent" />
-              <span className="text-accent text-xs uppercase tracking-[0.25em] font-semibold">Hasta İlişkileri</span>
+              <span className="text-accent text-xs uppercase tracking-[0.25em] font-semibold">Hasta Hakları Birimi</span>
             </div>
             <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-6">
               {t('complaint.titleLine1', 'Şikayet')}
@@ -150,7 +150,7 @@ const ComplaintPolicyPage = () => {
                 <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">{t('complaint.policyTag', 'Politikamız')}</span>
               </div>
               <h2 className="text-4xl lg:text-5xl font-black text-secondary leading-tight mb-8">
-                {t('complaint.sectionTitle', 'Hasta İlişkileri')} <span className="text-primary">{t('complaint.sectionHighlight', 'Bölümümüz')}</span>
+                {t('complaint.sectionTitle', 'Hasta Hakları')} <span className="text-primary">{t('complaint.sectionHighlight', 'Birimimiz')}</span>
               </h2>
 
               <div className="space-y-5 text-gray-600 text-lg leading-relaxed">
