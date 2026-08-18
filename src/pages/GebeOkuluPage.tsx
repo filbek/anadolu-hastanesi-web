@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import { useTranslation } from 'react-i18next'
-import { FaCalendarAlt, FaUserMd, FaBaby, FaHeart, FaStethoscope, FaBookOpen } from 'react-icons/fa'
+import { FaCalendarAlt, FaUserMd, FaBaby, FaHeart, FaStethoscope, FaBookOpen, FaHospital } from 'react-icons/fa'
 import { getActiveSeminars, GebeOkuluSeminar } from '../services/gebeOkuluService'
 import { defaultSeminars } from '../data/gebeOkuluSeminars'
+import { supabase } from '../lib/supabase'
+import type { Hospital } from '../lib/supabase'
 
 const features = (t: any) => [
   { icon: <FaUserMd />, title: t('gebe.featureExpert', 'Uzman Kadro'), desc: t('gebe.featureExpertDesc', 'Jinekolog, ebe ve diyetisyenlerden oluşan deneyimli ekibimizle bilgilendirme.') },
@@ -13,23 +15,71 @@ const features = (t: any) => [
   { icon: <FaStethoscope />, title: t('gebe.featureFreeCheck', 'Ücretsiz Kontrol'), desc: t('gebe.featureFreeCheckDesc', 'Seminer sonrası ücretsiz doktor konsültasyonu ve check-up imkanı.') },
 ];
 
+// Seminer tarihleri panelden serbest metin olarak giriliyor ("15 Mayıs 2025",
+// "15.05.2025", "2025-05-15"). Sıralama için hepsini zaman damgasına çeviriyoruz;
+// çözemediğimiz bir format gelirse kayıt listenin sonuna düşer.
+const TR_MONTHS = ['ocak', 'şubat', 'mart', 'nisan', 'mayıs', 'haziran', 'temmuz', 'ağustos', 'eylül', 'ekim', 'kasım', 'aralık'];
+
+const parseSeminarDate = (value?: string): number => {
+  if (!value) return -Infinity;
+  const raw = value.trim().toLocaleLowerCase('tr-TR');
+
+  const tr = raw.match(/(\d{1,2})\s+([a-zçğıöşü]+)\s+(\d{4})/);
+  if (tr) {
+    const month = TR_MONTHS.findIndex((m) => tr[2].startsWith(m.slice(0, 4)));
+    if (month >= 0) return new Date(Number(tr[3]), month, Number(tr[1])).getTime();
+  }
+
+  const numeric = raw.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
+  if (numeric) return new Date(Number(numeric[3]), Number(numeric[2]) - 1, Number(numeric[1])).getTime();
+
+  const iso = Date.parse(raw);
+  return Number.isNaN(iso) ? -Infinity : iso;
+};
+
+// Yeniden eskiye: en son paylaşım en üstte.
+const sortByDateDesc = (list: GebeOkuluSeminar[]) =>
+  [...list].sort((a, b) => parseSeminarDate(b.date) - parseSeminarDate(a.date));
+
 const GebeOkuluPage = () => {
   const { t } = useTranslation();
-  const [seminars, setSeminars] = useState<GebeOkuluSeminar[]>(defaultSeminars);
+  const [seminars, setSeminars] = useState<GebeOkuluSeminar[]>(() => sortByDateDesc(defaultSeminars));
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [selectedHospitalId, setSelectedHospitalId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchSeminars = async () => {
       try {
         const data = await getActiveSeminars();
         if (data && data.length > 0) {
-          setSeminars(data);
+          setSeminars(sortByDateDesc(data));
         }
       } catch (err) {
         console.warn('Could not fetch seminars from DB, using fallback data:', err);
       }
     };
+
+    const fetchHospitals = async () => {
+      const { data, error } = await supabase
+        .from('hospitals')
+        .select('*')
+        .order('display_order', { ascending: true });
+      if (error) {
+        console.warn('Could not fetch hospitals:', error);
+        return;
+      }
+      setHospitals(data || []);
+    };
+
     fetchSeminars();
+    fetchHospitals();
   }, []);
+
+  // Şube seçiliyken o şubenin paylaşımları + şube belirtilmemiş genel paylaşımlar gösterilir.
+  const filteredSeminars = useMemo(() => {
+    if (!selectedHospitalId) return seminars;
+    return seminars.filter((s) => !s.hospital_id || Number(s.hospital_id) === selectedHospitalId);
+  }, [seminars, selectedHospitalId]);
 
   return (
     <div className="bg-white min-h-screen">
@@ -79,7 +129,7 @@ const GebeOkuluPage = () => {
                 <div className="w-14 h-14 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center text-xl mx-auto mb-4">
                   {feature.icon}
                 </div>
-                <h3 className="font-bold text-primary mb-2">{feature.title}</h3>
+                <h3 className="text-base font-bold text-primary mb-2 leading-snug">{feature.title}</h3>
                 <p className="text-sm text-slate-500">{feature.desc}</p>
               </motion.div>
             ))}
@@ -100,8 +150,53 @@ const GebeOkuluPage = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {seminars.map((seminar, i) => (
+          {/* Şube Seçimi */}
+          {hospitals.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-10" role="group" aria-label={t('gebe.selectBranch', 'Şube seçimi')}>
+              <button
+                onClick={() => setSelectedHospitalId(null)}
+                aria-pressed={!selectedHospitalId}
+                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                  !selectedHospitalId
+                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:border-primary hover:text-primary'
+                }`}
+              >
+                {t('gebe.allBranches', 'Tüm Şubeler')}
+              </button>
+              {hospitals.map((h) => (
+                <button
+                  key={h.id}
+                  onClick={() => setSelectedHospitalId(Number(h.id))}
+                  aria-pressed={selectedHospitalId === Number(h.id)}
+                  className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                    selectedHospitalId === Number(h.id)
+                      ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:border-primary hover:text-primary'
+                  }`}
+                >
+                  {h.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {filteredSeminars.length === 0 && (
+            <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
+              <div className="w-16 h-16 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-2xl mx-auto mb-4">
+                <FaBookOpen />
+              </div>
+              <h3 className="text-xl font-bold text-primary mb-2">
+                {t('gebe.emptyTitle', 'Bu şube için henüz paylaşım yok')}
+              </h3>
+              <p className="text-slate-500 text-sm max-w-md mx-auto">
+                {t('gebe.emptyDesc', 'Seçtiğiniz şubenin gebe okulu paylaşımları yakında burada yer alacaktır.')}
+              </p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            {filteredSeminars.map((seminar, i) => (
               <motion.article
                 key={seminar.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -110,19 +205,19 @@ const GebeOkuluPage = () => {
                 transition={{ delay: i * 0.1 }}
                 className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-md transition-all duration-300 flex flex-col"
               >
-                <div className="relative h-64 overflow-hidden bg-slate-100">
+                <div className="relative overflow-hidden bg-slate-100">
                   {seminar.link_url ? (
                     <a
                       href={seminar.link_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block w-full h-full cursor-pointer overflow-hidden group"
+                      className="block w-full cursor-pointer overflow-hidden group"
                       title={`${seminar.title} sayfasına git`}
                     >
                       <img
                         src={seminar.image}
                         alt={seminar.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="w-full h-auto max-h-[70vh] object-contain transition-transform duration-500 group-hover:scale-105"
                         loading="lazy"
                       />
                     </a>
@@ -130,7 +225,7 @@ const GebeOkuluPage = () => {
                     <img
                       src={seminar.image}
                       alt={seminar.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-auto max-h-[70vh] object-contain"
                       loading="lazy"
                     />
                   )}
@@ -140,6 +235,10 @@ const GebeOkuluPage = () => {
                 </div>
                 <div className="p-6 flex-1 flex flex-col justify-between">
                   <div>
+                    <span className="inline-flex items-center gap-1.5 mb-3 text-xs font-bold text-primary bg-primary/5 rounded-full px-3 py-1.5">
+                      <FaHospital className="text-[10px]" />
+                      {seminar.hospitals?.name || t('gebe.allBranches', 'Tüm Şubeler')}
+                    </span>
                     <h3 className="text-lg font-bold text-primary mb-3">{seminar.title}</h3>
                     <p className="text-sm text-slate-500 mb-4 leading-relaxed">{seminar.summary}</p>
                   </div>

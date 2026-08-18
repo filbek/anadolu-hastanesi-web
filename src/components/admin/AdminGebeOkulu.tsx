@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaTimes, FaSave, FaImage, FaUpload, FaLink, FaDatabase, FaClipboard } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaTimes, FaSave, FaImage, FaUpload, FaLink, FaDatabase, FaClipboard, FaHospital } from 'react-icons/fa';
 import { getAllSeminars, createSeminar, updateSeminar, deleteSeminar, uploadSeminarImage, GebeOkuluSeminar } from '../../services/gebeOkuluService';
 import { defaultSeminars } from '../../data/gebeOkuluSeminars';
+import { supabase } from '../../lib/supabase';
+import type { Hospital } from '../../lib/supabase';
 
 const AdminGebeOkulu = () => {
   const { t } = useTranslation();
@@ -15,19 +17,25 @@ const AdminGebeOkulu = () => {
   const [uploading, setUploading] = useState(false);
   const [importing, setImporting] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [hospitalFilter, setHospitalFilter] = useState('');
 
-  const emptyForm: Omit<GebeOkuluSeminar, 'id' | 'created_at' | 'updated_at'> = {
+  const emptyForm = {
     title: '',
     date: '',
     image: '',
     summary: '',
-    topics: [],
+    topics: [] as string[],
     link_url: '',
+    hospital_id: '' as number | string,
     order_index: 0,
     is_active: true,
   };
   const [formData, setFormData] = useState(emptyForm);
   const [topicsInput, setTopicsInput] = useState('');
+
+  const hospitalName = (id?: number | string | null) =>
+    hospitals.find((h) => String(h.id) === String(id))?.name || '';
 
   const loadItems = async () => {
     setLoading(true);
@@ -48,25 +56,54 @@ const AdminGebeOkulu = () => {
     }
   };
 
+  const loadHospitals = async () => {
+    const { data, error } = await supabase
+      .from('hospitals')
+      .select('*')
+      .order('display_order', { ascending: true });
+    if (error) {
+      console.error('Error fetching hospitals:', error);
+      return;
+    }
+    setHospitals(data || []);
+  };
+
   useEffect(() => {
     loadItems();
+    loadHospitals();
   }, []);
 
-  const filtered = items.filter(i =>
-    i.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (i.summary || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = items.filter(i => {
+    const matchesSearch =
+      i.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (i.summary || '').toLowerCase().includes(searchTerm.toLowerCase());
+    // "Tüm Şubeler" (hospital_id boş) kayıtları her şube filtresinde görünür.
+    const matchesHospital =
+      !hospitalFilter || !i.hospital_id || String(i.hospital_id) === hospitalFilter;
+    return matchesSearch && matchesHospital;
+  });
 
   const resetForm = () => {
-    setFormData(emptyForm);
+    // Şube filtresi açıkken yeni kayıt varsayılan olarak o şubeye açılsın.
+    setFormData({ ...emptyForm, hospital_id: hospitalFilter || '' });
     setTopicsInput('');
     setEditingId(null);
     setShowForm(false);
   };
 
   const handleEdit = (item: GebeOkuluSeminar) => {
-    const { id, created_at, updated_at, ...rest } = item;
-    setFormData(rest);
+    const { id } = item;
+    setFormData({
+      title: item.title,
+      date: item.date,
+      image: item.image,
+      summary: item.summary ?? '',
+      topics: Array.isArray(item.topics) ? item.topics : [],
+      link_url: item.link_url ?? '',
+      hospital_id: item.hospital_id ?? '',
+      order_index: item.order_index,
+      is_active: item.is_active,
+    });
     setTopicsInput(Array.isArray(item.topics) ? item.topics.join(', ') : '');
     setEditingId(id);
     setShowForm(true);
@@ -146,7 +183,8 @@ const AdminGebeOkulu = () => {
     const submissionData = {
       ...formData,
       topics: processedTopics,
-      link_url: formData.link_url?.trim() || null
+      link_url: formData.link_url?.trim() || null,
+      hospital_id: formData.hospital_id ? Number(formData.hospital_id) : null,
     };
 
     try {
@@ -175,6 +213,7 @@ CREATE TABLE IF NOT EXISTS gebe_okulu_seminars (
   summary TEXT,
   topics TEXT[] DEFAULT '{}',
   link_url VARCHAR(500),
+  hospital_id BIGINT REFERENCES public.hospitals(id) ON DELETE SET NULL,
   order_index INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   translations JSONB DEFAULT '{}'::jsonb,
@@ -257,9 +296,9 @@ GRANT USAGE, SELECT ON SEQUENCE gebe_okulu_seminars_id_seq TO authenticated;`;
         </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 border border-slate-100">
-        <div className="relative">
+      {/* Search + Şube Filtresi */}
+      <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 border border-slate-100 flex flex-col md:flex-row gap-3">
+        <div className="relative flex-1">
           <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
@@ -268,6 +307,20 @@ GRANT USAGE, SELECT ON SEQUENCE gebe_okulu_seminars_id_seq TO authenticated;`;
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-11 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
           />
+        </div>
+        <div className="relative md:w-72">
+          <FaHospital className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <select
+            value={hospitalFilter}
+            onChange={(e) => setHospitalFilter(e.target.value)}
+            aria-label="Şubeye göre filtrele"
+            className="w-full pl-11 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm bg-white"
+          >
+            <option value="">Tüm Şubeler</option>
+            {hospitals.map((h) => (
+              <option key={h.id} value={String(h.id)}>{h.name}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -335,6 +388,21 @@ GRANT USAGE, SELECT ON SEQUENCE gebe_okulu_seminars_id_seq TO authenticated;`;
                     </div>
                   )}
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Şube (Hastane)</label>
+                <select
+                  value={formData.hospital_id}
+                  onChange={(e) => setFormData({ ...formData, hospital_id: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all bg-white"
+                >
+                  <option value="">Tüm Şubeler (genel paylaşım)</option>
+                  {hospitals.map((h) => (
+                    <option key={h.id} value={String(h.id)}>{h.name}</option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-400 mt-1">Paylaşım seçilen şubenin sekmesinde listelenir. Şube seçilmezse tüm şubelerin listesinde görünür.</p>
               </div>
 
               <div>
@@ -444,6 +512,10 @@ GRANT USAGE, SELECT ON SEQUENCE gebe_okulu_seminars_id_seq TO authenticated;`;
                 </div>
               </div>
               <div className="p-5">
+                <span className="inline-flex items-center gap-1.5 mb-2 text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/5 rounded-full px-2.5 py-1">
+                  <FaHospital size={9} />
+                  {item.hospitals?.name || hospitalName(item.hospital_id) || 'Tüm Şubeler'}
+                </span>
                 <h3 className="font-bold text-slate-800 text-lg leading-snug mb-2 line-clamp-1">{item.title}</h3>
                 <p className="text-sm text-slate-500 mb-4 line-clamp-3 leading-relaxed">{item.summary || 'Açıklama belirtilmemiş.'}</p>
                 <div className="flex flex-wrap gap-1.5 mb-2">

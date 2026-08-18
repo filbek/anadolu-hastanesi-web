@@ -9,6 +9,9 @@ export interface GebeOkuluSeminar {
   summary?: string;
   topics?: string[];
   link_url?: string | null;
+  // NULL ise paylaşım tüm şubeler için geçerlidir.
+  hospital_id?: number | null;
+  hospitals?: { id: number; name: string; slug: string } | null;
   order_index: number;
   is_active: boolean;
   translations?: any;
@@ -16,37 +19,53 @@ export interface GebeOkuluSeminar {
   updated_at?: string;
 }
 
-export async function getActiveSeminars(): Promise<GebeOkuluSeminar[]> {
-  const { data, error } = await supabase
-    .from('gebe_okulu_seminars')
-    .select('*')
-    .eq('is_active', true)
-    .order('order_index', { ascending: true });
+const SELECT_WITH_HOSPITAL = '*, hospitals:hospital_id(id, name, slug)';
+
+// hospital_id kolonu henüz eklenmemişse (gebe_okulu_hospital_migration.sql
+// çalıştırılmadıysa) join'li sorgu şema hatası verir; bu durumda şubesiz
+// sorguya düşerek sayfanın çalışmaya devam etmesini sağlıyoruz.
+const isMissingHospitalColumn = (error: any) =>
+  typeof error?.message === 'string' && error.message.includes('hospital_id');
+
+async function fetchSeminars(activeOnly: boolean): Promise<GebeOkuluSeminar[]> {
+  const build = (select: string) => {
+    const query = supabase.from('gebe_okulu_seminars').select(select);
+    return (activeOnly ? query.eq('is_active', true) : query)
+      .order('order_index', { ascending: true });
+  };
+
+  let { data, error } = await build(SELECT_WITH_HOSPITAL);
+  if (error && isMissingHospitalColumn(error)) {
+    console.warn('gebe_okulu_seminars.hospital_id bulunamadı, şube bilgisi olmadan yükleniyor.');
+    ({ data, error } = await build('*'));
+  }
 
   if (error) {
-    console.error('Error fetching active seminars:', error);
+    console.error('Error fetching seminars:', error);
     throw error;
   }
-  return (data as GebeOkuluSeminar[]) || [];
+  return (data as unknown as GebeOkuluSeminar[]) || [];
+}
+
+export async function getActiveSeminars(): Promise<GebeOkuluSeminar[]> {
+  return fetchSeminars(true);
 }
 
 export async function getAllSeminars(): Promise<GebeOkuluSeminar[]> {
-  const { data, error } = await supabase
-    .from('gebe_okulu_seminars')
-    .select('*')
-    .order('order_index', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching all seminars:', error);
-    throw error;
-  }
-  return (data as GebeOkuluSeminar[]) || [];
+  return fetchSeminars(false);
 }
+
+// Join ile gelen "hospitals" alanı tabloda kolon olmadığı için insert/update
+// gövdesinden çıkarılmalı; aksi halde Supabase şema hatası döner.
+const stripJoins = <T extends Record<string, any>>(payload: T) => {
+  const { hospitals, ...rest } = payload;
+  return rest;
+};
 
 export async function createSeminar(seminar: Omit<GebeOkuluSeminar, 'id' | 'created_at' | 'updated_at'>) {
   const { data, error } = await supabase
     .from('gebe_okulu_seminars')
-    .insert([seminar])
+    .insert([stripJoins(seminar)])
     .select();
 
   if (error) {
@@ -60,7 +79,7 @@ export async function createSeminar(seminar: Omit<GebeOkuluSeminar, 'id' | 'crea
 export async function updateSeminar(id: number, updates: Partial<GebeOkuluSeminar>) {
   const { data, error } = await supabase
     .from('gebe_okulu_seminars')
-    .update(updates)
+    .update(stripJoins(updates))
     .eq('id', id)
     .select();
 
