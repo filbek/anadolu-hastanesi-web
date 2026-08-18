@@ -12,3 +12,7 @@ ALTER TABLE public.gebe_okulu_seminars
 
 CREATE INDEX IF NOT EXISTS idx_gebe_okulu_seminars_hospital
   ON public.gebe_okulu_seminars(hospital_id);
+
+-- PostgREST şema cache'ini tazeler; aksi halde panel bir süre daha
+-- "Could not find the 'hospital_id' column ... in the schema cache" hatası verebilir.
+NOTIFY pgrst, 'reload schema';
