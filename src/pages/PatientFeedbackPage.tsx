@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
-import { FaPaperPlane, FaCheckCircle, FaChevronRight, FaPhoneAlt, FaEnvelope, FaComments } from 'react-icons/fa';
+import { FaPaperPlane, FaCheckCircle, FaChevronRight, FaPhoneAlt, FaEnvelope, FaComments, FaWhatsapp } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
 import { useHospitals } from '../hooks/useHospitals';
 import { createPatientFeedback } from '../services/patientFeedbackService';
 import { sendFormEmail } from '../services/emailService';
+import { findWhatsAppRoute, buildWhatsAppUrl, openWhatsApp } from '../services/whatsappService';
 import TurnstileWidget from '../components/common/TurnstileWidget';
 import { verifyTurnstile, turnstileEnabled } from '../services/turnstileService';
 
@@ -28,6 +29,8 @@ const PatientFeedbackPage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // WhatsApp yönlendirme kuralı tanımlıysa gönderim sonrası gösterilen wa.me bağlantısı
+  const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);
 
   // Personel + anonim seçiliyken isim/soyisim gizlenir ve zorunlu olmaz
   const isAnonymous = audience === 'personel' && anonymous;
@@ -94,8 +97,7 @@ const PatientFeedbackPage = () => {
       return;
     }
 
-    // Geri bildirimi admin panelinde belirlenen e-posta adresine de gönder (bloklamaz)
-    await sendFormEmail('feedback', {
+    const payload = {
       name: fullName,
       email: isAnonymous ? '' : formData.email,
       phone: isAnonymous ? '' : formData.phone,
@@ -104,7 +106,16 @@ const PatientFeedbackPage = () => {
       hospital: hospital?.name,
       department: formData.department,
       message: formData.message,
-    });
+    };
+
+    // Seçilen şube için WhatsApp yönlendirme kuralı tanımlıysa geri bildirim
+    // WhatsApp üzerinden iletilir; kural yoksa eski e-posta akışı devrede kalır.
+    const route = await findWhatsAppRoute('feedback', hospital?.name);
+    if (route) {
+      setWhatsappUrl(buildWhatsAppUrl(route.whatsapp_number, 'feedback', payload));
+    } else {
+      await sendFormEmail('feedback', payload);
+    }
     setSubmitting(false);
 
     setSubmitted(true);
@@ -132,6 +143,27 @@ const PatientFeedbackPage = () => {
               <p className="text-gray-600 text-lg mb-8">
                 {t('feedback.successDesc', 'Değerli görüşünüz için teşekkür ederiz. Hasta İlişkileri ekibimiz en kısa sürede sizinle iletişime geçecektir.')}
               </p>
+
+              {/* Pop-up engelleyicisine takılmamak için kullanıcı tıklamasıyla açılır */}
+              {whatsappUrl && (
+                <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-2xl">
+                  <p className="text-gray-600 mb-4">
+                    {t(
+                      'feedback.whatsappPrompt',
+                      'Geri bildiriminizin ilgili birimimize anında ulaşması için aşağıdaki butona dokunun. WhatsApp açılacak ve mesajınız hazır olarak gelecektir.'
+                    )}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => openWhatsApp(whatsappUrl)}
+                    className="inline-flex items-center gap-3 px-8 py-4 bg-[#25D366] text-white font-bold rounded-xl hover:brightness-105 transition-all text-lg"
+                  >
+                    <FaWhatsapp className="text-2xl" />
+                    {t('feedback.whatsappSend', "WhatsApp'tan Gönder")}
+                  </button>
+                </div>
+              )}
+
               <a
                 href="/"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white font-bold rounded-xl hover:brightness-110 transition-all"

@@ -119,6 +119,24 @@ const HealthGuidePage = () => {
             subtitle={t('healthGuide.subtitle', 'Sağlıklı bir yaşam için uzmanlarımızın hazırladığı bilgilendirici içerikler.')}
           />
 
+          {/* Öne çıkan özel içerik — veritabanı listesinden bağımsız, sabit sayfa */}
+          <Link
+            to="/saglik-rehberi/fraxis-duo-lazer"
+            className="block mb-8 rounded-xl overflow-hidden bg-gradient-to-br from-primary-600 to-ocean-600 p-6 md:p-8 text-white hover:opacity-95 transition-opacity"
+          >
+            <span className="inline-block px-3 py-1 bg-white/15 rounded-full text-xs font-bold mb-3">
+              {t('healthGuide.featured', 'Öne Çıkan İçerik')}
+            </span>
+            {/* text-white açıkça verilmeli: global `h2 { color }` kuralı miras rengi ezer */}
+            <h2 className="text-xl md:text-2xl font-black text-white mb-2">
+              Fraxis Duo Lazer Nedir, Hangi İşlemlerde Kullanılır?
+            </h2>
+            <p className="text-white/75 text-sm md:text-base max-w-3xl">
+              İdrar kaçırma, vajinal kuruluk ve gevşeklikten akne izi ve çatlaklara kadar; fraksiyonel CO₂ lazer ve
+              mikro iğne radyofrekans teknolojisinin hangi sorunlarda kullanıldığını uzmanlarımız anlatıyor.
+            </p>
+          </Link>
+
           <div className="bg-white rounded-xl shadow-card p-6 mb-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-2">

@@ -229,8 +229,19 @@ const DoctorDetailPage = () => {
                     <FaClock className="text-ocean-500 mt-0.5 flex-shrink-0" />
                     <div>
                       <p className="font-medium text-primary">{t('common.workingHours', 'Çalışma Saatleri')}</p>
-                      <p className="text-text-light">{t('common.weekdays', 'Haftaiçi')}: 08:00 - 17:00</p>
-                      <p className="text-text-light">{t('common.weekends', 'Haftasonu')}: 08:30 - 14:00</p>
+                      {(doctor as any).working_hours ? (
+                        <p className="text-text-light whitespace-pre-line">{(doctor as any).working_hours}</p>
+                      ) : (doctor as any).name?.includes('Özkan') ? (
+                        <>
+                          <p className="text-text-light">{t('common.weekdays', 'Haftaiçi')}: 08:00 - 17:00</p>
+                          <p className="text-text-light">{t('common.saturday', 'Cumartesi')}: 08:30 - 12:00</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-text-light">{t('common.weekdays', 'Haftaiçi')}: 08:00 - 17:00</p>
+                          <p className="text-text-light">{t('common.weekends', 'Cumartesi')}: 08:30 - 14:00</p>
+                        </>
+                      )}
                     </div>
                   </li>
                 </ul>

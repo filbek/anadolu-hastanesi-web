@@ -17,6 +17,7 @@ interface Doctor {
   experience: string;
   languages: string[];
   treatments?: string[];
+  working_hours?: string;
   image_url: string;
   cv_url?: string;
   email: string;
@@ -54,6 +55,7 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
     bio: '',
     education: [],
     experience: '',
+    working_hours: '',
     languages: [],
     image_url: '',
     cv_url: '',
@@ -215,6 +217,7 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
                   ? data.education.split('\n').filter(Boolean)
                   : []),
           experience: data.experience || '',
+          working_hours: data.working_hours || '',
           languages: Array.isArray(data.languages) ? data.languages : [],
           image_url: data.image || '',
           cv_url: data.cv_url || '',
@@ -312,6 +315,7 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
         about: formData.bio,
         education: (formData.education || []).join('\n'),
         experience: formData.experience,
+        working_hours: formData.working_hours || null,
         languages: formData.languages || [],
         treatments: parseTreatments(treatmentsInput),
         image: formData.image_url,
@@ -490,6 +494,19 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
                   onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder={t('admin.label.experiencePlaceholder', '20+ yıl')}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('admin.label.workingHours', 'Çalışma Saatleri (Özel)')}
+                </label>
+                <textarea
+                  value={formData.working_hours || ''}
+                  onChange={(e) => setFormData({ ...formData, working_hours: e.target.value })}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                  placeholder="Boş bırakılırsa hastane standart saatleri gösterilir (Örn: Haftaiçi: 08:00 - 17:00\nCumartesi: 08:30 - 12:00)"
                 />
               </div>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +11,7 @@ import {
   FaSpinner,
 } from 'react-icons/fa';
 import { supabase } from '../lib/supabase';
-import type { ManagementTeamMember, Doctor } from '../lib/supabase';
+import type { ManagementTeamMember, Doctor, Hospital } from '../lib/supabase';
 import LastUpdated from '../components/ui/LastUpdated';
 
 /* ─── Avatar helper ─── */
@@ -21,6 +21,12 @@ const avatar = (name: string) =>
 interface MemberWithDoctor extends ManagementTeamMember {
   doctor?: Doctor | null;
 }
+
+/** Şube sekmelerinde "hastaneye bağlı olmayan" (grup geneli) üyeler için kullanılan anahtar */
+const GROUP_KEY = 'group';
+
+const hospitalKey = (hospitalId: ManagementTeamMember['hospital_id']) =>
+  hospitalId === null || hospitalId === undefined || hospitalId === '' ? GROUP_KEY : String(hospitalId);
 
 const fadeUp = {
   initial: { opacity: 0, y: 20 },
@@ -95,6 +101,8 @@ const roleSectionMeta: Record<string, { label: string; title: string; highlight:
 const ManagementPage = () => {
   const { t } = useTranslation();
   const [members, setMembers] = useState<MemberWithDoctor[]>([]);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [activeTab, setActiveTab] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -105,18 +113,29 @@ const ManagementPage = () => {
   const fetchManagementTeam = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('management_team')
-        .select(`
-          *,
-          doctor:doctor_id(id, name, title, image, department_id)
-        `)
-        .eq('is_active', true)
-        .order('display_order', { ascending: true })
-        .order('created_at', { ascending: true });
+      setError(null);
+
+      const [{ data, error }, { data: hospitalData, error: hospitalError }] = await Promise.all([
+        supabase
+          .from('management_team')
+          .select(`
+            *,
+            doctor:doctor_id(id, name, title, image, department_id)
+          `)
+          .eq('is_active', true)
+          .order('display_order', { ascending: true })
+          .order('created_at', { ascending: true }),
+        supabase
+          .from('hospitals')
+          .select('id, name, slug, display_order, is_active')
+          .order('display_order', { ascending: true }),
+      ]);
 
       if (error) throw error;
+      if (hospitalError) throw hospitalError;
+
       setMembers(data || []);
+      setHospitals((hospitalData || []) as Hospital[]);
     } catch (err: any) {
       console.error('Error fetching management team:', err);
       setError(err?.message || 'Yönetim ekibi yüklenirken bir hata oluştu.');
@@ -131,9 +150,47 @@ const ManagementPage = () => {
     return avatar(member.name);
   };
 
-  const boardMembers = members.filter(m => m.role === 'board');
-  const chiefPhysicians = members.filter(m => m.role === 'chief_physician');
-  const assistantChiefs = members.filter(m => m.role === 'assistant_chief');
+  /* ─── Şube (hastane) bazlı gruplama ─── */
+  const tabs = useMemo(() => {
+    const list: { key: string; label: string; shortLabel: string }[] = [];
+
+    if (members.some(m => hospitalKey(m.hospital_id) === GROUP_KEY)) {
+      list.push({
+        key: GROUP_KEY,
+        label: 'Grup Yönetimi',
+        shortLabel: 'Grup Yönetimi',
+      });
+    }
+
+    hospitals.forEach(hospital => {
+      const key = String(hospital.id);
+      if (!members.some(m => hospitalKey(m.hospital_id) === key)) return;
+      list.push({
+        key,
+        label: hospital.name,
+        shortLabel: hospital.name.replace(/^Özel\s+/i, '').replace(/\s*Anadolu Hastanesi$/i, ''),
+      });
+    });
+
+    return list;
+  }, [members, hospitals]);
+
+  useEffect(() => {
+    if (tabs.length === 0) {
+      setActiveTab(null);
+      return;
+    }
+    setActiveTab(prev => (prev && tabs.some(tab => tab.key === prev) ? prev : tabs[0].key));
+  }, [tabs]);
+
+  const activeTabMeta = tabs.find(tab => tab.key === activeTab) || null;
+  const visibleMembers = activeTab
+    ? members.filter(m => hospitalKey(m.hospital_id) === activeTab)
+    : [];
+
+  const boardMembers = visibleMembers.filter(m => m.role === 'board');
+  const chiefPhysicians = visibleMembers.filter(m => m.role === 'chief_physician');
+  const assistantChiefs = visibleMembers.filter(m => m.role === 'assistant_chief');
 
   const adminRoles = [
     'administrative',
@@ -144,7 +201,7 @@ const ManagementPage = () => {
     'hospitality_services_manager',
     'quality_management_manager',
   ];
-  const adminMembers = members.filter(m => adminRoles.includes(m.role));
+  const adminMembers = visibleMembers.filter(m => adminRoles.includes(m.role));
 
   const hasMedical = chiefPhysicians.length > 0 || assistantChiefs.length > 0;
   const hasAdmin = adminMembers.length > 0;
@@ -233,6 +290,70 @@ const ManagementPage = () => {
         <section className="bg-gray-50 py-20">
           <div className="container-custom text-center">
             <p className="text-gray-500 text-lg">Henüz yönetim ekibi bilgisi eklenmemiş.</p>
+          </div>
+        </section>
+      )}
+
+      {/* ─── ŞUBE SEÇİMİ ─── */}
+      {!loading && !error && tabs.length > 1 && (
+        <section className="bg-gray-50 pt-12 lg:pt-16">
+          <div className="container-custom">
+            <p className="text-xs uppercase tracking-[0.25em] text-gray-500 font-bold mb-4">
+              Hastane Seçin
+            </p>
+            <div
+              role="tablist"
+              aria-label="Hastane yönetim kadroları"
+              className="flex flex-wrap gap-2 border-b border-gray-200 pb-px"
+            >
+              {tabs.map(tab => {
+                const isActive = tab.key === activeTab;
+                return (
+                  <button
+                    key={tab.key}
+                    role="tab"
+                    type="button"
+                    id={`management-tab-${tab.key}`}
+                    aria-selected={isActive}
+                    aria-controls="management-tabpanel"
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`px-5 py-3 rounded-t-xl text-sm md:text-base font-bold transition-colors border border-b-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${isActive
+                        ? 'bg-white text-primary border-gray-200'
+                        : 'bg-transparent text-gray-500 border-transparent hover:text-primary hover:bg-white/60'
+                      }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {!loading && !error && activeTabMeta && visibleMembers.length === 0 && (
+        <section className="bg-gray-50 py-20">
+          <div className="container-custom text-center">
+            <p className="text-gray-500 text-lg">
+              {activeTabMeta.label} için henüz yönetim kadrosu bilgisi eklenmemiş.
+            </p>
+          </div>
+        </section>
+      )}
+
+      <div
+        id="management-tabpanel"
+        role={tabs.length > 1 ? 'tabpanel' : undefined}
+        aria-labelledby={tabs.length > 1 && activeTab ? `management-tab-${activeTab}` : undefined}
+      >
+      {/* ─── AKTİF ŞUBE BAŞLIĞI ─── */}
+      {!loading && !error && tabs.length > 1 && activeTabMeta && visibleMembers.length > 0 && (
+        <section className="bg-gray-50 pt-14 lg:pt-20">
+          <div className="container-custom">
+            <h2 className="text-2xl md:text-3xl font-black text-secondary">
+              {activeTabMeta.label}
+              <span className="text-primary"> Yönetim Kadrosu</span>
+            </h2>
           </div>
         </section>
       )}
@@ -424,6 +545,8 @@ const ManagementPage = () => {
           </div>
         </section>
       )}
+
+      </div>
 
       {/* ─── BOTTOM CTA STRIP ─── */}
       <section className="bg-primary py-14">

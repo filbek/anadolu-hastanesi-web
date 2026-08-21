@@ -115,3 +115,9 @@ temp/
 
 # Claude Code yerel ayarları (API anahtarları içerebilir)
 .claude/
+
+# Kimlik bilgisi içeren yerel kurulum notları (dokümanın kendisi repoda kalır,
+# gerçek parola/anahtar yazılan kopyalar gönderilmez)
+*.local.md
+SECRETS.md
+CREDENTIALS.md

@@ -10,10 +10,12 @@ import {
   FaShieldAlt,
   FaUserMd,
   FaHospital,
+  FaWhatsapp,
 } from 'react-icons/fa';
 import { useHospitals } from '../../hooks/useHospitals';
 import { supabase } from '../../lib/supabase';
 import { sendFormEmail } from '../../services/emailService';
+import { findWhatsAppRoute, buildWhatsAppUrl, openWhatsApp } from '../../services/whatsappService';
 import TurnstileWidget from '../common/TurnstileWidget';
 import { verifyTurnstile, turnstileEnabled } from '../../services/turnstileService';
 
@@ -35,6 +37,9 @@ const SecondOpinionSection = () => {
   const [fileName, setFileName] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // Şubeye ait bir WhatsApp yönlendirme kuralı varsa başarı ekranında
+  // gösterilecek wa.me bağlantısı (bkz. Admin > WhatsApp Yönlendirme)
+  const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -109,15 +114,23 @@ const SecondOpinionSection = () => {
 
       if (insertError) throw insertError;
 
-      // Başvuruyu admin panelinde belirlenen e-posta adresine de gönder (bloklamaz)
-      await sendFormEmail('second_opinion', {
+      const payload = {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
         hospital: formData.hospital || '-',
         message: formData.message,
         file_url: fileUrl,
-      });
+      };
+
+      // Seçilen şube için WhatsApp yönlendirme kuralı tanımlıysa başvuru
+      // WhatsApp üzerinden iletilir; kural yoksa eski e-posta akışı devrede kalır.
+      const route = await findWhatsAppRoute('second_opinion', formData.hospital);
+      if (route) {
+        setWhatsappUrl(buildWhatsAppUrl(route.whatsapp_number, 'second_opinion', payload));
+      } else {
+        await sendFormEmail('second_opinion', payload);
+      }
 
       setSubmitted(true);
     } catch (err: any) {
@@ -147,9 +160,31 @@ const SecondOpinionSection = () => {
             <p className="text-gray-500 text-lg mb-8">
               {t('secondOpinion.successDesc', 'Uzman ekibimiz en kısa sürede size dönüş yapacaktır.')}
             </p>
+
+            {/* WhatsApp yönlendirmesi tanımlıysa başvuruyu ilgili şubeye iletme adımı.
+                Pop-up engelleyicisine takılmamak için kullanıcı tıklamasıyla açılır. */}
+            {whatsappUrl && (
+              <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-2xl">
+                <p className="text-gray-600 mb-4">
+                  {t(
+                    'secondOpinion.whatsappPrompt',
+                    'Başvurunuzun ilgili şubemize anında ulaşması için aşağıdaki butona dokunun. WhatsApp açılacak ve mesajınız hazır olarak gelecektir — yalnızca "Gönder"e basmanız yeterli.'
+                  )}
+                </p>
+                <button
+                  onClick={() => openWhatsApp(whatsappUrl)}
+                  className="inline-flex items-center gap-3 px-8 py-4 bg-[#25D366] text-white font-bold rounded-xl hover:brightness-105 active:scale-[0.99] transition-all text-lg"
+                >
+                  <FaWhatsapp className="text-2xl" />
+                  {t('secondOpinion.whatsappSend', "WhatsApp'tan Gönder")}
+                </button>
+              </div>
+            )}
+
             <button
               onClick={() => {
                 setSubmitted(false);
+                setWhatsappUrl(null);
                 setFormData({ name: '', email: '', phone: '', hospital: '', message: '', consent: false, captcha: false });
                 setFileName('');
               }}

@@ -111,6 +111,7 @@ export const HOSPITALS_DATA = [
 export const SILIVRI_DOCTORS_DATA = [
   { filename: 'DR.Hüseyin Deniz AKSOKU - Anestezi ve Reanimasyon.jpg', name: 'Dr. Hüseyin Deniz Aksoku', title: 'Dr.', deptSlug: 'anestezi-ve-reanimasyon' },
   { filename: 'DR.Ülken SEZER - Acil Servis.jpg', name: 'Dr. Ülken Sezer', title: 'Dr.', deptSlug: 'acil-servis' },
+  { filename: 'Doç. Dr. Özkan SEVER - Göz Sağlığı ve Hastalıkları.png', name: 'Doç. Dr. Özkan Sever', title: 'Doç. Dr.', deptSlug: 'goz-sagligi-ve-hastaliklari' },
   { filename: 'Doç. Dr. Fatih KUZU - ENDOKRİNOLOJİ VE METABOLİZMA - İÇ HASTALIKLARI (Dahiliye) .jpg', name: 'Doç. Dr. Fatih Kuzu', title: 'Doç. Dr.', deptSlug: 'endokrinoloji-ve-metabolizma' },
   { filename: 'Doç. Dr. Gülşah YILDIRIM - Girişimsel Radyoloji.jpg', name: 'Doç. Dr. Gülşah Yıldırım', title: 'Doç. Dr.', deptSlug: 'girisimsel-radyoloji' },
   { filename: 'Doç. Dr. Salih İNAL - nefroloji - İÇ HASTALIKLARI (Dahiliye)-.jpg', name: 'Doç. Dr. Salih İnal', title: 'Doç. Dr.', deptSlug: 'nefroloji' },

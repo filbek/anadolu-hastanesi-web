@@ -11,8 +11,10 @@ import {
   FaChevronRight,
   FaClock,
   FaInfoCircle,
+  FaDirections,
 } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
+import { getDirectionsUrl } from '../utils/mapUtils';
 
 const transportOptions = (t: any) => [
   {
@@ -221,9 +223,19 @@ const TransportationPage = () => {
                       <FaMapMarkerAlt className="text-accent" /> {h.address}
                     </p>
                   </div>
-                  <span className="inline-flex items-center gap-2 text-sm font-bold text-green-700 bg-green-100 rounded-full px-4 py-1.5 self-start">
-                    <FaParking /> {h.parking}
-                  </span>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="inline-flex items-center gap-2 text-sm font-bold text-green-700 bg-green-100 rounded-full px-4 py-1.5 self-start">
+                      <FaParking /> {h.parking}
+                    </span>
+                    <a
+                      href={getDirectionsUrl(h)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-full px-5 py-1.5 transition-all shadow-sm"
+                    >
+                      <FaDirections className="text-accent" /> {t('common.directions', 'Yol Tarifi Al')}
+                    </a>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div className="flex items-start gap-3">

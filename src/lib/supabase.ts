@@ -95,6 +95,7 @@ export type Doctor = {
   cv_url?: string;
   specialties?: string[];
   treatments?: string[];
+  working_hours?: string;
   is_active?: boolean;
   display_order?: number;
   translations?: Translations;

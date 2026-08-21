@@ -30,6 +30,7 @@ const DoctorsPage = lazy(() => import('./pages/DoctorsPage'))
 const DoctorDetailPage = lazy(() => import('./pages/DoctorDetailPage'))
 const HealthGuidePage = lazy(() => import('./pages/HealthGuidePage'))
 const HealthArticlePage = lazy(() => import('./pages/HealthArticlePage'))
+const FraxisDuoPage = lazy(() => import('./pages/FraxisDuoPage'))
 const HealthTourismPage = lazy(() => import('./pages/HealthTourismPage'))
 const HealthVideosPage = lazy(() => import('./pages/HealthVideosPage'))
 const PatientInfoPage = lazy(() => import('./pages/PatientInfoPage'))
@@ -83,6 +84,7 @@ const AdminOrganizationChart = lazy(() => import('./components/admin/AdminOrgani
 const AdminPatientInfo = lazy(() => import('./components/admin/AdminPatientInfo'))
 const AdminContractedInstitutions = lazy(() => import('./components/admin/AdminContractedInstitutions'))
 const AdminSettings = lazy(() => import('./components/admin/AdminSettings'))
+const AdminWhatsAppRouting = lazy(() => import('./components/admin/AdminWhatsAppRouting'))
 const AdminHomeSettings = lazy(() => import('./components/admin/AdminHomeSettings'))
 const AdminHealthTourism = lazy(() => import('./components/admin/AdminHealthTourism'))
 const AdminHeroSlides = lazy(() => import('./components/admin/AdminHeroSlides'))
@@ -144,6 +146,8 @@ function App() {
             <Route path="saglik-rehberi" element={<HealthGuidePage />} />
             <Route path="saglik-rehberi/videolar" element={<HealthVideosPage />} />
             <Route path="saglik-rehberi/hasta-bilgilendirme" element={<PatientInfoPage />} />
+            {/* Özel içerikli makale sayfaları — dinamik :slug rotasından önce gelmeli */}
+            <Route path="saglik-rehberi/fraxis-duo-lazer" element={<FraxisDuoPage />} />
             <Route path="saglik-rehberi/:slug" element={<HealthArticlePage />} />
             <Route path="saglik-turizmi" element={<HealthTourismPage />} />
             <Route path="ikinci-gorus" element={<SecondOpinionPage />} />
@@ -214,6 +218,7 @@ function App() {
               <Route path="contracted-institutions" element={<AdminContractedInstitutions />} />
               <Route path="test-connection" element={<AdminTestConnection />} />
               <Route path="settings" element={<AdminSettings />} />
+              <Route path="whatsapp-routing" element={<AdminWhatsAppRouting />} />
               <Route path="hero-slides" element={<AdminHeroSlides />} />
               <Route path="testimonials" element={<AdminTestimonials />} />
               <Route path="news" element={<AdminNews />} />

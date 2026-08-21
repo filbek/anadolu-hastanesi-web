@@ -7,7 +7,7 @@ import {
   FaImages, FaFileAlt, FaPhone, FaGlobe, FaEnvelope,
   FaDatabase, FaVideo, FaAward, FaFilePdf, FaChevronRight,
   FaSlideshare, FaComments, FaChartBar, FaCertificate, FaClipboardList, FaHistory, FaUserTie,
-  FaBaby, FaHandshake, FaSitemap, FaHandHoldingHeart
+  FaBaby, FaHandshake, FaSitemap, FaHandHoldingHeart, FaWhatsapp
 } from 'react-icons/fa';
 
 const AdminLayout = () => {
@@ -73,6 +73,7 @@ const AdminLayout = () => {
         { path: '/admin/translations', icon: FaGlobe, label: 'Otomatik Çeviri' },
         { path: '/admin/seo', icon: FaGlobe, label: 'SEO Ayarları' },
         { path: '/admin/settings', icon: FaCog, label: 'Site Ayarları' },
+        { path: '/admin/whatsapp-routing', icon: FaWhatsapp, label: 'WhatsApp Yönlendirme' },
         { path: '/admin/audit-logs', icon: FaHistory, label: 'Aktivite Logları' },
         { path: '/admin/test-connection', icon: FaDatabase, label: 'Bağlantı Testi' },
       ]

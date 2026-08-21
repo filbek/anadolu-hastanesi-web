@@ -2,24 +2,16 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import { useTranslation } from 'react-i18next'
-import { FaPhone, FaEnvelope, FaClock, FaMapMarkerAlt, FaFacebookF, FaTwitter, FaInstagram, FaYoutube, FaLinkedinIn, FaCheckCircle } from 'react-icons/fa'
+import { FaPhone, FaEnvelope, FaClock, FaMapMarkerAlt, FaFacebookF, FaTwitter, FaInstagram, FaYoutube, FaLinkedinIn, FaCheckCircle, FaDirections, FaWhatsapp } from 'react-icons/fa'
 import { useHospitals } from '../hooks/useHospitals'
 import LastUpdated from '../components/ui/LastUpdated'
 import HospitalMap from '../components/common/HospitalMap'
 import { supabase } from '../lib/supabase'
 import { sendFormEmail } from '../services/emailService'
+import { findWhatsAppRoute, buildWhatsAppUrl, openWhatsApp } from '../services/whatsappService'
 import TurnstileWidget from '../components/common/TurnstileWidget'
 import { verifyTurnstile, turnstileEnabled } from '../services/turnstileService'
-
-const getMapEmbedUrl = (hospital: any) => {
-  if (hospital.latitude && hospital.longitude) {
-    return `https://maps.google.com/maps?q=${hospital.latitude},${hospital.longitude}&z=15&ie=UTF8&iwloc=&output=embed`;
-  }
-  if (hospital.address) {
-    return `https://maps.google.com/maps?q=${encodeURIComponent(hospital.address)}&z=15&ie=UTF8&iwloc=&output=embed`;
-  }
-  return `https://maps.google.com/maps?q=${encodeURIComponent(hospital.name)}&z=15&ie=UTF8&iwloc=&output=embed`;
-};
+import { getDirectionsUrl, getMapEmbedUrl } from '../utils/mapUtils'
 
 const ContactPage = () => {
   const { t } = useTranslation()
@@ -27,6 +19,8 @@ const ContactPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // WhatsApp yönlendirme kuralı tanımlıysa gönderim sonrası gösterilen wa.me bağlantısı
+  const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -62,8 +56,16 @@ const ContactPage = () => {
       ]);
       if (error) throw error;
 
-      // Admin panelinde belirlenen e-posta adresine gönder (bloklamaz)
-      await sendFormEmail('contact', { name, email, phone, subject, message });
+      // WhatsApp yönlendirme kuralı tanımlıysa mesaj WhatsApp ile iletilir;
+      // kural yoksa eski e-posta akışı devrede kalır.
+      // Not: İletişim formunda şube seçimi olmadığı için "Tüm Şubeler" kuralı eşleşir.
+      const payload = { name, email, phone, subject, message };
+      const route = await findWhatsAppRoute('contact');
+      if (route) {
+        setWhatsappUrl(buildWhatsAppUrl(route.whatsapp_number, 'contact', payload));
+      } else {
+        await sendFormEmail('contact', payload);
+      }
 
       setSubmitted(true);
       form.reset();
@@ -194,29 +196,42 @@ const ContactPage = () => {
                   className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-white border border-slate-100 rounded-2xl overflow-hidden"
                 >
                   {/* Hospital Info */}
-                  <div className="p-8">
-                    <h3 className="text-xl font-bold text-primary mb-4">{hospital.name}</h3>
-                    <div className="space-y-3 text-sm">
-                      <div className="flex items-start gap-3">
-                        <FaMapMarkerAlt className="text-accent mt-1 flex-shrink-0" />
-                        <span className="text-slate-600">{hospital.address}</span>
+                  <div className="p-8 flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold text-primary mb-4">{hospital.name}</h3>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex items-start gap-3">
+                          <FaMapMarkerAlt className="text-accent mt-1 flex-shrink-0" />
+                          <span className="text-slate-600">{hospital.address}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <FaPhone className="text-accent flex-shrink-0" />
+                          <a href={`tel:${(hospital.phone || '4445058').replace(/\s/g, '')}`} className="text-primary hover:text-accent transition-colors">
+                            {hospital.phone || '444 50 58'}
+                          </a>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <FaEnvelope className="text-accent flex-shrink-0" />
+                          <a href={`mailto:${hospital.email || 'info@anadoluhastaneleri.com'}`} className="text-primary hover:text-accent transition-colors">
+                            {hospital.email || 'info@anadoluhastaneleri.com'}
+                          </a>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <FaClock className="text-accent mt-1 flex-shrink-0" />
+                          <span className="text-slate-600">{hospital.working_hours || 'Haftaiçi: 08:00 - 17:00, Haftasonu: 08:30 - 14:00'}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <FaPhone className="text-accent flex-shrink-0" />
-                        <a href={`tel:${(hospital.phone || '4445058').replace(/\s/g, '')}`} className="text-primary hover:text-accent transition-colors">
-                          {hospital.phone || '444 50 58'}
-                        </a>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <FaEnvelope className="text-accent flex-shrink-0" />
-                        <a href={`mailto:${hospital.email || 'info@anadoluhastaneleri.com'}`} className="text-primary hover:text-accent transition-colors">
-                          {hospital.email || 'info@anadoluhastaneleri.com'}
-                        </a>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <FaClock className="text-accent mt-1 flex-shrink-0" />
-                        <span className="text-slate-600">{hospital.working_hours || 'Haftaiçi: 08:00 - 17:00, Haftasonu: 08:30 - 14:00'}</span>
-                      </div>
+                    </div>
+                    <div className="mt-6 pt-4 border-t border-slate-100 flex items-center gap-4">
+                      <a
+                        href={getDirectionsUrl(hospital)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary/90 transition-all shadow-sm shadow-primary/10"
+                      >
+                        <FaDirections className="text-accent text-base" />
+                        {t('common.directions', 'Yol Tarifi Al')}
+                      </a>
                     </div>
                   </div>
                   {/* Map */}
@@ -260,11 +275,32 @@ const ContactPage = () => {
                 {t('contactPage.writeUsDesc')}
               </p>
               {submitted && (
-                <div className="mb-6 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800">
-                  <FaCheckCircle className="mt-0.5 flex-shrink-0 text-green-600" />
-                  <p className="text-sm font-medium">
-                    {t('contactPage.submitSuccess', 'Mesajınız bize ulaştı. En kısa sürede sizinle iletişime geçeceğiz.')}
-                  </p>
+                <div className="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800">
+                  <div className="flex items-start gap-3">
+                    <FaCheckCircle className="mt-0.5 flex-shrink-0 text-green-600" />
+                    <p className="text-sm font-medium">
+                      {t('contactPage.submitSuccess', 'Mesajınız bize ulaştı. En kısa sürede sizinle iletişime geçeceğiz.')}
+                    </p>
+                  </div>
+                  {/* Pop-up engelleyicisine takılmamak için kullanıcı tıklamasıyla açılır */}
+                  {whatsappUrl && (
+                    <div className="mt-4 pt-4 border-t border-green-200">
+                      <p className="text-sm mb-3">
+                        {t(
+                          'contactPage.whatsappPrompt',
+                          'Mesajınızın ilgili birimimize anında ulaşması için aşağıdaki butona dokunun. WhatsApp açılacak ve mesajınız hazır olarak gelecektir.'
+                        )}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => openWhatsApp(whatsappUrl)}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-[#25D366] text-white font-bold rounded-xl hover:brightness-105 transition-all"
+                      >
+                        <FaWhatsapp className="text-xl" />
+                        {t('contactPage.whatsappSend', "WhatsApp'tan Gönder")}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
               <form className="space-y-6" onSubmit={handleSubmit}>

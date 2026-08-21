@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock, FaCalendarAlt, FaHospital,
   FaChevronRight, FaChevronLeft, FaSearch, FaParking, FaCreditCard, FaCoffee,
-  FaMosque, FaWifi, FaBus, FaUserMd, FaStethoscope, FaArrowRight, FaTimes,
+  FaMosque, FaWifi, FaBus, FaUserMd, FaStethoscope, FaArrowRight, FaTimes, FaDirections
 } from 'react-icons/fa'
 import { useHospitalDetail } from '../hooks/useHospitals'
 import { useDepartments } from '../hooks/useDepartments'
@@ -15,6 +15,7 @@ import { hospitalTransportInfo, parseTransportInfo } from '../data/hospitalTrans
 import AutoTranslate from '../components/common/AutoTranslate'
 import SecondOpinionBanner from '../components/common/SecondOpinionBanner'
 import HospitalMap from '../components/common/HospitalMap'
+import { getDirectionsUrl } from '../utils/mapUtils'
 import 'swiper/css'
 
 const socialFacilities = (t: any) => [
@@ -112,11 +113,6 @@ const HospitalDetailPage = () => {
   const metaDescription = hospital.meta_description || (hospital.description || '').split('\n')[0]
   const mainImage = hospital.images && hospital.images.length > 0 ? hospital.images[0] : 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=1200&q=80'
 
-  const goToTab = (tabId: string) => {
-    setActiveTab(tabId)
-    document.getElementById('hospital-content')?.scrollIntoView({ behavior: 'smooth' })
-  }
-
   return (
     <div className="animate-fadeIn">
       <Helmet>
@@ -176,7 +172,17 @@ const HospitalDetailPage = () => {
               className="flex flex-wrap gap-4"
             >
               <a href="https://anadoluhastaneleri.kendineiyibak.app/" target="_blank" rel="noopener noreferrer" className="btn btn-accent px-8 py-4 text-lg">{t('common.appointmentNow', 'Hemen Randevu Al')}</a>
-              <button onClick={() => goToTab('contact')} className="btn bg-white/10 backdrop-blur-md text-white border-white/20 hover:bg-white/20 px-8 py-4 text-lg">{t('common.directions', 'Yol Tarifi')}</button>
+              {hospital && (
+                <a
+                  href={getDirectionsUrl(hospital)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn bg-white/10 backdrop-blur-md text-white border-white/20 hover:bg-white/20 px-8 py-4 text-lg inline-flex items-center gap-2"
+                >
+                  <FaDirections className="text-accent" />
+                  {t('common.directions', 'Yol Tarifi Al')}
+                </a>
+              )}
             </motion.div>
           </div>
         </div>
@@ -391,19 +397,32 @@ const HospitalDetailPage = () => {
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-                        <div className="bg-primary/5 p-8 rounded-3xl border border-primary/10">
-                          <h4 className="font-bold text-primary mb-4 flex items-center">
-                            <FaMapMarkerAlt className="mr-2" /> {t('hospital.addressInfo', 'Adres Bilgisi')}
-                          </h4>
-                          <p className="text-gray-700 leading-relaxed mb-6">
-                            <AutoTranslate text={hospital.address || ''} translations={hospital.translations} field="address" />
-                          </p>
-                          <div className="space-y-3">
-                            <a href={`tel:${hospital.phone}`} className="flex items-center text-gray-700 hover:text-primary transition-colors">
-                              <FaPhone className="mr-3 text-primary" /> <span className="font-semibold">{hospital.phone}</span>
-                            </a>
-                            <a href={`mailto:${hospital.email}`} className="flex items-center text-gray-700 hover:text-primary transition-colors">
-                              <FaEnvelope className="mr-3 text-primary" /> <span className="font-semibold break-all">{hospital.email}</span>
+                        <div className="bg-primary/5 p-8 rounded-3xl border border-primary/10 flex flex-col justify-between">
+                          <div>
+                            <h4 className="font-bold text-primary mb-4 flex items-center">
+                              <FaMapMarkerAlt className="mr-2" /> {t('hospital.addressInfo', 'Adres Bilgisi')}
+                            </h4>
+                            <p className="text-gray-700 leading-relaxed mb-6">
+                              <AutoTranslate text={hospital.address || ''} translations={hospital.translations} field="address" />
+                            </p>
+                            <div className="space-y-3">
+                              <a href={`tel:${hospital.phone}`} className="flex items-center text-gray-700 hover:text-primary transition-colors">
+                                <FaPhone className="mr-3 text-primary" /> <span className="font-semibold">{hospital.phone}</span>
+                              </a>
+                              <a href={`mailto:${hospital.email}`} className="flex items-center text-gray-700 hover:text-primary transition-colors">
+                                <FaEnvelope className="mr-3 text-primary" /> <span className="font-semibold break-all">{hospital.email}</span>
+                              </a>
+                            </div>
+                          </div>
+                          <div className="mt-6 pt-4 border-t border-primary/10">
+                            <a
+                              href={getDirectionsUrl(hospital)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary/90 transition-all shadow-sm"
+                            >
+                              <FaDirections className="text-accent text-base" />
+                              {t('common.directions', 'Yol Tarifi Al')}
                             </a>
                           </div>
                         </div>

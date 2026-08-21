@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaUser, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
-import type { ManagementTeamMember, Doctor } from '../../lib/supabase';
+import type { ManagementTeamMember, Doctor, Hospital } from '../../lib/supabase';
 
 interface MemberWithDoctor extends ManagementTeamMember {
   doctor?: Doctor | null;
@@ -13,6 +13,12 @@ const roleLabels: Record<string, string> = {
   board: 'Üst Yönetim',
   chief_physician: 'Başhekim',
   assistant_chief: 'Başhekim Yardımcısı',
+  health_care_manager: 'Sağlık Bakım Hizm. Müdürü',
+  it_unit: 'IT Birimi',
+  general_manager_deputy: 'Genel Müdür Yd.',
+  financial_affairs_manager: 'Mali İşler Müdürü',
+  hospitality_services_manager: 'Otelcilik Hizmetleri Müdürü',
+  quality_management_manager: 'Kalite Yönetim Müdürü',
   administrative: 'İdari Yönetim',
 };
 
@@ -23,12 +29,20 @@ const roleBadgeColors: Record<string, string> = {
   administrative: 'bg-green-100 text-green-700',
 };
 
+/** Hastaneye bağlı olmayan (grup geneli) üyeler için kullanılan anahtar */
+const GROUP_KEY = 'group';
+
+const hospitalKey = (hospitalId: ManagementTeamMember['hospital_id']) =>
+  hospitalId === null || hospitalId === undefined || hospitalId === '' ? GROUP_KEY : String(hospitalId);
+
 const AdminManagementTeam = () => {
   const { t } = useTranslation();
   const [members, setMembers] = useState<MemberWithDoctor[]>([]);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
+  const [selectedHospital, setSelectedHospital] = useState('all');
 
   useEffect(() => {
     fetchData();
@@ -37,22 +51,37 @@ const AdminManagementTeam = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('management_team')
-        .select(`
-          *,
-          doctor:doctor_id(id, name, title, image, department_id)
-        `)
-        .order('display_order', { ascending: true })
-        .order('created_at', { ascending: true });
+      const [{ data, error }, { data: hospitalData, error: hospitalError }] = await Promise.all([
+        supabase
+          .from('management_team')
+          .select(`
+            *,
+            doctor:doctor_id(id, name, title, image, department_id)
+          `)
+          .order('display_order', { ascending: true })
+          .order('created_at', { ascending: true }),
+        supabase
+          .from('hospitals')
+          .select('id, name, slug, display_order')
+          .order('display_order', { ascending: true }),
+      ]);
 
       if (error) throw error;
+      if (hospitalError) throw hospitalError;
+
       setMembers(data || []);
+      setHospitals((hospitalData || []) as Hospital[]);
     } catch (error) {
       console.error('Error fetching management team:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const hospitalName = (hospitalId: ManagementTeamMember['hospital_id']) => {
+    const key = hospitalKey(hospitalId);
+    if (key === GROUP_KEY) return 'Grup Yönetimi (hastane seçilmemiş)';
+    return hospitals.find(h => String(h.id) === key)?.name || `Hastane #${key}`;
   };
 
   const deleteMember = async (id: number) => {
@@ -102,8 +131,27 @@ const AdminManagementTeam = () => {
       member.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (member.department || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = selectedRole === 'all' || member.role === selectedRole;
-    return matchesSearch && matchesRole;
+    const matchesHospital = selectedHospital === 'all' || hospitalKey(member.hospital_id) === selectedHospital;
+    return matchesSearch && matchesRole && matchesHospital;
   });
+
+  // Hastane bazında grupla: önce grup geneli, sonra hastaneler (display_order sırasıyla)
+  const groups: { key: string; label: string; members: MemberWithDoctor[] }[] = [
+    { key: GROUP_KEY, label: 'Grup Yönetimi (hastane seçilmemiş)' },
+    ...hospitals.map(h => ({ key: String(h.id), label: h.name })),
+  ]
+    .map(group => ({
+      ...group,
+      members: filteredMembers.filter(m => hospitalKey(m.hospital_id) === group.key),
+    }))
+    .filter(group => group.members.length > 0);
+
+  // Silinmiş/bilinmeyen hastaneye bağlı kayıtlar kaybolmasın
+  const groupedIds = new Set(groups.flatMap(g => g.members.map(m => m.id)));
+  const ungrouped = filteredMembers.filter(m => !groupedIds.has(m.id));
+  if (ungrouped.length > 0) {
+    groups.push({ key: 'unknown', label: 'Bilinmeyen Hastane', members: ungrouped });
+  }
 
   if (loading) {
     return (
@@ -128,7 +176,7 @@ const AdminManagementTeam = () => {
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
             <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -150,12 +198,32 @@ const AdminManagementTeam = () => {
             <option value="assistant_chief">{roleLabels.assistant_chief}</option>
             <option value="administrative">{roleLabels.administrative}</option>
           </select>
+          <select
+            value={selectedHospital}
+            onChange={(e) => setSelectedHospital(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          >
+            <option value="all">Tüm Hastaneler</option>
+            <option value={GROUP_KEY}>Grup Yönetimi (hastane seçilmemiş)</option>
+            {hospitals.map(h => (
+              <option key={h.id} value={String(h.id)}>{h.name}</option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {/* Members Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredMembers.map((member) => {
+      {/* Members Grid – hastane bazında gruplu */}
+      {groups.map((group) => (
+        <div key={group.key} className="mb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <h2 className="text-lg font-semibold text-gray-800">{group.label}</h2>
+            <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+              {group.members.length} kişi
+            </span>
+            <span className="flex-1 h-px bg-gray-200" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {group.members.map((member) => {
           const memberImage = getMemberImage(member);
           return (
             <div key={member.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
@@ -207,6 +275,14 @@ const AdminManagementTeam = () => {
                 <span className={`inline-block text-xs px-2 py-1 rounded-full ${roleBadgeColors[member.role] || 'bg-gray-100 text-gray-700'}`}>
                   {roleLabels[member.role] || member.role}
                 </span>
+                <span
+                  className={`inline-block text-xs px-2 py-1 rounded-full ml-1 ${hospitalKey(member.hospital_id) === GROUP_KEY
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-indigo-100 text-indigo-700'
+                    }`}
+                >
+                  {hospitalName(member.hospital_id)}
+                </span>
                 {member.department && (
                   <span className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full ml-1">
                     {member.department}
@@ -225,14 +301,16 @@ const AdminManagementTeam = () => {
             </div>
           );
         })}
-      </div>
+          </div>
+        </div>
+      ))}
 
       {filteredMembers.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-400 text-6xl mb-4">👔</div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.managementTeam.notFound', 'Kayıt bulunamadı')}</h3>
           <p className="text-gray-500 mb-4">
-            {searchTerm || selectedRole !== 'all'
+            {searchTerm || selectedRole !== 'all' || selectedHospital !== 'all'
               ? t('admin.searchNoResults', 'Arama kriterlerinize uygun kayıt bulunamadı.')
               : t('admin.managementTeam.empty', 'Henüz hiç yönetim ekibi üyesi eklenmemiş.')}
           </p>
