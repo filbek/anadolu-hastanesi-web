@@ -2,6 +2,7 @@ export * from './useHospitals';
 export * from './useDepartments';
 export * from './useDoctors';
 export * from './useHealthArticles';
+export * from './useAppointmentUrl';
 
 // Custom hook for authentication state
 import { useSupabase } from '../contexts/SupabaseContext';

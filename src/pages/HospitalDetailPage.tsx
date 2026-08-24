@@ -11,6 +11,7 @@ import {
 import { useHospitalDetail } from '../hooks/useHospitals'
 import { useDepartments } from '../hooks/useDepartments'
 import { useDoctorsByHospital } from '../hooks/useDoctors'
+import { useAppointmentUrl } from '../hooks/useAppointmentUrl'
 import { hospitalTransportInfo, parseTransportInfo } from '../data/hospitalTransport'
 import AutoTranslate from '../components/common/AutoTranslate'
 import SecondOpinionBanner from '../components/common/SecondOpinionBanner'
@@ -35,6 +36,9 @@ const HospitalDetailPage = () => {
   const { data: doctors, isLoading: doctorsLoading } = useDoctorsByHospital(hospitalId)
   const [activeTab, setActiveTab] = useState('about')
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const appointmentUrl = useAppointmentUrl()
+  // Şube seçili olarak randevu sistemini açar (bölüm/doktor seçimi orada yapılır)
+  const hospitalAppointmentUrl = appointmentUrl({ hospitalId })
 
   const images: string[] = hospital?.images || []
 
@@ -171,7 +175,7 @@ const HospitalDetailPage = () => {
               transition={{ duration: 0.4, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
               className="flex flex-wrap gap-4"
             >
-              <a href="https://anadoluhastaneleri.kendineiyibak.app/" target="_blank" rel="noopener noreferrer" className="btn btn-accent px-8 py-4 text-lg">{t('common.appointmentNow', 'Hemen Randevu Al')}</a>
+              <a href={hospitalAppointmentUrl} target="_blank" rel="noopener noreferrer" className="btn btn-accent px-8 py-4 text-lg">{t('common.appointmentNow', 'Hemen Randevu Al')}</a>
               {hospital && (
                 <a
                   href={getDirectionsUrl(hospital)}
@@ -511,7 +515,7 @@ const HospitalDetailPage = () => {
 
                 <div className="mt-12 pt-10 border-t border-white/10 relative z-10" id="appointment">
                   <a
-                    href="https://anadoluhastaneleri.kendineiyibak.app/"
+                    href={hospitalAppointmentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-accent w-full py-4 text-lg font-bold shadow-xl shadow-accent/20"

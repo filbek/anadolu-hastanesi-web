@@ -2,6 +2,7 @@ export * from './hospitalService';
 export * from './departmentService';
 export * from './doctorService';
 export * from './healthArticleService';
+export * from './hbysService';
 
 // Authentication related exports
 export type { UserCredentials, NewUser, UserProfile } from '../lib/supabase';

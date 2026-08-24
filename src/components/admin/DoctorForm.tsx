@@ -26,6 +26,7 @@ interface Doctor {
   review_count: number;
   is_active: boolean;
   display_order: number;
+  hbys_physician_id?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -64,7 +65,8 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
     rating: 5,
     review_count: 0,
     is_active: true,
-    display_order: 0
+    display_order: 0,
+    hbys_physician_id: ''
   });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -227,6 +229,7 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
           review_count: data.review_count ?? 0,
           is_active: data.is_active ?? true,
           display_order: data.display_order ?? 1,
+          hbys_physician_id: data.hbys_physician_id || '',
           created_at: data.created_at,
         });
         setTreatmentsInput(Array.isArray(data.treatments) ? data.treatments.join('\n') : '');
@@ -326,6 +329,7 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
         review_count: formData.review_count,
         is_active: formData.is_active,
         display_order: formData.display_order,
+        hbys_physician_id: (formData.hbys_physician_id || '').trim() || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -469,6 +473,25 @@ const DoctorForm = ({ doctor, departments: propDepartments = [], hospitals: prop
                     ))}
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('admin.label.hbysPhysicianId', 'Randevu Sistemi Doktor ID (physicianId)')}
+                </label>
+                <input
+                  type="text"
+                  value={formData.hbys_physician_id || ''}
+                  onChange={(e) => setFormData({ ...formData, hbys_physician_id: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
+                  placeholder="1142"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {t(
+                    'admin.label.hbysPhysicianIdHelp',
+                    'kendineiyibak.app randevu linkindeki physicianId. Kod şubeye göre değişir; bu alan yukarıda seçili hastane için geçerlidir. Boş bırakılırsa randevu butonu bölüm/şube kırılımına düşer.'
+                  )}
+                </p>
               </div>
 
               <div>

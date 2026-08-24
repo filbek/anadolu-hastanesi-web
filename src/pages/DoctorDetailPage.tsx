@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { FaCalendarAlt, FaGraduationCap, FaHospital, FaStethoscope, FaAward, FaFileMedical, FaFilePdf, FaPhone, FaClock } from 'react-icons/fa'
 import { useDoctorDetail } from '../hooks/useDoctors'
+import { useAppointmentUrl } from '../hooks/useAppointmentUrl'
 import { useLocalizedItem } from '../hooks/useLocalizedList'
 import SecondOpinionBanner from '../components/common/SecondOpinionBanner'
 import AutoTranslate from '../components/common/AutoTranslate'
@@ -68,6 +69,7 @@ const DoctorDetailPage = () => {
   const { slug } = useParams<{ slug: string }>()
   const { data: doctorRaw, isLoading } = useDoctorDetail(slug || '')
   const doctor = useLocalizedItem(doctorRaw, ['title', 'education', 'experience', 'departments.name', 'hospitals.name'])
+  const appointmentUrl = useAppointmentUrl()
 
   if (isLoading) {
     return (
@@ -108,6 +110,14 @@ const DoctorDetailPage = () => {
   const hasExperience = doctor.experience && doctor.experience.trim().length > 0
   const cvUrl = (doctor as any).cv_url as string | undefined
   const hasCv = Boolean(cvUrl && cvUrl.trim().length > 0)
+
+  // Doktorun takvimini doğrudan açan randevu linki; ID'ler eksikse
+  // otomatik olarak şube ya da grup ana sayfasına düşer.
+  const doctorAppointmentUrl = appointmentUrl({
+    hospitalId: (doctor as any).hospital_id,
+    departmentId: (doctor as any).department_id,
+    physicianId: (doctor as any).hbys_physician_id,
+  })
 
   return (
     <>
@@ -177,7 +187,7 @@ const DoctorDetailPage = () => {
                 </div>
                 <div className="mt-6 space-y-3">
                   <a
-                    href="https://anadoluhastaneleri.kendineiyibak.app/"
+                    href={doctorAppointmentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-coral w-full justify-center"
@@ -344,7 +354,7 @@ const DoctorDetailPage = () => {
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto shrink-0">
                     <a
-                      href="https://anadoluhastaneleri.kendineiyibak.app/"
+                      href={doctorAppointmentUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-coral-500 hover:bg-coral-600 text-white font-semibold rounded-xl transition-colors whitespace-nowrap"

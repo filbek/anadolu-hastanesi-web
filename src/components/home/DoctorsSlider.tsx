@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import SectionTitle from '../ui/SectionTitle'
 import { DoctorCardSkeleton } from '../ui/Skeleton'
 import { useDoctors } from '../../hooks/useDoctors'
+import { useAppointmentUrl } from '../../hooks/useAppointmentUrl'
 import { useLocalizedList } from '../../hooks/useLocalizedList'
 import { FaCalendarCheck, FaArrowRight } from 'react-icons/fa'
 
@@ -14,6 +15,7 @@ const DoctorsSlider = () => {
   const isInView = useInView(ref, { once: true, amount: 0.1 })
   const { data: doctorsRaw = [], isLoading } = useDoctors()
   const doctors = useLocalizedList(doctorsRaw, ['title'])
+  const appointmentUrl = useAppointmentUrl()
 
   const displayDoctors = useMemo(() => {
     const shuffled = [...doctors].sort(() => Math.random() - 0.5)
@@ -86,7 +88,11 @@ const DoctorsSlider = () => {
                         {t('home.profile', 'Profil')} <FaArrowRight className="text-xs" />
                       </Link>
                       <a
-                        href="https://anadoluhastaneleri.kendineiyibak.app/"
+                        href={appointmentUrl({
+                          hospitalId: (doctor as any).hospital_id,
+                          departmentId: (doctor as any).department_id,
+                          physicianId: (doctor as any).hbys_physician_id,
+                        })}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1.5 text-sm font-medium text-coral-500 hover:text-coral-600 transition-colors ml-auto"

@@ -54,6 +54,9 @@ export type Hospital = {
   // Bu şubede "her zaman göster" denilen bölüm id'leri (doktor kaydı olmasa da).
   // Bölümlerimiz sayfasındaki şube sekmelerinde doktorlardan türeyen listeye eklenir.
   department_ids?: number[];
+  // kendineiyibak.app randevu linkindeki facilityId (GUID).
+  // Bkz. src/sql/hbys_appointment_ids_migration.sql
+  hbys_facility_id?: string | null;
   translations?: Translations;
   created_at: string;
   updated_at?: string;
@@ -98,8 +101,19 @@ export type Doctor = {
   working_hours?: string;
   is_active?: boolean;
   display_order?: number;
+  // kendineiyibak.app randevu linkindeki physicianId.
+  // Doktor kaydı şube bazlı olduğu için kod doğrudan burada tutulur.
+  hbys_physician_id?: string | null;
   translations?: Translations;
   created_at: string;
+};
+
+// Bölümlerin HBYS/randevu sistemindeki departmentId karşılığı.
+// Kod şubeden şubeye değiştiği için eşleme (hastane, bölüm) ikilisiyle tutulur.
+export type HospitalDepartmentHbys = {
+  hospital_id: number;
+  department_id: number;
+  hbys_department_id: string;
 };
 
 export type HealthArticle = {

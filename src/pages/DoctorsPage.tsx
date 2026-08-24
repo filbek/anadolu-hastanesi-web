@@ -7,6 +7,7 @@ import SectionTitle from '../components/ui/SectionTitle'
 import { DoctorCardSkeleton } from '../components/ui/Skeleton'
 import { FaSearch, FaFilter, FaArrowRight, FaCalendarCheck } from 'react-icons/fa'
 import { useDoctors } from '../hooks/useDoctors'
+import { useAppointmentUrl } from '../hooks/useAppointmentUrl'
 import { useLocalizedList } from '../hooks/useLocalizedList'
 
 const containerVariants = {
@@ -45,6 +46,7 @@ const DoctorsPage = () => {
   // Hastane profilindeki "Tüm Doktorları Gör" linki ?hastane=<ad> ile gelir
   const [selectedHospital, setSelectedHospital] = useState(searchParams.get('hastane') || '')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const appointmentUrl = useAppointmentUrl()
 
   const departments = useMemo(
     () => [...new Set(doctors.map((d: any) => d.departments?.name).filter(Boolean))].sort(),
@@ -332,7 +334,11 @@ const DoctorsPage = () => {
                             {t('home.profile', 'Profil')} <FaArrowRight className="text-xs" aria-hidden="true" />
                           </Link>
                           <a
-                            href="https://anadoluhastaneleri.kendineiyibak.app/"
+                            href={appointmentUrl({
+                              hospitalId: (doctor as any).hospital_id,
+                              departmentId: (doctor as any).department_id,
+                              physicianId: (doctor as any).hbys_physician_id,
+                            })}
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label={t('doctorsPage.bookAppointmentWith', '{{name}} ile randevu al', { name: doctor.name })}

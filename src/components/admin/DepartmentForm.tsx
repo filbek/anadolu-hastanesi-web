@@ -4,6 +4,7 @@ import { FaSave, FaArrowLeft, FaImage, FaStethoscope, FaUpload, FaTrash, FaEye, 
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { uploadDepartmentImage } from '../../services/departmentService';
+import { getHbysIdsForDepartment, saveHbysIdsForDepartment } from '../../services/hbysService';
 import TranslationsPanel from './TranslationsPanel';
 import type { Translations } from '../../lib/supabase';
 
@@ -48,6 +49,10 @@ const DepartmentForm = ({ department, onSave, onCancel }: DepartmentFormProps = 
   });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
+  // Randevu sistemindeki bölüm kodu şubeden şubeye değiştiği için
+  // formData'da değil, ayrı bir eşleme tablosunda tutulur.
+  const [hospitals, setHospitals] = useState<Array<{ id: number; name: string }>>([]);
+  const [hbysIds, setHbysIds] = useState<Record<number, string>>({});
   const [uploadingMainImage, setUploadingMainImage] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -81,6 +86,24 @@ const DepartmentForm = ({ department, onSave, onCancel }: DepartmentFormProps = 
     } else if (id) {
       fetchDepartment(parseInt(id));
     }
+  }, [department, id]);
+
+  useEffect(() => {
+    const fetchHospitals = async () => {
+      const { data } = await supabase
+        .from('hospitals')
+        .select('id, name')
+        .order('display_order', { ascending: true })
+        .order('name', { ascending: true });
+      if (data) setHospitals(data as Array<{ id: number; name: string }>);
+    };
+    fetchHospitals();
+  }, []);
+
+  useEffect(() => {
+    const departmentId = department?.id ?? (id ? parseInt(id) : undefined);
+    if (!departmentId) return;
+    getHbysIdsForDepartment(departmentId).then(setHbysIds);
   }, [department, id]);
 
   const fetchDepartment = async (departmentId: number) => {
@@ -266,12 +289,24 @@ const DepartmentForm = ({ department, onSave, onCancel }: DepartmentFormProps = 
       if (onSave) {
         onSave(departmentData);
       } else {
+        let departmentId: number;
         if (id || formData.id) {
-          const departmentId = id ? parseInt(id) : formData.id!;
+          departmentId = id ? parseInt(id) : formData.id!;
           await supabase.from('departments').update(departmentData).eq('id', departmentId);
         } else {
-          await supabase.from('departments').insert([departmentData]);
+          const { data: inserted, error: insertError } = await supabase
+            .from('departments')
+            .insert([departmentData])
+            .select('id')
+            .single();
+          if (insertError) throw insertError;
+          departmentId = inserted.id;
         }
+
+        // Şube bazlı randevu (HBYS) bölüm kodları ayrı tabloda tutulur
+        const { error: hbysError } = await saveHbysIdsForDepartment(departmentId, hbysIds);
+        if (hbysError) throw hbysError;
+
         navigate('/admin/departments');
       }
     } catch (error) {
@@ -599,6 +634,42 @@ const DepartmentForm = ({ department, onSave, onCancel }: DepartmentFormProps = 
               </button>
               <span className="text-sm text-gray-500">Çoklu seçim (Max: 2MB/her resim)</span>
             </div>
+          </div>
+        </div>
+
+        {/* Randevu sistemi bölüm kodları — her şubede farklı olabilir */}
+        <div className="lg:col-span-3">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-primary mb-1">
+              {t('admin.label.hbysDepartmentIds', 'Randevu Sistemi Bölüm ID (departmentId)')}
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              {t(
+                'admin.label.hbysDepartmentIdsHelp',
+                'kendineiyibak.app randevu linkindeki departmentId. Aynı bölümün kodu şubeden şubeye değiştiği için her şube için ayrı girilir. Boş bırakılan şubede randevu butonu yalnızca şube seçili olarak açılır.'
+              )}
+            </p>
+
+            {hospitals.length === 0 ? (
+              <p className="text-sm text-gray-400">{t('admin.loading', 'Yükleniyor...')}</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {hospitals.map((hospital) => (
+                  <div key={hospital.id}>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{hospital.name}</label>
+                    <input
+                      type="text"
+                      value={hbysIds[hospital.id] || ''}
+                      onChange={(e) =>
+                        setHbysIds((prev) => ({ ...prev, [hospital.id]: e.target.value }))
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
+                      placeholder="1053"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

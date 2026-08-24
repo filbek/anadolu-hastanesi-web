@@ -10,6 +10,7 @@ import AutoTranslate from '../components/common/AutoTranslate'
 import SecondOpinionBanner from '../components/common/SecondOpinionBanner'
 import { useDepartment, useDepartments } from '../hooks/useDepartments'
 import { useDoctorsByDepartment } from '../hooks/useDoctors'
+import { useAppointmentUrl } from '../hooks/useAppointmentUrl'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
@@ -50,6 +51,7 @@ const DepartmentDetailPage = () => {
     : '';
 
   const [activeTab, setActiveTab] = useState('about');
+  const appointmentUrl = useAppointmentUrl();
 
   const loading = isDeptLoading;
 
@@ -279,7 +281,11 @@ const DepartmentDetailPage = () => {
                                     {t('home.profile', 'Profil')} <FaArrowRight className="text-xs" />
                                   </span>
                                   <a
-                                    href="https://anadoluhastaneleri.kendineiyibak.app/"
+                                    href={appointmentUrl({
+                                      hospitalId: (doctor as any).hospital_id,
+                                      departmentId: (doctor as any).department_id,
+                                      physicianId: (doctor as any).hbys_physician_id,
+                                    })}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center gap-1.5 text-sm font-medium text-coral-500 hover:text-coral-600 transition-colors ml-auto"
@@ -408,7 +414,10 @@ const DepartmentDetailPage = () => {
                 </p>
                 <div className="space-y-4">
                   <a
-                    href="https://anadoluhastaneleri.kendineiyibak.app/"
+                    href={appointmentUrl({
+                      hospitalId: hospitalFilter || undefined,
+                      departmentId: department.id,
+                    })}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-accent w-full flex justify-center items-center"

@@ -47,6 +47,7 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
     display_order: 1,
     images: [],
     department_ids: [],
+    hbys_facility_id: '',
     translations: {}
   });
   const { data: allDepartments = [] } = useDepartments();
@@ -86,6 +87,7 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
     hero_subtitle: data.hero_subtitle || '',
     map_url: data.map_url || '',
     department_ids: Array.isArray(data.department_ids) ? data.department_ids.map((n: any) => Number(n)) : [],
+    hbys_facility_id: data.hbys_facility_id || '',
     translations: data.translations || {},
   });
 
@@ -614,6 +616,25 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="https://example.com"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('admin.label.hbysFacilityId', 'Randevu Sistemi Tesis ID (facilityId)')}
+                </label>
+                <input
+                  type="text"
+                  value={formData.hbys_facility_id || ''}
+                  onChange={(e) => setFormData({ ...formData, hbys_facility_id: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
+                  placeholder="3a0a2549-664c-0900-eed5-5b980de05a2b"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {t(
+                    'admin.label.hbysFacilityIdHelp',
+                    'kendineiyibak.app randevu linkindeki facilityId (GUID). Boş bırakılırsa bu şubenin randevu butonları randevu sisteminin ana sayfasına gider.'
+                  )}
+                </p>
               </div>
 
               <div>
