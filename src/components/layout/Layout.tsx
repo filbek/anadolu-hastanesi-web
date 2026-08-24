@@ -4,6 +4,7 @@ import Header from './Header'
 import Footer from './Footer'
 import EmergencyBanner from './EmergencyBanner'
 import ScrollToTop from '../ui/ScrollToTop'
+import AccessibilityWidget from '../common/AccessibilityWidget'
 
 const Layout = () => {
   const location = useLocation()
@@ -27,6 +28,7 @@ const Layout = () => {
       </main>
       <Footer />
       <ScrollToTop />
+      <AccessibilityWidget />
     </div>
   )
 }

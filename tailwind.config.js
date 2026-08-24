@@ -71,6 +71,45 @@ export default {
           light:   '#F87171',
           dark:    '#DC2626',
         },
+        // === ACCENT / SECONDARY (takma adlar) ===
+        // Palet yenilemesinde `accent` ve `secondary` tanımsız kalmış, ancak
+        // kod tabanında hâlâ yüzlerce yerde kullanılıyordu. Tanımsız oldukları
+        // için bu sınıflar hiç CSS üretmiyor, CTA butonları zeminsiz çıkıyordu.
+        //
+        // accent  -> coral (logo kırmızısı): `bg-accent` + beyaz yazı 4.9:1 (WCAG AA).
+        //            Koyu lacivert zemin üzerindeki `text-accent` yerine
+        //            `text-amber-300` kullanılmalıdır (kırmızı orada 3.4:1 kalır).
+        // secondary -> primary lacivert: başlık metinlerinin bugünkü görünümü.
+        accent: {
+          50:  '#FEF2F2',
+          100: '#FEE2E2',
+          200: '#FECACA',
+          300: '#FCA5A5',
+          400: '#F87171',
+          500: '#E30613',
+          600: '#DC2626',
+          700: '#B91C1C',
+          800: '#991B1B',
+          900: '#7F1D1D',
+          DEFAULT: '#E30613',
+          light:   '#F87171',
+          dark:    '#B91C1C',
+        },
+        secondary: {
+          50:  '#E8EDF3',
+          100: '#D1DBE7',
+          200: '#A3B7CF',
+          300: '#7593B7',
+          400: '#476F9F',
+          500: '#1A4B87',
+          600: '#0F1F3A',
+          700: '#0C1930',
+          800: '#091326',
+          900: '#060D1C',
+          DEFAULT: '#0F1F3A',
+          light:   '#1A4B87',
+          dark:    '#060D1C',
+        },
         // === SUCCESS ===
         success: {
           50:  '#E8F5EE',

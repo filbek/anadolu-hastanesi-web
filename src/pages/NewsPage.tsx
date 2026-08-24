@@ -47,7 +47,7 @@ const fallbackNews: NewsItemData[] = [
     title: 'Anadolu Hastaneleri Grubu Kalite Belgesini Yeniledi',
     excerpt:
       'Anadolu Hastaneleri Grubu, Sağlıkta Kalite Standartları (SKS) denetiminde tam puan alarak Sağlık Bakanlığı kalite belgesini yeniledi. Tüm ünitelerimizde üst düzey hizmet kalitesi tescillendi.',
-    image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     slug: '#',
   },
   {
@@ -77,7 +77,7 @@ const fallbackNews: NewsItemData[] = [
     title: 'Dijital Hasta Takip Sistemimiz Güncellendi',
     excerpt:
       'Yeni nesil dijital hasta takip sistemimiz sayesinde hasta kayıtları, laboratuvar sonuçları ve randevu takibi artık daha hızlı ve güvenli şekilde yönetilmektedir.',
-    image: 'https://images.unsplash.com/photo-1551076805-e18690c5e530?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1551076805-e1869033e561?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     slug: '#',
   },
   {

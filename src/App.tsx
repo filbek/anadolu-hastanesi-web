@@ -63,6 +63,7 @@ const FeaturedProceduresPage = lazy(() => import('./pages/FeaturedProceduresPage
 const SecondOpinionPage = lazy(() => import('./pages/SecondOpinionPage'))
 const CookiePolicyPage = lazy(() => import('./pages/CookiePolicyPage'))
 const KvkkPage = lazy(() => import('./pages/KvkkPage'))
+const AccessibilityPage = lazy(() => import('./pages/AccessibilityPage'))
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'))
 
 // Admin pages
@@ -179,6 +180,7 @@ function App() {
             <Route path="ozellikli-islemler" element={<FeaturedProceduresPage />} />
             <Route path="cerez-politikasi" element={<CookiePolicyPage />} />
             <Route path="kvkk" element={<KvkkPage />} />
+            <Route path="erisilebilirlik" element={<AccessibilityPage />} />
             <Route path="gizlilik-politikasi" element={<PrivacyPolicyPage />} />
             <Route path="test" element={<TestPage />} />
             <Route path="*" element={<NotFoundPage />} />

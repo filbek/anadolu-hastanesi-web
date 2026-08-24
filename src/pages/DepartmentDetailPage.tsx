@@ -11,6 +11,7 @@ import SecondOpinionBanner from '../components/common/SecondOpinionBanner'
 import { useDepartment, useDepartments } from '../hooks/useDepartments'
 import { useDoctorsByDepartment } from '../hooks/useDoctors'
 import { useAppointmentUrl } from '../hooks/useAppointmentUrl'
+import { getDepartmentImage, handleDepartmentImageError } from '../data/departmentImages'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
@@ -79,7 +80,9 @@ const DepartmentDetailPage = () => {
   const treatments = Array.isArray(department.treatments) ? department.treatments : [];
   const equipment = Array.isArray(department.equipment) ? department.equipment : [];
   const images = Array.isArray(department.images) ? department.images : [];
-  const heroImage = images[0] || department.image_url || 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=1200&q=80';
+  // Kayıtta görsel yoksa bölüme özel varsayılan kullanılır (bkz. data/departmentImages)
+  const heroImage = images[0] || department.image_url || getDepartmentImage(department.slug);
+  const processImage = images[1] || images[0] || department.image_url || getDepartmentImage(department.slug);
 
   const process = getDepartmentProcess(department.name, t);
 
@@ -102,6 +105,7 @@ const DepartmentDetailPage = () => {
               alt={department.name}
               className="w-full h-full object-cover"
               loading="eager"
+              onError={handleDepartmentImageError}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/30" />
           </div>
@@ -342,10 +346,11 @@ const DepartmentDetailPage = () => {
                     </h2>
                     <div className="relative mb-8">
                       <img
-                        src={images[1] || images[0] || department.image_url || 'https://images.unsplash.com/photo-1587351021759-3e566b0805b8?auto=format&fit=crop&w=1200&q=80'}
+                        src={processImage}
                         alt={`${department.name} süreç görseli`}
                         className="w-full h-64 object-cover rounded-xl"
                         loading="eager"
+                        onError={handleDepartmentImageError}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent rounded-xl" />
                       <div className="absolute bottom-4 left-4 right-4">

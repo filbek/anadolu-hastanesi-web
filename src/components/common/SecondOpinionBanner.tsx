@@ -28,8 +28,8 @@ const SecondOpinionBanner = () => {
             {/* Text */}
             <div className="relative z-10 p-10 lg:p-14 text-white">
               <div className="flex items-center gap-2 mb-5">
-                <span className="block h-px w-10 bg-accent" />
-                <span className="text-accent text-xs uppercase tracking-[0.25em] font-semibold">
+                <span className="block h-px w-10 bg-amber-300" />
+                <span className="text-amber-300 text-xs uppercase tracking-[0.25em] font-semibold">
                   {t('secondOpinion.tag', 'İkinci Görüş')}
                 </span>
               </div>
@@ -49,7 +49,7 @@ const SecondOpinionBanner = () => {
                     key={i}
                     className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-semibold"
                   >
-                    <span className="text-accent">{item.icon}</span> {item.text}
+                    <span className="text-amber-300">{item.icon}</span> {item.text}
                   </div>
                 ))}
               </div>

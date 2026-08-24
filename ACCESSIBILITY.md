@@ -3,7 +3,7 @@
 **Kapsam:** Anadolu Hastaneleri Grubu kurumsal web sitesi
 **Dayanak:** Resmî Gazete 21.06.2025, sayı/karar 20250621-17 — Web Siteleri ve Mobil Uygulamaların Erişilebilirliği
 **Standart:** WCAG 2.2 — **A Seviyesi** (4 prensip, 31 başarı kriteri; Bakanlık kontrol listesi 31 ilke / 122 soru)
-**Son güncelleme:** 2026-06-22
+**Son güncelleme:** 2026-08-24
 
 > Bu dosya; iç denetim, düzeltme takibi ve komisyon raporlaması için yaşayan bir belgedir.
 > Her yeni içerik yayınından önce ve düzenli aralıklarla güncellenmelidir.
@@ -67,6 +67,13 @@ Aşağıdaki rotalar `src/App.tsx` üzerinden tespit edilmiştir. Durum kolonu d
 | 2.4.4 | Anlamlı bağlantı metni | Kart "Detaylı Bilgi"/"Profil"/"Randevu" linklerine öğe adıyla `aria-label` | DepartmentsPage, DoctorsPage, HospitalsPage, DepartmentsSection, HospitalBranches |
 | 2.5.8 (AA) | Dokunma hedef boyutu | Kapatma/menü butonları min 44×44px; ScrollToTop ↔ FloatingActions çakışması giderildi (sol alta taşındı) | `ScrollToTop.tsx`, `Header.tsx`, `AuthModal.tsx` |
 | 1.4.10 / 1.4.4 | Reflow & metin büyütme | `overflow-x: clip` (sticky bozmadan yatay kaydırma engeli), medya `max-width:100%`, `overflow-wrap:break-word` | `index.css` |
+
+| 1.4.3 (AA) | Metin kontrastı | **Kritik hata:** global `h1..h6 { color }` kuralı ebeveynden gelen `text-white`i eziyor, koyu zeminli bölümlerde lacivert zemin üzerine lacivert başlık çıkıyordu (İkinci Görüş banner'ı). `.text-white` kapsayıcı içindeki başlıklar artık rengi miras alıyor | `index.css` |
+| 1.4.3 (AA) | Metin kontrastı | Tailwind'de tanımsız kalan `accent`/`secondary` renkleri eklendi — `bg-accent` sınıfı hiç CSS üretmediği için CTA butonları zeminsiz/görünmez çıkıyordu (ör. bölüm sayfalarındaki "Online Randevu") | `tailwind.config.js`, `index.css` |
+| 1.4.3 (AA) | Metin kontrastı | Koyu zeminde `text-accent` (3.4:1) → `text-amber-300` (10.4:1); footer `text-white/40` (3.8:1) → `/70` | `SecondOpinionBanner.tsx`, `Footer.tsx` |
+| 1.1.1 | Metin alternatifi | 404 dönen 5 Unsplash adresi (8 kullanım) geçerli görsellerle değiştirildi; bölüm görselleri için slug bazlı varsayılan + `onError` yedeği eklendi | `data/departmentImages.ts` ve ilgili sayfalar |
+| 1.4.4 / 2.3.3 / 1.4.1 | Kullanıcı tercihleri | **Erişilebilirlik araç çubuğu:** yazı boyutu %90–150, yüksek kontrast, bağlantı vurgulama, animasyon durdurma, okunaklı yazı tipi; tercihler localStorage'da saklanır | `AccessibilityWidget.tsx`, `index.css` |
+| — | Beyan | **Erişilebilirlik Beyanı** sayfası (`/erisilebilirlik`) + footer bağlantısı: uyum düzeyi, tamamlananlar, bilinen eksikler, geri bildirim kanalı | `AccessibilityPage.tsx`, `Footer.tsx` |
 
 > **Önemli not (kontrast):** WCAG kontrast minimumu (1.4.3) **AA** seviyesidir; genelgenin esas aldığı **A seviyesinde zorunlu değildir.** A seviyesindeki ilgili kriter **1.4.1 "Sadece renkle bilgi vermeme"**dir (form hataları metin+`*` ile, aktif menü renk+alt çizgi ile gösteriliyor). Kontrast iyileştirmeleri yine de okunabilirlik için yapıldı; tam AA kontrast taraması Lighthouse ile ayrıca yürütülmeli.
 

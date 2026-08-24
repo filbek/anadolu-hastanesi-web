@@ -11,7 +11,7 @@ const AdminHealthTourism = () => {
         hero: {
             title: t('admin.healthTourism.heroTitle', 'Türkiye\'de Şifa Yolculuğunuz'),
             subtitle: t('admin.healthTourism.heroSubtitle', 'Premium sağlık hizmetleri ve tam kapsamlı seyahat desteğiyle yanınızdayız.'),
-            image: 'https://images.unsplash.com/photo-1576091160550-217359f42f8c?auto=format&fit=crop&w=1200'
+            image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=1200'
         },
         whyChooseUs: [
             { id: 1, title: t('admin.healthTourism.why1Title', 'Son Teknoloji'), description: t('admin.healthTourism.why1Desc', 'En modern tıbbi cihazlarla donatılmış hastaneler.') },

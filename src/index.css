@@ -143,6 +143,15 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
 }
 
+/* Koyu zeminli bölümlerde başlık okunabilirliği (WCAG 1.4.3).
+   Yukarıdaki eleman seçici, ebeveynden miras alınan `text-white`i ezdiği için
+   lacivert zemin üzerinde lacivert başlık oluşuyordu. Rengi açıkça beyaza
+   ayarlanmış bir kapsayıcının içindeki başlıklar rengi miras almalıdır. */
+.text-white h1, .text-white h2, .text-white h3,
+.text-white h4, .text-white h5, .text-white h6 {
+  color: inherit;
+}
+
 h1 { font-size: clamp(36px, 5vw, 64px); line-height: 1.05; }
 h2 { font-size: clamp(28px, 3.5vw, 48px); line-height: 1.1; }
 h3 { font-size: clamp(22px, 2.5vw, 36px); line-height: 1.15; }
@@ -301,6 +310,17 @@ body {
   }
   .btn-coral:hover {
     @apply bg-coral-600;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(227, 6, 19, 0.35);
+  }
+
+  /* accent = coral; ayrı bir sınıf olarak da kullanılıyor (btn-accent) */
+  .btn-accent {
+    @apply bg-accent-500 text-white;
+    box-shadow: var(--shadow-coral);
+  }
+  .btn-accent:hover {
+    @apply bg-accent-600;
     transform: translateY(-2px);
     box-shadow: 0 8px 28px rgba(227, 6, 19, 0.35);
   }
@@ -643,4 +663,101 @@ body {
 .hospital-map .leaflet-popup-content a {
   color: #0A6B7D; /* ocean */
   font-weight: 600;
+}
+
+
+/* ============================================================
+   ERİŞİLEBİLİRLİK ARAÇ ÇUBUĞU
+   Ziyaretçi tercihleri <html> üzerindeki data-* öznitelikleriyle
+   uygulanır. Bkz. src/components/common/AccessibilityWidget.tsx
+   ============================================================ */
+
+:root {
+  --a11y-font-scale: 1;
+}
+
+/* Yazı boyutu — rem tabanlı ölçek. Yerleşim `overflow-x: clip` sayesinde
+   %150'ye kadar bozulmadan akar (WCAG 1.4.4 / 1.4.10). */
+html {
+  font-size: calc(16px * var(--a11y-font-scale));
+}
+
+/* Yüksek kontrast: metinleri koyulaştırır, yumuşak/soluk tonları kaldırır. */
+html[data-a11y-contrast] body {
+  background: #FFFFFF;
+  color: #000000;
+}
+html[data-a11y-contrast] h1,
+html[data-a11y-contrast] h2,
+html[data-a11y-contrast] h3,
+html[data-a11y-contrast] h4,
+html[data-a11y-contrast] h5,
+html[data-a11y-contrast] h6,
+html[data-a11y-contrast] p,
+html[data-a11y-contrast] li,
+html[data-a11y-contrast] span,
+html[data-a11y-contrast] label {
+  color: #000000 !important;
+}
+/* Koyu zeminli bölümlerde metin beyaz kalmalı */
+html[data-a11y-contrast] .text-white,
+html[data-a11y-contrast] .text-white h1,
+html[data-a11y-contrast] .text-white h2,
+html[data-a11y-contrast] .text-white h3,
+html[data-a11y-contrast] .text-white p,
+html[data-a11y-contrast] .text-white span,
+html[data-a11y-contrast] .text-white li {
+  color: #FFFFFF !important;
+}
+html[data-a11y-contrast] a:not(.btn) {
+  color: #00296B !important;
+  text-decoration: underline;
+}
+html[data-a11y-contrast] img,
+html[data-a11y-contrast] video {
+  filter: contrast(1.15);
+}
+
+/* Bağlantıları vurgula — bağlantı yalnızca renkle değil, çerçeveyle de
+   ayırt edilir (WCAG 1.4.1). */
+html[data-a11y-links] a {
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+  outline: 2px solid #E30613;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Animasyonları durdur (WCAG 2.2.2 / 2.3.3) */
+html[data-a11y-stop-motion] *,
+html[data-a11y-stop-motion] *::before,
+html[data-a11y-stop-motion] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Okunaklı yazı tipi — dekoratif başlık fontu yerine sistem sans-serif,
+   daha geniş harf/satır aralığı. */
+html[data-a11y-readable] body,
+html[data-a11y-readable] h1,
+html[data-a11y-readable] h2,
+html[data-a11y-readable] h3,
+html[data-a11y-readable] h4,
+html[data-a11y-readable] h5,
+html[data-a11y-readable] h6,
+html[data-a11y-readable] p,
+html[data-a11y-readable] a,
+html[data-a11y-readable] li,
+html[data-a11y-readable] span,
+html[data-a11y-readable] button,
+html[data-a11y-readable] input,
+html[data-a11y-readable] textarea {
+  font-family: Verdana, Tahoma, 'Segoe UI', system-ui, sans-serif !important;
+  letter-spacing: 0.02em !important;
+}
+html[data-a11y-readable] p,
+html[data-a11y-readable] li {
+  line-height: 1.8 !important;
 }

@@ -80,9 +80,9 @@ const Header = () => {
     {
       title: t('nav.healthGuide'),
       path: '/saglik-rehberi',
-      dropdown: [
-        { name: t('header.dropdown.articles'), path: '/saglik-rehberi' },
-      ],
+      // Açılır menüde tek seçenek olarak duran "Makaleler" kaldırıldı:
+      // menü başlığının kendisi zaten aynı sayfaya (/saglik-rehberi) gidiyordu.
+      dropdown: null,
       navigable: true,
     },
     {

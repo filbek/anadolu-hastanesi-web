@@ -44,7 +44,7 @@ const PatientRightsPage = () => {
       <PageBanner
         title={t('patientRights.pageTitle', 'Hasta Hakları ve Sorumlulukları')}
         subtitle={t('patientRights.pageSubtitle', 'Sizin sağlığınız, sizin haklarınız. Güvenli tedavi süreciniz için buradayız.')}
-        image="https://images.unsplash.com/photo-1551076805-e18690c5e530?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
+        image="https://images.unsplash.com/photo-1551076805-e1869033e561?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
       />
 
       <div className="container-custom py-16 lg:py-24">

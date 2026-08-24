@@ -99,7 +99,7 @@ const ComplaintPolicyPage = () => {
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage:
-              "url('https://images.unsplash.com/photo-1581579440071-2b13d57e1fe7?ixlib=rb-4.0.3&auto=format&fit=crop&w=2400&q=80')",
+              "url('https://images.unsplash.com/photo-1450101499163-c8848c66ca85?ixlib=rb-4.0.3&auto=format&fit=crop&w=2400&q=80')",
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0a1628]/95 via-[#0a1628]/80 to-[#0a1628]/50" />

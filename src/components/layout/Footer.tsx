@@ -74,7 +74,7 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-12">
           {/* Hızlı Erişim */}
           <div>
-            <h4 className="font-display font-semibold text-sm uppercase tracking-wider text-white/40 mb-5">
+            <h4 className="font-display font-semibold text-sm uppercase tracking-wider text-white/70 mb-5">
               {t('footer.quickLinks')}
             </h4>
             <ul className="space-y-3">
@@ -100,7 +100,7 @@ const Footer = () => {
 
           {/* Kurumsal */}
           <div>
-            <h4 className="font-display font-semibold text-sm uppercase tracking-wider text-white/40 mb-5">
+            <h4 className="font-display font-semibold text-sm uppercase tracking-wider text-white/70 mb-5">
               {t('footer.corporate')}
             </h4>
             <ul className="space-y-3">
@@ -128,7 +128,7 @@ const Footer = () => {
 
           {/* Hasta Hizmetleri */}
           <div>
-            <h4 className="font-display font-semibold text-sm uppercase tracking-wider text-white/40 mb-5">
+            <h4 className="font-display font-semibold text-sm uppercase tracking-wider text-white/70 mb-5">
               {t('footer.patientServices')}
             </h4>
             <ul className="space-y-3">
@@ -158,7 +158,7 @@ const Footer = () => {
 
           {/* İletişim */}
           <div>
-            <h4 className="font-display font-semibold text-sm uppercase tracking-wider text-white/40 mb-5">
+            <h4 className="font-display font-semibold text-sm uppercase tracking-wider text-white/70 mb-5">
               {t('footer.contactTitle')}
             </h4>
             <ul className="space-y-4">
@@ -209,10 +209,10 @@ const Footer = () => {
       <div className="border-t border-white/10">
         <div className="container-custom py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-white/40 text-xs">
+            <p className="text-white/70 text-xs">
               &copy; {currentYear} {t('footer.copyright')}
             </p>
-            <div className="flex flex-col sm:flex-row flex-wrap items-center gap-2 sm:gap-4 text-xs text-white/40">
+            <div className="flex flex-col sm:flex-row flex-wrap items-center gap-2 sm:gap-4 text-xs text-white/70">
               <span className="text-center sm:text-left">
                 {t('footer.privacy')}{' '}
                 <Link to="/kvkk" className="hover:text-white transition-colors underline">
@@ -227,6 +227,10 @@ const Footer = () => {
                 <span>/</span>
                 <Link to="/cerez-politikasi" className="hover:text-white transition-colors">
                   {t('footer.cookies')}
+                </Link>
+                <span>/</span>
+                <Link to="/erisilebilirlik" className="hover:text-white transition-colors">
+                  {t('footer.accessibility', 'Erişilebilirlik')}
                 </Link>
               </div>
             </div>
