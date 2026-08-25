@@ -2,13 +2,20 @@ import { supabase } from '../lib/supabase';
 import type { FormType } from './emailService';
 
 /**
+ * WhatsApp yönlendirmesi yalnizca kısa formlar icin anlamlıdır; iş başvurusu
+ * gibi çoklu bölümden oluşan formlar wa.me bağlantısına sığmadığından
+ * kapsam dışıdır ve admin panelindeki listede görünmez.
+ */
+export type WhatsAppFormType = Exclude<FormType, 'job_application'>;
+
+/**
  * Form başvurularının şube bazında hangi WhatsApp numarasına
  * yönlendirileceğini tutan kural. Admin panelinden yönetilir
  * (Admin > WhatsApp Yönlendirme).
  */
 export interface NotificationRoute {
   id?: number;
-  form_type: FormType;
+  form_type: WhatsAppFormType;
   /** null / boş => tüm şubeler için geçerli varsayılan kural */
   hospital_name: string | null;
   /** Uluslararası formatta, yalnızca rakam: 905321234567 */
@@ -18,13 +25,13 @@ export interface NotificationRoute {
   is_active: boolean;
 }
 
-export const FORM_TYPE_LABELS: Record<FormType, string> = {
+export const FORM_TYPE_LABELS: Record<WhatsAppFormType, string> = {
   second_opinion: 'İkinci Görüş Formu',
   contact: 'İletişim Formu',
   feedback: 'Hasta Geri Bildirim Formu',
 };
 
-const MESSAGE_TITLES: Record<FormType, string> = {
+const MESSAGE_TITLES: Record<WhatsAppFormType, string> = {
   second_opinion: 'YENİ İKİNCİ GÖRÜŞ BAŞVURUSU',
   contact: 'YENİ İLETİŞİM FORMU MESAJI',
   feedback: 'YENİ HASTA GERİ BİLDİRİMİ',
@@ -73,7 +80,7 @@ export function normalizeWhatsAppNumber(raw: string): string {
  * Hata durumunda null döner; çağıran taraf akışı bozmadan devam etmelidir.
  */
 export async function findWhatsAppRoute(
-  formType: FormType,
+  formType: WhatsAppFormType,
   hospitalName?: string | null,
 ): Promise<NotificationRoute | null> {
   try {
@@ -115,7 +122,7 @@ export async function findWhatsAppRoute(
 
 /** Form verisini okunabilir bir WhatsApp mesajına dönüştürür. */
 export function buildWhatsAppMessage(
-  formType: FormType,
+  formType: WhatsAppFormType,
   data: Record<string, unknown>,
 ): string {
   const entries = Object.entries(data).filter(
@@ -151,7 +158,7 @@ export function buildWhatsAppMessage(
  */
 export function buildWhatsAppUrl(
   number: string,
-  formType: FormType,
+  formType: WhatsAppFormType,
   data: Record<string, unknown>,
 ): string {
   const to = normalizeWhatsAppNumber(number);

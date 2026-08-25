@@ -2,16 +2,17 @@ import { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaTimes, FaSave, FaWhatsapp, FaPaperPlane, FaInfoCircle } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
 import { useHospitals } from '../../hooks/useHospitals';
-import type { FormType } from '../../services/emailService';
+
 import {
   NotificationRoute,
+  WhatsAppFormType,
   FORM_TYPE_LABELS,
   normalizeWhatsAppNumber,
   buildWhatsAppUrl,
   openWhatsApp,
 } from '../../services/whatsappService';
 
-const FORM_TYPES: FormType[] = ['second_opinion', 'contact', 'feedback'];
+const FORM_TYPES: WhatsAppFormType[] = ['second_opinion', 'contact', 'feedback'];
 
 const ALL_BRANCHES = '__all__';
 
@@ -194,7 +195,7 @@ const AdminWhatsAppRouting = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Form Tipi</label>
               <select
                 value={formData.form_type}
-                onChange={(e) => setFormData({ ...formData, form_type: e.target.value as FormType })}
+                onChange={(e) => setFormData({ ...formData, form_type: e.target.value as WhatsAppFormType })}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 {FORM_TYPES.map((ft) => (

@@ -121,3 +121,8 @@ temp/
 *.local.md
 SECRETS.md
 CREDENTIALS.md
+
+# Eski PHP iş başvuru formu — açık SMTP şifresi ve gerçek aday verileri
+# (TC kimlik, telefon, adres) içerir. Asla commit edilmemeli.
+basvuru/
+silivri_hastanesi_aktif_doktorlar.txt

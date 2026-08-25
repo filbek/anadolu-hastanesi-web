@@ -7,7 +7,7 @@ import {
   FaImages, FaFileAlt, FaPhone, FaGlobe, FaEnvelope,
   FaDatabase, FaVideo, FaAward, FaFilePdf, FaChevronRight,
   FaSlideshare, FaComments, FaChartBar, FaCertificate, FaClipboardList, FaHistory, FaUserTie,
-  FaBaby, FaHandshake, FaSitemap, FaHandHoldingHeart, FaWhatsapp
+  FaBaby, FaHandshake, FaSitemap, FaHandHoldingHeart, FaWhatsapp, FaBriefcase
 } from 'react-icons/fa';
 
 const AdminLayout = () => {
@@ -59,6 +59,7 @@ const AdminLayout = () => {
         { path: '/admin/contracted-institutions', icon: FaHandshake, label: 'Anlaşmalı Kurumlar' },
         { path: '/admin/patient-feedback', icon: FaClipboardList, label: 'Geri Bildirimler' },
         { path: '/admin/second-opinion', icon: FaEnvelope, label: 'İkinci Görüş Başvuruları' },
+        { path: '/admin/job-applications', icon: FaBriefcase, label: 'İş Başvuruları' },
         { path: '/admin/quality-certificates', icon: FaAward, label: 'Kalite Sertifikaları' },
         { path: '/admin/quality-committees', icon: FaClipboardList, label: 'Kalite Komiteleri' },
       { path: '/admin/organization-chart', icon: FaSitemap, label: 'Organizasyon Şeması' },

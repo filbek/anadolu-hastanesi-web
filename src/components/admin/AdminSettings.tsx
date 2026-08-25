@@ -26,6 +26,7 @@ interface SiteSettings {
   second_opinion_email: string;
   contact_form_email: string;
   feedback_form_email: string;
+  career_form_email: string;
   updated_at?: string;
 }
 
@@ -53,6 +54,7 @@ const AdminSettings = () => {
     second_opinion_email: 'info@anadoluhastaneleri.com',
     contact_form_email: 'info@anadoluhastaneleri.com',
     feedback_form_email: 'hastahaklari@anadoluhastaneleri.com',
+    career_form_email: 'bekir.filizdag@gmail.com',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -455,6 +457,23 @@ const AdminSettings = () => {
               />
               <p className="text-sm text-gray-500 mt-1">
                 "Sizi Dinliyoruz" (öneri / şikayet / teşekkür) formu gönderildiğinde bildirimin iletileceği e-posta adresi.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                İş Başvuru Formu Email Adresi
+              </label>
+              <input
+                type="email"
+                value={settings.career_form_email}
+                onChange={(e) => handleInputChange('career_form_email', e.target.value)}
+                placeholder="ornek@mail.com"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                "Kariyer" sayfasındaki iş başvuru formu gönderildiğinde bildirimin iletileceği e-posta adresi.
+                Başvurunun tamamı ayrıca <strong>İş Başvuruları</strong> bölümünde saklanır.
               </p>
             </div>
 

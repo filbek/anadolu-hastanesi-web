@@ -54,6 +54,7 @@ const GebeOkuluPage = lazy(() => import('./pages/GebeOkuluPage'))
 const EmergencyServicesPage = lazy(() => import('./pages/EmergencyServicesPage'))
 const SocialResponsibilityPage = lazy(() => import('./pages/SocialResponsibilityPage'))
 const CareerPage = lazy(() => import('./pages/CareerPage'))
+const JobApplicationPage = lazy(() => import('./pages/JobApplicationPage'))
 // const MediaPage = lazy(() => import('./pages/MediaPage'))
 const TransportationPage = lazy(() => import('./pages/TransportationPage'))
 const HospitalGuidePage = lazy(() => import('./pages/HospitalGuidePage'))
@@ -97,6 +98,7 @@ const AdminPatientFeedback = lazy(() => import('./components/admin/AdminPatientF
 const AdminAuditLogs = lazy(() => import('./components/admin/AdminAuditLogs'))
 const AdminManagementTeam = lazy(() => import('./components/admin/AdminManagementTeam'))
 const AdminSecondOpinion = lazy(() => import('./components/admin/AdminSecondOpinion'))
+const AdminJobApplications = lazy(() => import('./components/admin/AdminJobApplications'))
 const ManagementTeamForm = lazy(() => import('./components/admin/ManagementTeamForm'))
 const AdminTranslations = lazy(() => import('./components/admin/AdminTranslations'))
 const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'))
@@ -173,6 +175,7 @@ function App() {
             <Route path="sosyal-sorumluluk-projeleri" element={<SocialResponsibilityPage />} />
             <Route path="sosyal-sorumluluk" element={<Navigate to="/sosyal-sorumluluk-projeleri" replace />} />
             <Route path="kariyer" element={<CareerPage />} />
+            <Route path="kariyer/basvuru" element={<JobApplicationPage />} />
             <Route path="ulasim" element={<TransportationPage />} />
             <Route path="hastane-ici-rehber" element={<HospitalGuidePage />} />
             <Route path="anlasmali-kurumlar" element={<ContractedInstitutionsPage />} />
@@ -233,6 +236,7 @@ function App() {
               <Route path="management-team/new" element={<ManagementTeamForm />} />
               <Route path="management-team/edit/:id" element={<ManagementTeamForm />} />
               <Route path="second-opinion" element={<AdminSecondOpinion />} />
+              <Route path="job-applications" element={<AdminJobApplications />} />
               <Route path="gebe-okulu" element={<AdminGebeOkulu />} />
               <Route path="social-responsibility" element={<AdminSocialResponsibility />} />
             </Route>

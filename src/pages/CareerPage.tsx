@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +14,7 @@ import {
   FaLaptopMedical,
   FaUserNurse,
   FaChartLine,
+  FaFileSignature,
 } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
 
@@ -117,15 +119,24 @@ const CareerPage = () => {
             <p className="text-white/70 text-lg md:text-xl leading-relaxed max-w-xl mb-8">
               {t('career.heroDesc', 'Sağlık sektöründe fark yaratmak isteyen, insan odaklı ve yenilikçi profesyonelleri aramıza bekliyoruz.')}
             </p>
-            <a
-              href="https://www.yenibiris.com/firma/anadolu-hastaneleri/is-ilanlari/259590"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 px-8 py-4 bg-accent text-white font-bold rounded-xl hover:brightness-110 transition-all"
-            >
-              <FaExternalLinkAlt />
-              {t('career.applyButton', 'Açık Pozisyonları Gör')}
-            </a>
+            <div className="flex flex-wrap gap-4">
+              <Link
+                to="/kariyer/basvuru"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-accent text-white font-bold rounded-xl hover:brightness-110 transition-all"
+              >
+                <FaFileSignature />
+                {t('career.formButton', 'Başvuru Formunu Doldur')}
+              </Link>
+              <a
+                href="https://www.yenibiris.com/firma/anadolu-hastaneleri/is-ilanlari/259590"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-white/10 text-white font-bold rounded-xl border border-white/30 hover:bg-white/20 transition-all"
+              >
+                <FaExternalLinkAlt />
+                {t('career.applyButton', 'Açık Pozisyonları Gör')}
+              </a>
+            </div>
           </motion.div>
         </div>
 
@@ -154,15 +165,27 @@ const CareerPage = () => {
             <p className="text-gray-500 text-lg leading-relaxed mb-8">
               {t('career.openDesc', 'Tüm iş ilanlarımızı Yenibiris.com üzerinden yayınlıyoruz. Size uygun pozisyonu bulmak için hemen inceleyin.')}
             </p>
-            <a
-              href="https://www.yenibiris.com/firma/anadolu-hastaneleri/is-ilanlari/259590"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 px-8 py-4 bg-primary text-white font-bold rounded-xl hover:brightness-110 transition-all"
-            >
-              <FaExternalLinkAlt />
-              {t('career.openButton', 'Yenibiris.com\'da Görüntüle')}
-            </a>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <a
+                href="https://www.yenibiris.com/firma/anadolu-hastaneleri/is-ilanlari/259590"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-primary text-white font-bold rounded-xl hover:brightness-110 transition-all"
+              >
+                <FaExternalLinkAlt />
+                {t('career.openButton', 'Yenibiris.com\'da Görüntüle')}
+              </a>
+              <Link
+                to="/kariyer/basvuru"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-accent text-white font-bold rounded-xl hover:brightness-110 transition-all"
+              >
+                <FaFileSignature />
+                {t('career.formButton', 'Başvuru Formunu Doldur')}
+              </Link>
+            </div>
+            <p className="text-sm text-gray-500 mt-4">
+              {t('career.formHint', 'Size uygun bir ilan bulamadıysanız da başvuru formumuzu doldurarak aday havuzumuza katılabilirsiniz.')}
+            </p>
           </motion.div>
 
           {/* Departments */}
