@@ -7,7 +7,7 @@ interface User {
   id: string;
   email: string;
   full_name: string;
-  role: 'admin' | 'editor' | 'user';
+  role: 'admin' | 'editor' | 'hr' | 'user';
   is_active: boolean;
   created_at: string;
   last_login: string;
@@ -24,7 +24,7 @@ const AdminUsers = () => {
   const [formData, setFormData] = useState({
     email: '',
     full_name: '',
-    role: 'user' as 'admin' | 'editor' | 'user',
+    role: 'user' as 'admin' | 'editor' | 'hr' | 'user',
     is_active: true,
     password: ''
   });
@@ -197,6 +197,8 @@ const AdminUsers = () => {
         return 'bg-red-100 text-red-800';
       case 'editor':
         return 'bg-blue-100 text-blue-800';
+      case 'hr':
+        return 'bg-purple-100 text-purple-800';
       default:
         return 'bg-green-100 text-green-800';
     }
@@ -208,6 +210,8 @@ const AdminUsers = () => {
         return t('admin.role.admin', 'Yönetici');
       case 'editor':
         return t('admin.role.editor', 'Editör');
+      case 'hr':
+        return t('admin.role.hr', 'İnsan Kaynakları');
       default:
         return t('admin.role.user', 'Kullanıcı');
     }
@@ -423,6 +427,7 @@ const AdminUsers = () => {
                 >
                   <option value="user">{t('admin.role.user', 'Kullanıcı')}</option>
                   <option value="editor">{t('admin.role.editor', 'Editör')}</option>
+                  <option value="hr">{t('admin.role.hr', 'İnsan Kaynakları')}</option>
                   <option value="admin">{t('admin.role.admin', 'Yönetici')}</option>
                 </select>
               </div>

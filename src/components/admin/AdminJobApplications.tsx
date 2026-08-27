@@ -112,6 +112,39 @@ const readableSkills = (skills: Record<string, string>) =>
     return scored.length ? { title: block.title, scored } : null;
   }).filter(Boolean) as { title: string; scored: { item: string; score: string }[] }[];
 
+const BUCKET = 'job-applications';
+const SIGNED_URL_TTL = 60 * 60; // 1 saat
+
+/**
+ * Kayıtta saklanan değeri bucket içi yola çevirir.
+ * Yeni kayıtlar doğrudan yol tutar; migration öncesi kayıtlarda tam public
+ * URL bulunabilir — o durumda bucket adından sonrası ayıklanır.
+ */
+const toStoragePath = (value: string): string => {
+  if (!/^https?:\/\//i.test(value)) return value;
+  const marker = `/${BUCKET}/`;
+  const idx = value.indexOf(marker);
+  return idx === -1 ? value : decodeURIComponent(value.slice(idx + marker.length));
+};
+
+/**
+ * Gizli bucket'taki belgeyi süreli bir bağlantıyla açar.
+ * Bağlantı önceden üretilip DOM'a gömülmez; yalnızca tıklandığında istenir,
+ * böylece açılmayan belge için imzalı URL hiç oluşmaz.
+ */
+const openDocument = async (value: string) => {
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(toStoragePath(value), SIGNED_URL_TTL);
+
+  if (error || !data?.signedUrl) {
+    console.error('Belge bağlantısı oluşturulamadı:', error);
+    alert('Belge açılamadı. Dosya kaldırılmış olabilir veya yetkiniz bulunmuyor.');
+    return;
+  }
+  window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+};
+
 const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) => {
   if (value === null || value === undefined || value === '' || value === '-') return null;
   return (
@@ -163,6 +196,16 @@ const AdminJobApplications = () => {
   const openDetail = async (app: JobApplication) => {
     setSelected(app);
     setNoteDraft(app.admin_note ?? '');
+
+    // KVKK: özel nitelikli veri içeren başvurunun kim tarafından açıldığı
+    // kayda geçer. user_id sunucuda auth.uid() ile damgalanır; loglama
+    // başarısız olsa da İK'nın işi kesintiye uğramamalı.
+    supabase
+      .rpc('log_job_application_view', { p_id: app.id })
+      .then(({ error }) => {
+        if (error) console.error('Görüntüleme logu yazılamadı:', error);
+      });
+
     if (!app.is_read) {
       await supabase.from('job_applications').update({ is_read: true }).eq('id', app.id);
       setApplications((prev) => prev.map((a) => (a.id === app.id ? { ...a, is_read: true } : a)));
@@ -435,24 +478,22 @@ const AdminJobApplications = () => {
                   <FaPhone /> Ara
                 </a>
                 {selected.cv_url && (
-                  <a
-                    href={selected.cv_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => openDocument(selected.cv_url!)}
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold hover:border-primary"
                   >
                     <FaPaperclip /> Özgeçmiş
-                  </a>
+                  </button>
                 )}
                 {selected.photo_url && (
-                  <a
-                    href={selected.photo_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => openDocument(selected.photo_url!)}
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold hover:border-primary"
                   >
                     <FaIdCard /> Fotoğraf
-                  </a>
+                  </button>
                 )}
               </div>
 

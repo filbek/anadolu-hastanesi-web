@@ -96,10 +96,30 @@ Tabloları ve örnek verileri oluşturmak için:
 - **Kullanıcılar:** Kullanıcı yönetimi
 - **Ayarlar:** Site ayarları
 
+### Roller
+
+| Rol | Erişim |
+| --- | --- |
+| `super_admin` / `admin` | Tüm panel |
+| `hr` | Yalnızca **İnsan Kaynakları > İş Başvuruları** |
+| `editor` | (ayrılmış, henüz modül bağlı değil) |
+| `user` | Panele giremez |
+
+**İK kullanıcısı açmak için:**
+1. `src/sql/hr_role_job_applications_migration.sql` dosyasını Supabase SQL Editor'da çalıştırın
+   (önce `job_applications_migration.sql` ve `rls_hardening_migration.sql` çalıştırılmış olmalı)
+2. Admin panelinde **Kullanıcılar > Yeni Kullanıcı**, rol olarak "İnsan Kaynakları" seçin
+
+İK kullanıcısı `/admin` adresine gittiğinde doğrudan başvuru listesine yönlendirilir; başka bir
+admin adresini elle yazsa dahi RLS nedeniyle veri okuyup yazamaz.
+
 ### Güvenlik
 - Role-based access control (RBAC)
 - Supabase Row Level Security (RLS)
 - JWT token authentication
+- İş başvurusu belgeleri (CV, fotoğraf) gizli bucket'ta; panelde 1 saatlik imzalı URL ile açılır
+- Başvuru detayını kimin açtığı `audit_logs` tablosuna yazılır (KVKK)
+- Başvurular varsayılan 2 yıl saklanır; `purge_expired_job_applications()` süresi dolanları siler
 
 ## Sorun Giderme
 

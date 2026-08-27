@@ -17,8 +17,29 @@ const AdminLayout = () => {
 
   const isAdmin = user && userProfile && (userProfile.role === 'admin' || userProfile.role === 'super_admin');
 
-  if (!isAdmin) {
+  /*
+   * İK (hr) rolü: yalnızca İnsan Kaynakları modülünü görür.
+   *
+   * Buradaki filtre KOZMETİKTİR — asıl kapı veritabanındaki RLS'tir
+   * (bkz. hr_role_job_applications_migration.sql). Diğer tabloların
+   * politikaları is_admin() üzerine kurulu olduğu için 'hr' rolü adresi
+   * elle yazsa bile veri okuyup yazamaz. Menü ve yönlendirme yalnızca
+   * kullanıcıyı boş ekranlarla uğraştırmamak için.
+   */
+  const isHrOnly = !!(user && userProfile && userProfile.role === 'hr');
+  const canAccessPanel = !!isAdmin || isHrOnly;
+
+  /** İK rolünün girebildiği admin rotaları */
+  const HR_ALLOWED_PATHS = ['/admin/job-applications'];
+  const hrPathAllowed = HR_ALLOWED_PATHS.some((p) => location.pathname.startsWith(p));
+
+  if (!canAccessPanel) {
     return <Navigate to="/" />;
+  }
+
+  // İK kullanıcısı için panelin giriş noktası Dashboard değil, başvuru listesidir
+  if (isHrOnly && !hrPathAllowed) {
+    return <Navigate to="/admin/job-applications" replace />;
   }
 
   const toggleSidebar = () => {
@@ -59,10 +80,17 @@ const AdminLayout = () => {
         { path: '/admin/contracted-institutions', icon: FaHandshake, label: 'Anlaşmalı Kurumlar' },
         { path: '/admin/patient-feedback', icon: FaClipboardList, label: 'Geri Bildirimler' },
         { path: '/admin/second-opinion', icon: FaEnvelope, label: 'İkinci Görüş Başvuruları' },
-        { path: '/admin/job-applications', icon: FaBriefcase, label: 'İş Başvuruları' },
         { path: '/admin/quality-certificates', icon: FaAward, label: 'Kalite Sertifikaları' },
         { path: '/admin/quality-committees', icon: FaClipboardList, label: 'Kalite Komiteleri' },
       { path: '/admin/organization-chart', icon: FaSitemap, label: 'Organizasyon Şeması' },
+      ]
+    },
+    {
+      // İK'nın gördüğü tek grup. İleride ilan yönetimi / pozisyon tanımları
+      // eklenirse buraya girer.
+      label: 'İNSAN KAYNAKLARI',
+      items: [
+        { path: '/admin/job-applications', icon: FaBriefcase, label: 'İş Başvuruları' },
       ]
     },
     {
@@ -80,6 +108,13 @@ const AdminLayout = () => {
       ]
     }
   ];
+
+  // İK rolüne yalnızca izinli rotalar gösterilir; boş kalan grup başlığı düşer
+  const visibleGroups = isHrOnly
+    ? navGroups
+        .map((g) => ({ ...g, items: g.items.filter((i) => HR_ALLOWED_PATHS.includes(i.path)) }))
+        .filter((g) => g.items.length > 0)
+    : navGroups;
 
   return (
     <div className="flex h-screen bg-slate-100 overflow-hidden font-sans">
@@ -107,7 +142,7 @@ const AdminLayout = () => {
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto px-4 py-2 custom-scrollbar">
-            {navGroups.map((group, gIdx) => (
+            {visibleGroups.map((group, gIdx) => (
               <div key={gIdx} className="mb-8">
                 <h3 className="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-[2px] mb-3">
                   {group.label}

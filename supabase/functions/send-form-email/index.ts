@@ -188,12 +188,19 @@ function buildJobApplicationHtml(data: Record<string, any>): string {
     ]),
   );
 
-  const links: string[] = [];
-  if (data.photo_url) links.push(`<a href="${escapeHtml(data.photo_url)}">Fotoğrafı Görüntüle</a>`);
-  if (data.cv_url) links.push(`<a href="${escapeHtml(data.cv_url)}">Özgeçmişi Görüntüle</a>`);
-  if (links.length) {
+  // Özgeçmiş ve fotoğraf artık gizli bucket'ta tutulur; doğrudan bağlantı
+  // e-posta zincirinde dolaşmasın diye yalnızca panele yönlendirilir.
+  // İK, başvuru detayında imzalı (süreli) URL ile açar.
+  if (data.has_attachments) {
     parts.push(jobHeading('Belgeler'));
-    parts.push(`<p style="font-size:14px;padding:0 2px;">${links.join(' &nbsp;·&nbsp; ')}</p>`);
+    const adminUrl = typeof data.admin_url === 'string' ? data.admin_url : '';
+    parts.push(
+      `<p style="font-size:14px;padding:0 2px;">Adayın özgeçmişi ve fotoğrafı başvuruya eklidir. ` +
+        (adminUrl
+          ? `<a href="${escapeHtml(adminUrl)}">Yönetim panelinden görüntüleyin</a>.`
+          : 'Yönetim paneli &gt; İnsan Kaynakları &gt; İş Başvuruları bölümünden görüntüleyebilirsiniz.') +
+        `</p>`,
+    );
   }
 
   if (Array.isArray(data.education) && data.education.length) {

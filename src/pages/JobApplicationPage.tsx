@@ -405,6 +405,12 @@ const JobApplicationPage = () => {
       setName(file.name);
     };
 
+  /*
+   * Bucket gizlidir (bkz. hr_role_job_applications_migration.sql): CV ve
+   * vesikalık, URL'i bilen herkese açık olamaz. Bu yüzden public URL yerine
+   * DOSYA YOLU saklanır; panelde İK, imzalı URL ile açar.
+   * Eski kayıtlarda tam URL bulunabilir, panel iki biçimi de çözer.
+   */
   const uploadFile = async (file: File, folder: string): Promise<string | null> => {
     const ext = file.name.split('.').pop();
     const path = `${folder}/${crypto.randomUUID()}.${ext}`;
@@ -413,7 +419,7 @@ const JobApplicationPage = () => {
       console.error('Dosya yüklenemedi:', error);
       return null;
     }
-    return supabase.storage.from('job-applications').getPublicUrl(path).data.publicUrl;
+    return path;
   };
 
   // ── Gönderim ───────────────────────────────────────────────
@@ -547,8 +553,11 @@ const JobApplicationPage = () => {
         references_list: filledReferences,
         expected_salary: form.expected_salary,
         earliest_start_date: form.earliest_start_date,
-        photo_url: photoUrl,
-        cv_url: cvUrl,
+        // Belgelerin kendisi e-postaya konmaz; bucket gizli ve bağlantı
+        // iletilirse KVKK kapsamındaki dosya e-posta zincirinde dolaşır.
+        // Bunun yerine panele yönlendirilir, orada imzalı URL ile açılır.
+        has_attachments: Boolean(photoUrl || cvUrl),
+        admin_url: `${window.location.origin}/admin/job-applications`,
       });
 
       setReferenceCode(code);
