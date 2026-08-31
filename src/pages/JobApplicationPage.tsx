@@ -301,8 +301,6 @@ const YES_NO = [
 
 const JobApplicationPage = () => {
   const { data: hospitals = [], isLoading: hospitalsLoading } = useHospitals();
-  const photoRef = useRef<HTMLInputElement>(null);
-  const cvRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const [step, setStep] = useState(1);
@@ -322,8 +320,13 @@ const JobApplicationPage = () => {
   const [computerSkills, setComputerSkills] = useState<Record<string, string>>({});
   const [languages, setLanguages] = useState<Record<string, string>>({});
 
-  const [photoName, setPhotoName] = useState('');
-  const [cvName, setCvName] = useState('');
+  /*
+   * Dosyalar 1. adımda seçilir, gönderim son adımdadır. Adım değişince o
+   * adımın JSX'i DOM'dan kalktığı için input ref'i null olur; bu yüzden
+   * seçilen File nesnesi ref'ten değil state'ten okunur.
+   */
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [cvFile, setCvFile] = useState<File | null>(null);
   const [consent, setConsent] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
@@ -392,17 +395,17 @@ const JobApplicationPage = () => {
   const MAX_FILE_MB = 10;
 
   const handleFilePick =
-    (setName: (v: string) => void, key: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    (setFile: (v: File | null) => void, key: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (!file) return setName('');
+      if (!file) return setFile(null);
       if (file.size > MAX_FILE_MB * 1024 * 1024) {
         setErrors((prev) => ({ ...prev, [key]: `Dosya boyutu ${MAX_FILE_MB}MB sınırını aşıyor.` }));
         e.target.value = '';
-        setName('');
+        setFile(null);
         return;
       }
       setErrors((prev) => ({ ...prev, [key]: '' }));
-      setName(file.name);
+      setFile(file);
     };
 
   /*
@@ -411,13 +414,18 @@ const JobApplicationPage = () => {
    * DOSYA YOLU saklanır; panelde İK, imzalı URL ile açar.
    * Eski kayıtlarda tam URL bulunabilir, panel iki biçimi de çözer.
    */
-  const uploadFile = async (file: File, folder: string): Promise<string | null> => {
-    const ext = file.name.split('.').pop();
-    const path = `${folder}/${crypto.randomUUID()}.${ext}`;
-    const { error } = await supabase.storage.from('job-applications').upload(path, file);
+  const uploadFile = async (file: File, folder: string): Promise<string> => {
+    const parts = file.name.split('.');
+    const ext = parts.length > 1 ? parts.pop()!.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+    const path = `${folder}/${crypto.randomUUID()}${ext ? `.${ext}` : ''}`;
+    const { error } = await supabase.storage
+      .from('job-applications')
+      .upload(path, file, { contentType: file.type || 'application/octet-stream' });
     if (error) {
       console.error('Dosya yüklenemedi:', error);
-      return null;
+      // Sessizce null dönülürse başvuru belgesiz kaydediliyor ve aday bunu
+      // hiç öğrenmiyordu; hata gönderimi durdurur.
+      throw new Error(`${file.name} yüklenemedi. Lütfen tekrar deneyin.`);
     }
     return path;
   };
@@ -459,8 +467,6 @@ const JobApplicationPage = () => {
         }
       }
 
-      const photoFile = photoRef.current?.files?.[0];
-      const cvFile = cvRef.current?.files?.[0];
       const photoUrl = photoFile ? await uploadFile(photoFile, 'photos') : null;
       const cvUrl = cvFile ? await uploadFile(cvFile, 'cv') : null;
 
@@ -1119,14 +1125,13 @@ const JobApplicationPage = () => {
                             <label className="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 cursor-pointer hover:border-primary-light transition-colors focus-within:ring-2 focus-within:ring-primary-light">
                               <FaCloudUploadAlt className="text-xl text-primary" aria-hidden="true" />
                               <span className="text-sm text-gray-600 truncate">
-                                {photoName || 'Dosya seçin (JPG, PNG)'}
+                                {photoFile?.name || 'Dosya seçin (JPG, PNG)'}
                               </span>
                               <input
-                                ref={photoRef}
                                 type="file"
                                 accept="image/*"
                                 className="sr-only"
-                                onChange={handleFilePick(setPhotoName, 'photo')}
+                                onChange={handleFilePick(setPhotoFile, 'photo')}
                               />
                             </label>
                             {errors.photo && (
@@ -1140,14 +1145,13 @@ const JobApplicationPage = () => {
                             <label className="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 cursor-pointer hover:border-primary-light transition-colors focus-within:ring-2 focus-within:ring-primary-light">
                               <FaCloudUploadAlt className="text-xl text-primary" aria-hidden="true" />
                               <span className="text-sm text-gray-600 truncate">
-                                {cvName || 'Dosya seçin (PDF, DOC)'}
+                                {cvFile?.name || 'Dosya seçin (PDF, DOC)'}
                               </span>
                               <input
-                                ref={cvRef}
                                 type="file"
                                 accept=".pdf,.doc,.docx"
                                 className="sr-only"
-                                onChange={handleFilePick(setCvName, 'cv')}
+                                onChange={handleFilePick(setCvFile, 'cv')}
                               />
                             </label>
                             {errors.cv && (
