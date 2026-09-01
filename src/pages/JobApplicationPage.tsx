@@ -366,6 +366,10 @@ const JobApplicationPage = () => {
       if (form.mobile_phone && form.mobile_phone.replace(/\D/g, '').length < 10) {
         next.mobile_phone = 'Geçerli bir cep telefonu numarası giriniz.';
       }
+      // Vesikalık zorunlu; CV isteğe bağlı kalır.
+      if (!photoFile) {
+        next.photo = 'Fotoğraf yüklemeniz zorunludur.';
+      }
     }
 
     setErrors(next);
@@ -1117,12 +1121,19 @@ const JobApplicationPage = () => {
 
                       <SectionCard
                         title="Belgeler"
-                        description="Fotoğraf ve özgeçmişinizi ekleyebilirsiniz (isteğe bağlı, en fazla 10 MB)."
+                        description="Fotoğrafınızı yüklemeniz zorunludur; özgeçmiş isteğe bağlıdır (en fazla 10 MB)."
                       >
                         <div className="grid md:grid-cols-2 gap-5">
                           <div>
-                            <span className="block text-sm font-bold text-secondary mb-2">Fotoğraf</span>
-                            <label className="flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 cursor-pointer hover:border-primary-light transition-colors focus-within:ring-2 focus-within:ring-primary-light">
+                            <span className="block text-sm font-bold text-secondary mb-2">
+                              Fotoğraf
+                              <span className="text-accent ml-1">*</span>
+                            </span>
+                            <label
+                              className={`flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed bg-gray-50 cursor-pointer hover:border-primary-light transition-colors focus-within:ring-2 focus-within:ring-primary-light ${
+                                errors.photo ? 'border-accent' : 'border-gray-300'
+                              }`}
+                            >
                               <FaCloudUploadAlt className="text-xl text-primary" aria-hidden="true" />
                               <span className="text-sm text-gray-600 truncate">
                                 {photoFile?.name || 'Dosya seçin (JPG, PNG)'}
@@ -1131,11 +1142,13 @@ const JobApplicationPage = () => {
                                 type="file"
                                 accept="image/*"
                                 className="sr-only"
+                                aria-invalid={Boolean(errors.photo)}
+                                aria-describedby={errors.photo ? 'photo-error' : undefined}
                                 onChange={handleFilePick(setPhotoFile, 'photo')}
                               />
                             </label>
                             {errors.photo && (
-                              <p role="alert" className="text-sm text-accent font-medium mt-1.5">
+                              <p id="photo-error" role="alert" className="text-sm text-accent font-medium mt-1.5">
                                 {errors.photo}
                               </p>
                             )}
