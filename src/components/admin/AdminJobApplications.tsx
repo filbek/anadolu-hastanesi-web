@@ -7,7 +7,7 @@
 // yalnızca oturum açmış kullanıcılara okunabilir (bkz. migration).
 // ============================================================
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Fragment } from 'react';
 import {
   FaSearch,
   FaTrash,
@@ -19,8 +19,15 @@ import {
   FaIdCard,
   FaPaperclip,
   FaBriefcase,
+  FaCertificate,
+  FaChevronUp,
+  FaCommentDots,
+  FaUserFriends,
+  FaStar,
+  FaRegStickyNote,
 } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
+import { useSupabase } from '../../contexts/SupabaseContext';
 import {
   SKILL_BLOCKS,
   POSITION_GROUPS,
@@ -74,12 +81,40 @@ interface JobApplication {
   created_at: string;
 }
 
+/*
+ * Durum listesi. Değerler veritabanındaki CHECK kısıtıyla birebir aynı
+ * olmalı (bkz. job_applications_status_extension_migration.sql) — burada
+ * olup orada olmayan bir değer kaydetmeye çalışınca güncelleme sessizce
+ * başarısız olur.
+ *
+ * 'red' ile 'olumsuz' bilerek ayrı: olumsuz aday havuzda kalır,
+ * red edilen başvuru kapanmış kayıttır.
+ */
+/**
+ * Bir başvuruya düşülmüş tek not.
+ * Yazar bilgisi sunucudaki tetikleyici tarafından damgalanır
+ * (bkz. job_application_notes_migration.sql), istemciden gönderilmez.
+ */
+interface ApplicationNote {
+  id: number;
+  application_id: number;
+  author_id: string | null;
+  author_name: string | null;
+  note: string;
+  created_at: string;
+}
+
+const NOTES_TABLE = 'job_application_notes';
+
 const STATUS_OPTIONS = [
   { value: 'yeni', label: 'Yeni', className: 'bg-blue-100 text-blue-800' },
   { value: 'incelendi', label: 'İncelendi', className: 'bg-gray-100 text-gray-800' },
   { value: 'gorusme', label: 'Görüşmeye Çağrıldı', className: 'bg-amber-100 text-amber-800' },
   { value: 'olumlu', label: 'Olumlu', className: 'bg-green-100 text-green-800' },
-  { value: 'olumsuz', label: 'Olumsuz', className: 'bg-red-100 text-red-800' },
+  { value: 'olumsuz', label: 'Olumsuz', className: 'bg-orange-100 text-orange-800' },
+  { value: 'red', label: 'Red', className: 'bg-red-100 text-red-800' },
+  { value: 'eski_calisan', label: 'Eski Çalışan', className: 'bg-indigo-100 text-indigo-800' },
+  { value: 'kara_liste', label: 'Kara Liste', className: 'bg-neutral-800 text-white' },
   { value: 'arsiv', label: 'Arşiv', className: 'bg-slate-100 text-slate-600' },
 ];
 
@@ -102,6 +137,43 @@ const formatDateTime = (v: string) =>
   });
 
 const YES_NO_LABEL: Record<string, string> = { evet: 'Evet', hayir: 'Hayır' };
+
+/**
+ * Listede rozet göstermek için sertifika sayısı.
+ * Form yalnızca adı dolu satırları kaydeder ama eski kayıtlarda boş
+ * satırlar bulunabildiği için burada da süzülür.
+ */
+const certificateCount = (app: JobApplication) =>
+  (app.certificates ?? []).filter((c) => c?.name?.trim()).length;
+
+/**
+ * Formda bildirilen referans sayısı.
+ * Veri zaten liste sorgusuyla geliyor (select('*')), ek istek yok.
+ */
+const filledReferences = (app: JobApplication) =>
+  (app.references_list ?? []).filter((r) => r?.name?.trim());
+
+/**
+ * Listede ayrıca vurgulanacak referans soyadları.
+ * Bu soyadı taşıyan bir referans İK için ayrı anlam taşıdığından
+ * gözden kaçmaması gerekir. Yeni soyad eklemek için diziye yazmak yeterli.
+ */
+const HIGHLIGHTED_REFERENCE_SURNAMES = ['arkaz'];
+
+/** Türkçe büyük/küçük harf kuralına göre sadeleştirir (İ/I tuzağı) */
+const trLower = (v: string) => v.toLocaleLowerCase('tr-TR').replace(/\s+/g, ' ').trim();
+
+/**
+ * Ad alanı serbest metin; "Mehmet Arkaz" da "ARKAZ, Mehmet" de gelebiliyor.
+ * Bu yüzden sadece son kelimeye değil, tüm kelimelere bakılır.
+ */
+const isHighlightedReference = (name?: string) =>
+  !!name && trLower(name).split(' ').some((w) =>
+    HIGHLIGHTED_REFERENCE_SURNAMES.includes(w.replace(/[.,;:]/g, ''))
+  );
+
+const hasHighlightedReference = (app: JobApplication) =>
+  filledReferences(app).some((r) => isHighlightedReference(r.name));
 
 /** Beceri puanlarını `hemsireGenel_0` anahtarından okunabilir metne çevirir */
 const readableSkills = (skills: Record<string, string>) =>
@@ -164,6 +236,101 @@ const DetailSection = ({ title, children }: { title: string; children: React.Rea
   </section>
 );
 
+/**
+ * Bir başvurunun not akışı. Hem listedeki genişleyen satırda hem de
+ * detay kartında AYNI bileşen kullanılır — iki yerde iki farklı not
+ * arayüzü olması kafa karıştırırdı.
+ */
+const NoteThread = ({
+  notes,
+  currentUserId,
+  onAdd,
+  onDelete,
+  autoFocus = false,
+}: {
+  notes: ApplicationNote[];
+  currentUserId?: string;
+  onAdd: (text: string) => Promise<void>;
+  onDelete: (noteId: number) => Promise<void>;
+  autoFocus?: boolean;
+}) => {
+  const [draft, setDraft] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const submit = async () => {
+    const text = draft.trim();
+    if (!text || saving) return;
+    setSaving(true);
+    try {
+      await onAdd(text);
+      setDraft('');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div>
+      {notes.length > 0 && (
+        <ul className="space-y-2 mb-3">
+          {notes.map((n) => (
+            <li key={n.id} className="rounded-lg bg-white border border-gray-200 px-3 py-2">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-sm text-gray-900 whitespace-pre-wrap break-words flex-1">
+                  {n.note}
+                </p>
+                {/* Silme yalnızca kendi notu için; RLS zaten sunucuda da engeller */}
+                {n.author_id && n.author_id === currentUserId && (
+                  <button
+                    onClick={() => onDelete(n.id)}
+                    className="p-1.5 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 shrink-0"
+                    aria-label="Notu sil"
+                    title="Notu sil"
+                  >
+                    <FaTrash size={12} />
+                  </button>
+                )}
+              </div>
+              <div className="text-[11px] text-gray-500 mt-1">
+                {n.author_name || 'Bilinmeyen kullanıcı'} · {formatDateTime(n.created_at)}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <textarea
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          // Uzun notlarda Enter yeni satır olmalı; gönderme Ctrl/Cmd+Enter
+          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            void submit();
+          }
+        }}
+        rows={2}
+        autoFocus={autoFocus}
+        aria-label="Yeni not"
+        placeholder="Not ekleyin... (Ctrl+Enter ile kaydet)"
+        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+      />
+      <div className="flex items-center gap-3 mt-2">
+        <button
+          onClick={submit}
+          disabled={!draft.trim() || saving}
+          className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:brightness-125 disabled:opacity-50"
+        >
+          {saving ? 'Kaydediliyor...' : 'Not Ekle'}
+        </button>
+        {notes.length === 0 && (
+          <span className="text-xs text-gray-500">Bu başvuruya henüz not düşülmemiş.</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const AdminJobApplications = () => {
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
@@ -171,7 +338,11 @@ const AdminJobApplications = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [groupFilter, setGroupFilter] = useState('all');
   const [selected, setSelected] = useState<JobApplication | null>(null);
-  const [noteDraft, setNoteDraft] = useState('');
+  /** Başvuru kimliğine göre notlar; liste ve detay aynı kaynaktan okur */
+  const [notes, setNotes] = useState<Record<number, ApplicationNote[]>>({});
+  /** Listede not bölümü açık olan satır */
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const { user } = useSupabase();
 
   useEffect(() => {
     fetchApplications();
@@ -185,7 +356,9 @@ const AdminJobApplications = () => {
         .select('*')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      setApplications((data ?? []) as JobApplication[]);
+      const list = (data ?? []) as JobApplication[];
+      setApplications(list);
+      await fetchNotes(list.map((a) => a.id));
     } catch (err) {
       console.error('Başvurular yüklenemedi:', err);
     } finally {
@@ -193,9 +366,65 @@ const AdminJobApplications = () => {
     }
   };
 
+  /*
+   * Notlar tek sorguda toplu çekilir. Satır başına ayrı istek atmak
+   * 100 başvuruda 100 istek demekti; liste zaten sayfalanmıyor.
+   */
+  const fetchNotes = async (ids: number[]) => {
+    if (ids.length === 0) return setNotes({});
+    const { data, error } = await supabase
+      .from(NOTES_TABLE)
+      .select('*')
+      .in('application_id', ids)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      // Migration henüz çalıştırılmadıysa liste yine de açılsın
+      console.error('Notlar yüklenemedi:', error);
+      return;
+    }
+
+    const grouped: Record<number, ApplicationNote[]> = {};
+    for (const n of (data ?? []) as ApplicationNote[]) {
+      (grouped[n.application_id] ??= []).push(n);
+    }
+    setNotes(grouped);
+  };
+
+  const addNote = async (applicationId: number, text: string) => {
+    const { data, error } = await supabase
+      .from(NOTES_TABLE)
+      .insert({ application_id: applicationId, note: text })
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error('Not eklenemedi:', error);
+      alert('Not kaydedilemedi: ' + (error?.message ?? 'bilinmeyen hata'));
+      return;
+    }
+    setNotes((prev) => ({
+      ...prev,
+      [applicationId]: [data as ApplicationNote, ...(prev[applicationId] ?? [])],
+    }));
+  };
+
+  const deleteNote = async (applicationId: number, noteId: number) => {
+    if (!confirm('Bu notu silmek istediğinizden emin misiniz?')) return;
+    const { error } = await supabase.from(NOTES_TABLE).delete().eq('id', noteId);
+    if (error) {
+      console.error('Not silinemedi:', error);
+      alert('Not silinemedi: ' + error.message);
+      return;
+    }
+    setNotes((prev) => ({
+      ...prev,
+      [applicationId]: (prev[applicationId] ?? []).filter((n) => n.id !== noteId),
+    }));
+  };
+
   const openDetail = async (app: JobApplication) => {
     setSelected(app);
-    setNoteDraft(app.admin_note ?? '');
 
     // KVKK: özel nitelikli veri içeren başvurunun kim tarafından açıldığı
     // kayda geçer. user_id sunucuda auth.uid() ile damgalanır; loglama
@@ -219,19 +448,6 @@ const AdminJobApplications = () => {
     setSelected((prev) => (prev && prev.id === id ? { ...prev, status } : prev));
   };
 
-  const saveNote = async () => {
-    if (!selected) return;
-    const { error } = await supabase
-      .from('job_applications')
-      .update({ admin_note: noteDraft })
-      .eq('id', selected.id);
-    if (error) return console.error('Not kaydedilemedi:', error);
-    setApplications((prev) =>
-      prev.map((a) => (a.id === selected.id ? { ...a, admin_note: noteDraft } : a))
-    );
-    setSelected({ ...selected, admin_note: noteDraft });
-  };
-
   const remove = async (id: number) => {
     if (!confirm('Bu başvuruyu kalıcı olarak silmek istediğinizden emin misiniz?')) return;
     const { error } = await supabase.from('job_applications').delete().eq('id', id);
@@ -241,6 +457,12 @@ const AdminJobApplications = () => {
       return;
     }
     setApplications((prev) => prev.filter((a) => a.id !== id));
+    setNotes((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    if (expandedId === id) setExpandedId(null);
     if (selected?.id === id) setSelected(null);
   };
 
@@ -253,7 +475,14 @@ const AdminJobApplications = () => {
         a.email.toLowerCase().includes(q) ||
         a.position.toLowerCase().includes(q) ||
         a.mobile_phone.includes(q) ||
-        a.reference_code.toLowerCase().includes(q);
+        a.reference_code.toLowerCase().includes(q) ||
+        // Referans kişinin adı/kurumu da aranabilir: "Arkaz" yazıp o kişiyi
+        // referans gösteren tüm başvurular tek seferde bulunabilsin.
+        filledReferences(a).some(
+          (r) =>
+            r.name.toLowerCase().includes(q) ||
+            (r.company ?? '').toLowerCase().includes(q)
+        );
       const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
       const matchesGroup = groupFilter === 'all' || a.position_group === groupFilter;
       return matchesSearch && matchesStatus && matchesGroup;
@@ -327,8 +556,8 @@ const AdminJobApplications = () => {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Ad, e-posta, pozisyon, başvuru no..."
-            aria-label="Başvurularda ara"
+            placeholder="Ad, e-posta, pozisyon, başvuru no, referans adı..."
+            aria-label="Başvurularda ve referans adlarında ara"
             className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
@@ -378,15 +607,61 @@ const AdminJobApplications = () => {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filtered.map((a) => (
-                <tr key={a.id} className={a.is_read ? '' : 'bg-blue-50/40'}>
+                <Fragment key={a.id}>
+                <tr className={a.is_read ? '' : 'bg-blue-50/40'}>
                   <td className="px-4 py-3">
                     <div className="font-semibold text-gray-900 flex items-center gap-2">
                       {!a.is_read && (
                         <span className="w-2 h-2 rounded-full bg-accent shrink-0" aria-label="Okunmadı" />
                       )}
                       {a.full_name}
+                      {certificateCount(a) > 0 && (
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[11px] font-bold"
+                          title={`${certificateCount(a)} sertifika bildirildi`}
+                        >
+                          <FaCertificate aria-hidden="true" />
+                          {certificateCount(a)}
+                          <span className="sr-only">sertifika bildirildi</span>
+                        </span>
+                      )}
+                      {/*
+                        Yalnızca SAYI gösterilir. Referans kişiler başvuru
+                        sahibi değil, kendi verisinin işlenmesine rıza
+                        vermemiş üçüncü kişiler; ad ve telefonları sürekli
+                        açık ekranda durmak yerine İK'nın bilerek açtığı
+                        bölümde görünür.
+                      */}
+                      {filledReferences(a).length > 0 && (
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                            hasHighlightedReference(a)
+                              ? 'bg-amber-400 text-amber-950 ring-2 ring-amber-500'
+                              : 'bg-violet-100 text-violet-800'
+                          }`}
+                          title={
+                            hasHighlightedReference(a)
+                              ? `${filledReferences(a).length} referans — aralarında vurgulanan bir soyad var`
+                              : `${filledReferences(a).length} referans bildirildi`
+                          }
+                        >
+                          <FaUserFriends aria-hidden="true" />
+                          {filledReferences(a).length}
+                          <span className="sr-only">
+                            referans bildirildi
+                            {hasHighlightedReference(a) && ', aralarında vurgulanan bir soyad var'}
+                          </span>
+                        </span>
+                      )}
                     </div>
                     <div className="text-xs text-gray-500 font-mono">{a.reference_code}</div>
+                    {/* Son not, satır açılmadan da okunabilsin */}
+                    {(notes[a.id]?.length ?? 0) > 0 && (
+                      <div className="mt-1 flex items-start gap-1.5 text-xs text-gray-600 max-w-xs">
+                        <FaRegStickyNote className="mt-0.5 shrink-0 text-amber-500" aria-hidden="true" />
+                        <span className="line-clamp-2 italic">{notes[a.id][0].note}</span>
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <div className="text-gray-900">{a.position}</div>
@@ -414,6 +689,24 @@ const AdminJobApplications = () => {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
                       <button
+                        onClick={() => setExpandedId(expandedId === a.id ? null : a.id)}
+                        aria-expanded={expandedId === a.id}
+                        aria-label={`${a.full_name} notlarını ${expandedId === a.id ? 'kapat' : 'aç'}`}
+                        title="Notlar"
+                        className={`relative p-2 rounded-lg transition-colors ${
+                          expandedId === a.id
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'text-gray-500 hover:bg-gray-100'
+                        }`}
+                      >
+                        {expandedId === a.id ? <FaChevronUp /> : <FaCommentDots />}
+                        {(notes[a.id]?.length ?? 0) > 0 && (
+                          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold leading-4">
+                            {notes[a.id].length}
+                          </span>
+                        )}
+                      </button>
+                      <button
                         onClick={() => openDetail(a)}
                         className="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors"
                         aria-label={`${a.full_name} başvurusunu görüntüle`}
@@ -430,6 +723,83 @@ const AdminJobApplications = () => {
                     </div>
                   </td>
                 </tr>
+                {expandedId === a.id && (
+                  <tr key={`${a.id}-notes`} className="bg-amber-50/50">
+                    <td colSpan={6} className="px-4 py-4">
+                      <div className="grid lg:grid-cols-2 gap-6">
+                        <div>
+                          <h3 className="text-xs font-black text-amber-800 uppercase tracking-wide mb-3">
+                            İK Notları — {a.full_name}
+                          </h3>
+                          <NoteThread
+                            notes={notes[a.id] ?? []}
+                            currentUserId={user?.id}
+                            onAdd={(text) => addNote(a.id, text)}
+                            onDelete={(noteId) => deleteNote(a.id, noteId)}
+                            autoFocus
+                          />
+                        </div>
+
+                        <div>
+                          <h3 className="text-xs font-black text-violet-800 uppercase tracking-wide mb-3">
+                            Formda Bildirilen Referanslar
+                          </h3>
+                          {filledReferences(a).length === 0 ? (
+                            <p className="text-xs text-gray-500">
+                              Aday referans bildirmemiş.
+                            </p>
+                          ) : (
+                            <ul className="space-y-2">
+                              {filledReferences(a).map((r, i) => (
+                                <li
+                                  key={i}
+                                  className={`rounded-lg px-3 py-2 border ${
+                                    isHighlightedReference(r.name)
+                                      ? 'bg-amber-50 border-amber-400 ring-1 ring-amber-300'
+                                      : 'bg-white border-gray-200'
+                                  }`}
+                                >
+                                  <div
+                                    className={`text-sm font-semibold flex items-center gap-1.5 ${
+                                      isHighlightedReference(r.name)
+                                        ? 'text-amber-900'
+                                        : 'text-gray-900'
+                                    }`}
+                                  >
+                                    {isHighlightedReference(r.name) && (
+                                      <FaStar className="text-amber-500 shrink-0" aria-hidden="true" />
+                                    )}
+                                    {r.name}
+                                  </div>
+                                  {r.company && (
+                                    <div className="text-xs text-gray-600">{r.company}</div>
+                                  )}
+                                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs">
+                                    {r.phone && (
+                                      <a
+                                        href={`tel:${r.phone.replace(/\s/g, '')}`}
+                                        className="inline-flex items-center gap-1 text-primary hover:underline"
+                                      >
+                                        <FaPhone aria-hidden="true" />
+                                        {r.phone}
+                                      </a>
+                                    )}
+                                    {r.duration && (
+                                      <span className="text-gray-500">
+                                        Birlikte çalışma: {r.duration}
+                                      </span>
+                                    )}
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
               ))}
             </tbody>
           </table>
@@ -658,21 +1028,13 @@ const AdminJobApplications = () => {
                 </dl>
               </DetailSection>
 
-              <DetailSection title="İK Notu">
-                <textarea
-                  value={noteDraft}
-                  onChange={(e) => setNoteDraft(e.target.value)}
-                  rows={3}
-                  aria-label="İnsan kaynakları notu"
-                  placeholder="Görüşme notu, değerlendirme..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              <DetailSection title="İK Notları">
+                <NoteThread
+                  notes={notes[selected.id] ?? []}
+                  currentUserId={user?.id}
+                  onAdd={(text) => addNote(selected.id, text)}
+                  onDelete={(noteId) => deleteNote(selected.id, noteId)}
                 />
-                <button
-                  onClick={saveNote}
-                  className="mt-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:brightness-125"
-                >
-                  Notu Kaydet
-                </button>
               </DetailSection>
             </div>
           </div>

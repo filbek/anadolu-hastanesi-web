@@ -19,11 +19,19 @@ export type PositionGroup =
   | 'idari'
   | 'diger';
 
+/*
+ * Etiketlerde "Teknisyeni - Teknikeri" birlikte yazılır: aynı işi önlisans
+ * mezunu tekniker de, meslek lisesi mezunu teknisyen de yapar ve aday tek
+ * unvanı görünce kendini kapsam dışı sayıp başvurmuyordu.
+ *
+ * DİKKAT: `value` alanları veritabanında position_group olarak saklanır;
+ * yalnızca etiketler değiştirilir, değerler asla değiştirilmemelidir.
+ */
 export const POSITION_GROUPS: { value: PositionGroup; label: string }[] = [
   { value: 'hemsire', label: 'Hemşire / Sağlık Memuru / Ebe' },
-  { value: 'laborant', label: 'Laborant / Laboratuvar Teknisyeni' },
-  { value: 'anestezi', label: 'Anestezi Teknisyeni / Teknikeri' },
-  { value: 'rontgen', label: 'Röntgen / Görüntüleme Teknisyeni' },
+  { value: 'laborant', label: 'Laborant / Laboratuvar Teknisyeni - Teknikeri' },
+  { value: 'anestezi', label: 'Anestezi Teknisyeni - Teknikeri' },
+  { value: 'rontgen', label: 'Röntgen / Tıbbi Görüntüleme Teknisyeni - Teknikeri' },
   { value: 'doktor', label: 'Doktor / Uzman Hekim' },
   { value: 'idari', label: 'İdari, Mali İşler ve Destek Birimleri' },
   { value: 'diger', label: 'Diğer' },
@@ -104,7 +112,7 @@ export const SKILL_BLOCKS: SkillBlock[] = [
   },
   {
     key: 'anesteziItems',
-    title: 'Anestezi Teknisyeni',
+    title: 'Anestezi Teknisyeni - Teknikeri',
     section: 'Anestezi',
     items: [
       'Monitör', 'Defibrilatör', 'Laringoskop', 'Aspiratör',
@@ -113,7 +121,7 @@ export const SKILL_BLOCKS: SkillBlock[] = [
   },
   {
     key: 'rontgenItems',
-    title: 'Röntgen Teknisyeni',
+    title: 'Röntgen / Tıbbi Görüntüleme Teknisyeni - Teknikeri',
     section: 'Röntgen ve Görüntüleme',
     items: [
       'Direkt Röntgen Çekimi', 'Taş Kırma Ünitesi', 'Skopi',

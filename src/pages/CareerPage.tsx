@@ -54,7 +54,7 @@ const processSteps = (t: any) => [
   {
     number: '01',
     title: t('career.step1Title', 'Başvuru'),
-    desc: t('career.step1Desc', 'Yenibiris.com üzerinden veya kariyer portalımızdan ilgili pozisyona başvurunuzu yapın.'),
+    desc: t('career.step1Desc', 'Kariyer.net üzerinden veya kariyer portalımızdan ilgili pozisyona başvurunuzu yapın.'),
   },
   {
     number: '02',
@@ -128,13 +128,13 @@ const CareerPage = () => {
                 {t('career.formButton', 'Başvuru Formunu Doldur')}
               </Link>
               <a
-                href="https://www.yenibiris.com/firma/anadolu-hastaneleri/is-ilanlari/259590"
+                href="https://www.kariyer.net/is-ilanlari?fpi=297029"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-3 px-8 py-4 bg-white/10 text-white font-bold rounded-xl border border-white/30 hover:bg-white/20 transition-all"
               >
                 <FaExternalLinkAlt />
-                {t('career.applyButton', 'Açık Pozisyonları Gör')}
+                {t('career.applyButton', 'Kariyer.net İlanlarını Gör')}
               </a>
             </div>
           </motion.div>
@@ -163,17 +163,17 @@ const CareerPage = () => {
               {t('career.openTitle', 'Açık Pozisyonlarımız')}
             </h2>
             <p className="text-gray-500 text-lg leading-relaxed mb-8">
-              {t('career.openDesc', 'Tüm iş ilanlarımızı Yenibiris.com üzerinden yayınlıyoruz. Size uygun pozisyonu bulmak için hemen inceleyin.')}
+              {t('career.openDesc', 'Tüm iş ilanlarımızı Kariyer.net üzerinden yayınlıyoruz. Size uygun pozisyonu bulmak için hemen inceleyin.')}
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <a
-                href="https://www.yenibiris.com/firma/anadolu-hastaneleri/is-ilanlari/259590"
+                href="https://www.kariyer.net/is-ilanlari?fpi=297029"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-3 px-8 py-4 bg-primary text-white font-bold rounded-xl hover:brightness-110 transition-all"
               >
                 <FaExternalLinkAlt />
-                {t('career.openButton', 'Yenibiris.com\'da Görüntüle')}
+                {t('career.openButton', 'Kariyer.net İlanlarını Gör')}
               </a>
               <Link
                 to="/kariyer/basvuru"
@@ -312,7 +312,7 @@ const CareerPage = () => {
             </h3>
           </motion.div>
           <motion.a
-            href="https://www.yenibiris.com/firma/anadolu-hastaneleri/is-ilanlari/259590"
+            href="https://www.kariyer.net/is-ilanlari?fpi=297029"
             target="_blank"
             rel="noopener noreferrer"
             initial={{ opacity: 0, x: 20 }}
