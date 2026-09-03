@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSupabase } from '../contexts/SupabaseContext';
+import { canAccessAdminPanel, isHrOnlyRole } from '../lib/roles';
 import { FaEye, FaEyeSlash, FaLock, FaUser } from 'react-icons/fa';
 
 
 const AdminLoginPage = () => {
   const { t } = useTranslation();
-  const { signIn, user, userProfile, loading } = useSupabase();
+  const { signIn, user, userProfile, profileLoaded, loading } = useSupabase();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
@@ -17,20 +18,26 @@ const AdminLoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Listen for user changes and redirect if admin
+  // İK rolü panelin tamamını değil yalnızca kendi modülünü görür;
+  // doğrudan /admin'e atılırsa boş bir dashboard'la karşılaşır.
+  const landingPath = isHrOnlyRole(userProfile) ? '/admin/job-applications' : '/admin';
+
+  // Listen for user changes and redirect if authorized
   useEffect(() => {
-    if (!loading && user && userProfile) {
-      if (userProfile.role === 'admin' || userProfile.role === 'super_admin') {
-        navigate('/admin');
+    // profileLoaded beklenir: profil satırı olmayan bir hesapta userProfile
+    // hiç dolmaz ve kullanıcı sebebini göremeden giriş ekranında kalırdı.
+    if (!loading && user && profileLoaded) {
+      if (canAccessAdminPanel(userProfile)) {
+        navigate(landingPath);
       } else {
         setError(t('login.errorNotAuthorized', 'Bu hesabın yönetim paneline erişim yetkisi yok.'));
       }
     }
-  }, [user, userProfile, loading, navigate, t]);
+  }, [user, userProfile, profileLoaded, loading, navigate, landingPath, t]);
 
-  // If user is already logged in and is admin, redirect to admin dashboard
-  if (!loading && user && userProfile && (userProfile.role === 'admin' || userProfile.role === 'super_admin')) {
-    return <Navigate to="/admin" replace />;
+  // If user is already logged in and authorized, redirect to the panel
+  if (!loading && user && profileLoaded && canAccessAdminPanel(userProfile)) {
+    return <Navigate to={landingPath} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

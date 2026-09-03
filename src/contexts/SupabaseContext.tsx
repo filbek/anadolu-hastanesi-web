@@ -6,6 +6,8 @@ type SupabaseContextType = {
   session: Session | null;
   user: User | null;
   userProfile: UserProfile | null;
+  /** Profil sorgusu tamamlandı mı — satır bulunamamış olsa bile true olur */
+  profileLoaded: boolean;
   loading: boolean;
   signUp: (userData: NewUser) => Promise<{ error: any | null; data: any | null }>;
   signIn: (credentials: UserCredentials) => Promise<{ error: any | null; data: any | null }>;
@@ -20,6 +22,7 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,11 +35,17 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
     }, 10000);
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    //
+    // Profil BEKLENEREK yüklenir: loading erken false olursa rota
+    // koruyucuları (AdminRoute) rolü henüz bilmeden karar verir ve
+    // kullanıcı gitmek istediği admin sayfasından login'e düşer.
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchUserProfile(session.user.id);
+        await fetchUserProfile(session.user.id);
+      } else {
+        setProfileLoaded(true);
       }
       setLoading(false);
       clearTimeout(loadingTimeout);
@@ -47,13 +56,19 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    //
+    // DİKKAT: Bu geri çağrı supabase-js'in auth kilidi içinde çalışır.
+    // İçinde bir Supabase çağrısını await etmek kilitlenmeye yol açar
+    // (ekran sonsuza kadar yükleniyor kalır). Bu yüzden profil sorgusu
+    // beklenmez, kilit bırakıldıktan sonra çalışsın diye kuyruğa alınır.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchUserProfile(session.user.id);
+        setTimeout(() => { void fetchUserProfile(session.user.id); }, 0);
       } else {
         setUserProfile(null);
+        setProfileLoaded(true);
       }
       setLoading(false);
     });
@@ -76,11 +91,15 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (data) {
-        setUserProfile(data as UserProfile);
-      }
+      // Satır yoksa da null yazılır; aksi halde önceki kullanıcının
+      // profili ekranda kalır.
+      setUserProfile((data as UserProfile) ?? null);
     } catch (error) {
       console.error('Error fetching user profile:', error);
+    } finally {
+      // Sorgu hata verse bile "denendi" say — rota koruyucuları
+      // sonsuza kadar bekleme ekranında kalmasın.
+      setProfileLoaded(true);
     }
   };
 
@@ -222,6 +241,7 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
     session,
     user,
     userProfile,
+    profileLoaded,
     loading,
     signUp,
     signIn,

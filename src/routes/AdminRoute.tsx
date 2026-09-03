@@ -1,20 +1,45 @@
-// c:\Users\asus\Documents\VOID-IDE\anadolu_hastaneleri_grubu_website_6ke0ub\src\routes\AdminRoute.tsx
 import { Navigate, Outlet } from 'react-router-dom';
-import { useSupabase } from '../contexts/SupabaseContext'; // Supabase context'ini import edin
+import { useSupabase } from '../contexts/SupabaseContext';
+import { canAccessAdminPanel } from '../lib/roles';
+
+const Spinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-neutral">
+    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+  </div>
+);
 
 const AdminRoute = () => {
-  const { user, userProfile, loading } = useSupabase();
+  const { user, userProfile, profileLoaded, loading } = useSupabase();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <Spinner />;
   }
 
-  // Kullanıcı yoksa veya profil yüklenmemişse veya admin değilse login'e yönlendir
-  if (!user || !userProfile || (userProfile.role !== 'admin' && userProfile.role !== 'super_admin')) {
+  if (!user) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  /*
+   * Oturum var ama profil sorgusu henüz bitmediyse BEKLE, login'e atma.
+   * Aksi halde derin bir adrese (örn. /admin/users) yapılan sayfa
+   * yenilemesinde kullanıcı login'e düşer, oradan da Dashboard'a
+   * yönlendirilir ve gitmek istediği sayfa kaybolur.
+   *
+   * profileLoaded kullanılır, userProfile değil: profil satırı hiç yoksa
+   * userProfile kalıcı olarak null kalır ve ekran sonsuza kadar dönerdi.
+   */
+  if (!profileLoaded) {
+    return <Spinner />;
+  }
+
+  /*
+   * Rol kuralı lib/roles.ts'ten okunur. Daha önce aynı kural burada,
+   * AdminLoginPage'de ve AdminLayout'ta ayrı ayrı yazılıydı; buradaki
+   * kopya 'hr' rolünü reddedip diğerleri kabul ettiği için İK kullanıcısı
+   * login <-> panel arasında sonsuz yönlendirme döngüsüne giriyor ve
+   * ekran beyaz kalıyordu.
+   */
+  if (!canAccessAdminPanel(userProfile)) {
     return <Navigate to="/admin/login" replace />;
   }
 
