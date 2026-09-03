@@ -5,3 +5,10 @@
 -- ============================================================
 
 ALTER TABLE public.doctors ADD COLUMN IF NOT EXISTS working_hours TEXT;
+
+COMMENT ON COLUMN public.doctors.working_hours IS
+  'Doktora özel çalışma saatleri (serbest metin). Boşsa şubenin genel saatleri gösterilir.';
+
+-- PostgREST şema cache'ini tazele; aksi halde kaydetmede
+-- "Could not find the 'working_hours' column of 'doctors' in the schema cache" hatası alınır.
+NOTIFY pgrst, 'reload schema';

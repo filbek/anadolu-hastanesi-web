@@ -1,7 +1,17 @@
 # Form E-posta Bildirimleri — Kurulum
 
-Web sitesindeki üç form (İkinci Görüş, İletişim, Hasta Geri Bildirim) artık
-admin panelinde belirlenen e-posta adreslerine **Resend** üzerinden e-posta gönderir.
+Web sitesindeki formlar (İkinci Görüş, İletişim, Hasta Geri Bildirim, Kariyer
+İş Başvurusu) admin panelinde belirlenen e-posta adreslerine bildirim gönderir.
+
+İki gönderim yolu desteklenir; Edge Function `SMTP_HOST` secret'ı tanımlıysa
+**kurumsal SMTP**, tanımlı değilse **Resend API** kullanır.
+
+| Form | Varsayılan alıcı | site_settings kolonu |
+| --- | --- | --- |
+| İkinci Görüş | info@anadoluhastaneleri.com | `second_opinion_email` |
+| İletişim | info@anadoluhastaneleri.com | `contact_form_email` |
+| Hasta Geri Bildirim | hastahaklari@anadoluhastaneleri.com | `feedback_form_email` |
+| **İş Başvurusu (Kariyer)** | **isbasvuru@anadoluhastaneleri.com** | `career_form_email` |
 
 Bu özelliğin canlıda çalışması için aşağıdaki **tek seferlik** kurulum adımları
 tamamlanmalıdır.
@@ -17,7 +27,39 @@ Bu şunları ekler:
 - `site_settings` tablosuna `contact_form_email` ve `feedback_form_email` kolonları
 - İletişim formu başvuruları için `contact_submissions` tablosu
 
-## 2. Resend hesabı + API anahtarı
+Ardından `src/sql/career_email_isbasvuru_migration.sql` dosyasını da çalıştır —
+iş başvurusu bildirim adresini `isbasvuru@anadoluhastaneleri.com` yapar.
+(Admin panelinden bilerek başka bir adres girilmişse dokunmaz.)
+
+## 2A. Seçenek A — Kurumsal SMTP (önerilen: DNS doğrulaması gerektirmez)
+
+Gönderim, hastanenin kendi posta kutusu üzerinden yapılır. Adres zaten kurumun
+kendi domaininde olduğu için SPF/DKIM doğrulama süreci gerekmez.
+
+```bash
+supabase secrets set SMTP_HOST=csmtp.yaanimail.com
+supabase secrets set SMTP_PORT=587                 # 587 = STARTTLS, 465 = doğrudan TLS
+supabase secrets set SMTP_USER=isbasvuru@anadoluhastaneleri.com
+supabase secrets set SMTP_PASSWORD='<posta kutusu şifresi>'
+supabase secrets set SMTP_FROM="Anadolu Hastaneleri <isbasvuru@anadoluhastaneleri.com>"
+```
+
+> ⚠️ Şifreyi bu dosyaya, `.env`e veya herhangi bir commit'e **yazma**; yalnızca
+> `supabase secrets set` ile sakla. Secret'lar Supabase tarafında şifreli tutulur.
+
+Posta kutusunu bir mail istemcisinden (Outlook, Thunderbird, telefon) okumak için:
+
+| Ayar | Sunucu | Port | Güvenlik |
+| --- | --- | --- | --- |
+| Gelen (IMAP) | cimap.yaanimail.com | 993 | SSL/TLS |
+| Giden (SMTP) | csmtp.yaanimail.com | 587 | STARTTLS |
+
+IMAP yalnızca posta **okumak** içindir; site bildirimleri için gereken tek şey
+yukarıdaki SMTP ayarlarıdır.
+
+## 2B. Seçenek B — Resend hesabı + API anahtarı
+
+`SMTP_HOST` tanımlı **değilse** bu yol kullanılır.
 
 1. https://resend.com adresinden ücretsiz hesap aç.
 2. **API Keys** → **Create API Key** → anahtarı kopyala (`re_...`).
@@ -27,7 +69,7 @@ Bu şunları ekler:
      `onboarding@resend.dev` adresinden gönderilebilir. Gerçek alıcılara mail
      gitmesi için domain doğrulaması zorunludur.
 
-## 3. Supabase secret'larını tanımla
+## 3. Resend secret'larını tanımla (yalnızca Seçenek B)
 
 Proje kökünde (Supabase CLI ile giriş yaptıktan sonra):
 
@@ -73,7 +115,7 @@ Form gönderimi
   └─ Veritabanına kaydedilir (second_opinion_submissions / patient_feedback / contact_submissions)
   └─ supabase.functions.invoke('send-form-email', { formType, data })
         └─ Edge Function site_settings'ten ilgili alıcıyı okur
-        └─ Resend API ile e-postayı gönderir
+        └─ SMTP_HOST varsa kurumsal SMTP, yoksa Resend API ile gönderir
 ```
 
 E-posta gönderimi başarısız olsa bile başvuru veritabanına kaydedildiği için

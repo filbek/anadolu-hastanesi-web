@@ -4,15 +4,27 @@
 // admin panelinde site_settings tablosunda belirlenen e-posta
 // adresine Resend üzerinden gönderir.
 //
-// Gerekli secret'lar (supabase secrets set ...):
-//   RESEND_API_KEY  -> Resend API anahtarı (zorunlu)
-//   RESEND_FROM     -> Gönderen adres, örn "Anadolu Hastaneleri <bildirim@alanadiniz.com>"
-//                      (opsiyonel; verilmezse Resend test adresi kullanılır)
+// İki gönderim yolu desteklenir; SMTP_HOST tanımlıysa SMTP, değilse Resend.
+//
+// A) SMTP (kurum posta kutusu — DNS doğrulaması gerektirmez):
+//   SMTP_HOST      -> örn csmtp.yaanimail.com
+//   SMTP_PORT      -> örn 587 (STARTTLS) — 465 verilirse doğrudan TLS
+//   SMTP_USER      -> örn isbasvuru@anadoluhastaneleri.com
+//   SMTP_PASSWORD  -> posta kutusu şifresi
+//   SMTP_FROM      -> opsiyonel; verilmezse SMTP_USER kullanılır
+//
+// B) Resend (API):
+//   RESEND_API_KEY -> Resend API anahtarı
+//   RESEND_FROM    -> Gönderen adres, örn "Anadolu Hastaneleri <bildirim@alanadiniz.com>"
+//                     (opsiyonel; verilmezse Resend test adresi kullanılır)
+//
+// Not: Şifreler yalnızca `supabase secrets set ...` ile saklanır, repoya yazılmaz.
 //
 // SUPABASE_URL ve SUPABASE_SERVICE_ROLE_KEY edge runtime'da otomatik gelir.
 // ============================================================
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -29,6 +41,14 @@ const RECIPIENT_COLUMN: Record<FormType, string> = {
   contact: 'contact_form_email',
   feedback: 'feedback_form_email',
   job_application: 'career_form_email',
+};
+
+// site_settings okunamazsa / boşsa kullanılacak varsayılan alıcılar
+const FALLBACK_RECIPIENT: Record<FormType, string> = {
+  second_opinion: 'info@anadoluhastaneleri.com',
+  contact: 'info@anadoluhastaneleri.com',
+  feedback: 'hastahaklari@anadoluhastaneleri.com',
+  job_application: 'isbasvuru@anadoluhastaneleri.com',
 };
 
 const FORM_TITLE: Record<FormType, string> = {
@@ -161,7 +181,68 @@ function jobTable(rows: [string, unknown][]): string {
 }
 
 // deno-lint-ignore no-explicit-any
-function buildJobApplicationHtml(data: Record<string, any>): string {
+// ── Aday belgeleri için süreli imzalı bağlantı ──────────────
+//
+// Bucket gizlidir; dosyanın kendisi e-postaya EKLENMEZ, çünkü ek olarak
+// giden bir vesikalık ileti sunucularında ve arşivlerde kalıcı kopya
+// bırakır ve adayın silme talebi uygulanamaz hale gelir. Bunun yerine
+// süresi dolduğunda kendiliğinden erişilemez olan imzalı URL konur.
+const DOC_LINK_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 gün
+
+const BUCKET = 'job-applications';
+
+/** Kayıttaki değeri bucket içi yola çevirir (eski kayıtlarda tam URL olabilir) */
+function toStoragePath(value: string): string {
+  if (!/^https?:\/\//i.test(value)) return value;
+  const marker = `/${BUCKET}/`;
+  const idx = value.indexOf(marker);
+  return idx === -1 ? value : decodeURIComponent(value.slice(idx + marker.length));
+}
+
+type DocLinks = { photo: string | null; cv: string | null };
+
+/**
+ * Başvurunun belge yollarını DB'den okuyup imzalı URL üretir.
+ *
+ * Yollar istemciden ALINMAZ, reference_code ile sunucuda okunur; aksi halde
+ * fonksiyona sahte bir yol gönderen biri başka adayın dosyası için imzalı
+ * bağlantı ürettirebilirdi.
+ */
+async function signApplicationDocuments(
+  // Şema tipleri üretilmediği için gevşek istemci tipi
+  supabase: SupabaseClient<any>,
+  referenceCode: unknown,
+): Promise<DocLinks> {
+  const empty: DocLinks = { photo: null, cv: null };
+  if (typeof referenceCode !== 'string' || !referenceCode) return empty;
+
+  const { data: row, error } = await supabase
+    .from('job_applications')
+    .select('photo_url, cv_url')
+    .eq('reference_code', referenceCode)
+    .maybeSingle();
+
+  if (error || !row) {
+    console.error('Belge yolları okunamadı:', error);
+    return empty;
+  }
+
+  const sign = async (value: unknown): Promise<string | null> => {
+    if (typeof value !== 'string' || !value) return null;
+    const { data, error: signError } = await supabase.storage
+      .from(BUCKET)
+      .createSignedUrl(toStoragePath(value), DOC_LINK_TTL_SECONDS);
+    if (signError || !data?.signedUrl) {
+      console.error('İmzalı bağlantı üretilemedi:', signError);
+      return null;
+    }
+    return data.signedUrl;
+  };
+
+  return { photo: await sign(row.photo_url), cv: await sign(row.cv_url) };
+}
+
+function buildJobApplicationHtml(data: Record<string, any>, links: DocLinks): string {
   const parts: string[] = [];
 
   parts.push(jobHeading('Başvuru Özeti'));
@@ -188,19 +269,40 @@ function buildJobApplicationHtml(data: Record<string, any>): string {
     ]),
   );
 
-  // Özgeçmiş ve fotoğraf artık gizli bucket'ta tutulur; doğrudan bağlantı
-  // e-posta zincirinde dolaşmasın diye yalnızca panele yönlendirilir.
-  // İK, başvuru detayında imzalı (süreli) URL ile açar.
-  if (data.has_attachments) {
+  // Dosyalar ek olarak gönderilmez; 7 gün geçerli imzalı bağlantı verilir.
+  // Süre dolduktan sonra belgeler yalnızca panelden açılır.
+  if (links.photo || links.cv || data.has_attachments) {
     parts.push(jobHeading('Belgeler'));
     const adminUrl = typeof data.admin_url === 'string' ? data.admin_url : '';
-    parts.push(
-      `<p style="font-size:14px;padding:0 2px;">Adayın özgeçmişi ve fotoğrafı başvuruya eklidir. ` +
-        (adminUrl
-          ? `<a href="${escapeHtml(adminUrl)}">Yönetim panelinden görüntüleyin</a>.`
-          : 'Yönetim paneli &gt; İnsan Kaynakları &gt; İş Başvuruları bölümünden görüntüleyebilirsiniz.') +
-        `</p>`,
-    );
+    const linkStyle = 'display:inline-block;margin:0 12px 6px 0;font-size:14px;';
+    const rows: string[] = [];
+
+    if (links.photo) {
+      rows.push(`<a href="${escapeHtml(links.photo)}" style="${linkStyle}">Fotoğrafı görüntüle</a>`);
+    }
+    if (links.cv) {
+      rows.push(`<a href="${escapeHtml(links.cv)}" style="${linkStyle}">Özgeçmişi görüntüle</a>`);
+    }
+
+    if (rows.length) {
+      parts.push(`<p style="padding:0 2px;">${rows.join('')}</p>`);
+      parts.push(
+        `<p style="font-size:12px;color:#6b7280;padding:0 2px;">` +
+          `Bu bağlantılar 7 gün geçerlidir. Süre dolduktan sonra belgeler ` +
+          (adminUrl
+            ? `<a href="${escapeHtml(adminUrl)}">yönetim panelinden</a>`
+            : 'yönetim panelinden') +
+          ` görüntülenebilir. Aday belgeleri kişisel veridir; bağlantıyı kurum dışına iletmeyiniz.</p>`,
+      );
+    } else {
+      parts.push(
+        `<p style="font-size:14px;padding:0 2px;">Adayın belgeleri başvuruya eklidir. ` +
+          (adminUrl
+            ? `<a href="${escapeHtml(adminUrl)}">Yönetim panelinden görüntüleyin</a>.`
+            : 'Yönetim paneli &gt; İnsan Kaynakları &gt; İş Başvuruları bölümünden görüntüleyebilirsiniz.') +
+          `</p>`,
+      );
+    }
   }
 
   if (Array.isArray(data.education) && data.education.length) {
@@ -336,19 +438,7 @@ Deno.serve(async (req: Request) => {
 
     const recipient =
       (settings as Record<string, string> | null)?.[column] ||
-      'info@anadoluhastaneleri.com';
-
-    const apiKey = Deno.env.get('RESEND_API_KEY');
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: 'RESEND_API_KEY tanımlı değil' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
-    }
-
-    const from =
-      Deno.env.get('RESEND_FROM') ||
-      'Anadolu Hastaneleri <onboarding@resend.dev>';
+      FALLBACK_RECIPIENT[formType];
 
     // Ziyaretçi e-postası varsa yanıtla (reply-to) kolaylığı için ekle
     const replyTo =
@@ -356,34 +446,103 @@ Deno.serve(async (req: Request) => {
         ? data.email
         : undefined;
 
-    const resendRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from,
-        to: [recipient],
-        reply_to: replyTo,
-        subject:
-          formType === 'job_application'
-            ? `[İş Başvurusu] ${String(data.position || '')} — ${String(data.name || '')}`.trim()
-            : `[${FORM_TITLE[formType]}] ${escapeHtml(data.name || '')}`.trim(),
-        html:
-          formType === 'job_application'
-            ? buildJobApplicationHtml(data)
-            : buildHtml(formType, data),
-      }),
-    });
+    const subject =
+      formType === 'job_application'
+        ? `[İş Başvurusu] ${String(data.position || '')} — ${String(data.name || '')}`.trim()
+        : `[${FORM_TITLE[formType]}] ${String(data.name || '')}`.trim();
 
-    if (!resendRes.ok) {
-      const errText = await resendRes.text();
-      console.error('Resend error:', errText);
-      return new Response(
-        JSON.stringify({ error: 'E-posta gönderilemedi', detail: errText }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
+    const html =
+      formType === 'job_application'
+        ? buildJobApplicationHtml(
+            data,
+            await signApplicationDocuments(supabase, data.reference_code),
+          )
+        : buildHtml(formType, data);
+
+    const smtpHost = Deno.env.get('SMTP_HOST');
+
+    if (smtpHost) {
+      // ── A) Kurum posta kutusu üzerinden SMTP ile gönderim ──
+      const port = Number(Deno.env.get('SMTP_PORT') || '587');
+      const username = Deno.env.get('SMTP_USER') ?? '';
+      const password = Deno.env.get('SMTP_PASSWORD') ?? '';
+
+      if (!username || !password) {
+        return new Response(
+          JSON.stringify({ error: 'SMTP_USER / SMTP_PASSWORD tanımlı değil' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+
+      const client = new SMTPClient({
+        connection: {
+          hostname: smtpHost,
+          port,
+          // 465 => doğrudan TLS, 587 => düz bağlanıp STARTTLS ile yükseltilir
+          tls: port === 465,
+          auth: { username, password },
+        },
+      });
+
+      try {
+        await client.send({
+          from: Deno.env.get('SMTP_FROM') || username,
+          to: recipient,
+          replyTo,
+          subject,
+          content: 'auto',
+          html,
+        });
+      } catch (smtpErr) {
+        console.error('SMTP error:', smtpErr);
+        return new Response(
+          JSON.stringify({ error: 'E-posta gönderilemedi', detail: String(smtpErr) }),
+          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      } finally {
+        try {
+          await client.close();
+        } catch {
+          // bağlantı zaten kapanmışsa yut
+        }
+      }
+    } else {
+      // ── B) Resend API üzerinden gönderim ──
+      const apiKey = Deno.env.get('RESEND_API_KEY');
+      if (!apiKey) {
+        return new Response(
+          JSON.stringify({ error: 'SMTP_HOST veya RESEND_API_KEY tanımlı değil' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+
+      const from =
+        Deno.env.get('RESEND_FROM') ||
+        'Anadolu Hastaneleri <onboarding@resend.dev>';
+
+      const resendRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from,
+          to: [recipient],
+          reply_to: replyTo,
+          subject,
+          html,
+        }),
+      });
+
+      if (!resendRes.ok) {
+        const errText = await resendRes.text();
+        console.error('Resend error:', errText);
+        return new Response(
+          JSON.stringify({ error: 'E-posta gönderilemedi', detail: errText }),
+          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
     }
 
     return new Response(

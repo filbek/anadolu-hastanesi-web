@@ -54,7 +54,7 @@ const AdminSettings = () => {
     second_opinion_email: 'info@anadoluhastaneleri.com',
     contact_form_email: 'info@anadoluhastaneleri.com',
     feedback_form_email: 'hastahaklari@anadoluhastaneleri.com',
-    career_form_email: 'bekir.filizdag@gmail.com',
+    career_form_email: 'isbasvuru@anadoluhastaneleri.com',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

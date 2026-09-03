@@ -7,24 +7,55 @@ interface User {
   id: string;
   email: string;
   full_name: string;
-  role: 'admin' | 'editor' | 'hr' | 'user';
+  role: 'admin' | 'editor' | 'hr' | 'user' | 'super_admin';
   is_active: boolean;
   created_at: string;
   last_login: string;
   avatar_url?: string;
 }
 
+/**
+ * Kullanıcı yönetimi supabase.auth.admin.* uçlarını gerektirir; bu uçlar
+ * yalnızca service_role anahtarıyla çalışır ve o anahtar tarayıcıya konulamaz.
+ * Bu yüzden tüm işlemler admin-users edge function'ı üzerinden yapılır
+ * (bkz. supabase/functions/admin-users/index.ts). Fonksiyon çağıranın
+ * rolünü profiles tablosundan doğrular.
+ */
+const callAdminUsers = async <T,>(body: Record<string, unknown>): Promise<T> => {
+  const { data, error } = await supabase.functions.invoke('admin-users', { body });
+
+  if (error) {
+    // Edge function hata gövdesindeki mesajı okumaya çalış
+    let message = error.message;
+    const response = (error as any).context as Response | undefined;
+    if (response) {
+      try {
+        const parsed = await response.clone().json();
+        if (parsed?.error) message = parsed.error;
+      } catch {
+        // gövde JSON değilse varsayılan mesaj kalsın
+      }
+    }
+    throw new Error(message);
+  }
+
+  if (data?.error) throw new Error(data.error);
+  return data as T;
+};
+
 const AdminUsers = () => {
   const { t } = useTranslation();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     full_name: '',
-    role: 'user' as 'admin' | 'editor' | 'hr' | 'user',
+    role: 'user' as User['role'],
     is_active: true,
     password: ''
   });
@@ -36,60 +67,14 @@ const AdminUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
 
-      // Fetch users from auth.users via supabase
-      const { data: { users: authUsers }, error } = await supabase.auth.admin.listUsers();
-
-      if (error) {
-        // Fallback: create sample users
-        const sampleUsers: User[] = [
-          {
-            id: '1',
-            email: 'admin@anadoluhastaneleri.com',
-            full_name: 'Admin Kullanıcı',
-            role: 'admin',
-            is_active: true,
-            created_at: new Date().toISOString(),
-            last_login: new Date().toISOString(),
-            avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100'
-          },
-          {
-            id: '2',
-            email: 'editor@anadoluhastaneleri.com',
-            full_name: 'Editör Kullanıcı',
-            role: 'editor',
-            is_active: true,
-            created_at: new Date().toISOString(),
-            last_login: new Date().toISOString(),
-            avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'
-          },
-          {
-            id: '3',
-            email: 'user@example.com',
-            full_name: 'Normal Kullanıcı',
-            role: 'user',
-            is_active: true,
-            created_at: new Date().toISOString(),
-            last_login: new Date().toISOString()
-          }
-        ];
-        setUsers(sampleUsers);
-      } else {
-        const formattedUsers: User[] = (authUsers || []).map((user: any) => ({
-          id: user.id,
-          email: user.email,
-          full_name: user.user_metadata?.full_name || user.email,
-          role: user.user_metadata?.role || 'user',
-          is_active: !user.banned_at,
-          created_at: user.created_at,
-          last_login: user.last_sign_in_at,
-          avatar_url: user.user_metadata?.avatar_url
-        }));
-        setUsers(formattedUsers);
-      }
-    } catch (error) {
+      const { users: fetched } = await callAdminUsers<{ users: User[] }>({ action: 'list' });
+      setUsers(fetched || []);
+    } catch (error: any) {
       console.error('Error fetching users:', error);
       setUsers([]);
+      setLoadError(error.message);
     } finally {
       setLoading(false);
     }
@@ -99,20 +84,17 @@ const AdminUsers = () => {
     e.preventDefault();
 
     try {
-      if (editingUser) {
-        // Update existing user
-        const { error } = await supabase.auth.admin.updateUserById(
-          editingUser.id,
-          {
-            email: formData.email,
-            user_metadata: {
-              full_name: formData.full_name,
-              role: formData.role
-            }
-          }
-        );
+      setSaving(true);
 
-        if (error) throw error;
+      if (editingUser) {
+        await callAdminUsers({
+          action: 'update',
+          id: editingUser.id,
+          email: formData.email,
+          full_name: formData.full_name,
+          role: formData.role,
+          is_active: formData.is_active
+        });
 
         setUsers(users.map(user =>
           user.id === editingUser.id
@@ -120,31 +102,16 @@ const AdminUsers = () => {
             : user
         ));
       } else {
-        // Create new user
-        const { data, error } = await supabase.auth.admin.createUser({
+        const { user: created } = await callAdminUsers<{ user: User }>({
+          action: 'create',
           email: formData.email,
           password: formData.password,
-          email_confirm: true,
-          user_metadata: {
-            full_name: formData.full_name,
-            role: formData.role
-          }
+          full_name: formData.full_name,
+          role: formData.role,
+          is_active: formData.is_active
         });
 
-        if (error) throw error;
-
-        if (data.user) {
-          const newUser: User = {
-            id: data.user.id,
-            email: data.user.email || '',
-            full_name: formData.full_name,
-            role: formData.role,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            last_login: ''
-          };
-          setUsers([newUser, ...users]);
-        }
+        setUsers([created, ...users]);
       }
 
       setShowForm(false);
@@ -161,6 +128,8 @@ const AdminUsers = () => {
     } catch (error: any) {
       console.error('Error saving user:', error);
       alert(t('admin.userSaveError', 'Kullanıcı kaydedilirken hata oluştu: ') + error.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -168,8 +137,7 @@ const AdminUsers = () => {
     if (!confirm(t('admin.confirmDeleteUser', 'Bu kullanıcıyı silmek istediğinizden emin misiniz?'))) return;
 
     try {
-      const { error } = await supabase.auth.admin.deleteUser(id);
-      if (error) throw error;
+      await callAdminUsers({ action: 'delete', id });
 
       setUsers(users.filter(user => user.id !== id));
       alert(t('admin.userDeleted', 'Kullanıcı silindi!'));
@@ -193,6 +161,8 @@ const AdminUsers = () => {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
+      case 'super_admin':
+        return 'bg-amber-100 text-amber-800';
       case 'admin':
         return 'bg-red-100 text-red-800';
       case 'editor':
@@ -206,6 +176,8 @@ const AdminUsers = () => {
 
   const getRoleLabel = (role: string) => {
     switch (role) {
+      case 'super_admin':
+        return t('admin.role.superAdmin', 'Süper Yönetici');
       case 'admin':
         return t('admin.role.admin', 'Yönetici');
       case 'editor':
@@ -252,6 +224,12 @@ const AdminUsers = () => {
           {t('admin.users.new', 'Yeni Kullanıcı')}
         </button>
       </div>
+
+      {loadError && (
+        <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4 mb-6">
+          {t('admin.users.loadError', 'Kullanıcılar yüklenemedi: ')}{loadError}
+        </div>
+      )}
 
       {/* Search */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
@@ -455,10 +433,13 @@ const AdminUsers = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark flex items-center"
+                  disabled={saving}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark flex items-center disabled:opacity-60"
                 >
                   <FaSave className="mr-2" />
-                  {editingUser ? t('admin.update', 'Güncelle') : t('admin.create', 'Oluştur')}
+                  {saving
+                    ? t('admin.saving', 'Kaydediliyor...')
+                    : editingUser ? t('admin.update', 'Güncelle') : t('admin.create', 'Oluştur')}
                 </button>
               </div>
             </form>

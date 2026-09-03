@@ -563,9 +563,9 @@ const JobApplicationPage = () => {
         references_list: filledReferences,
         expected_salary: form.expected_salary,
         earliest_start_date: form.earliest_start_date,
-        // Belgelerin kendisi e-postaya konmaz; bucket gizli ve bağlantı
-        // iletilirse KVKK kapsamındaki dosya e-posta zincirinde dolaşır.
-        // Bunun yerine panele yönlendirilir, orada imzalı URL ile açılır.
+        // Belgelerin kendisi e-postaya EK olarak konmaz (kalıcı kopya bırakır).
+        // Edge function, reference_code ile yolları DB'den okuyup 7 gün
+        // geçerli imzalı bağlantı üretir; yollar buradan gönderilmez.
         has_attachments: Boolean(photoUrl || cvUrl),
         admin_url: `${window.location.origin}/admin/job-applications`,
       });

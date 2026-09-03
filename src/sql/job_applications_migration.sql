@@ -126,11 +126,11 @@ CREATE POLICY "Allow delete job applications" ON public.job_applications
 
 -- 3) Başvuru bildiriminin gideceği e-posta adresi (admin panelinden değiştirilebilir)
 ALTER TABLE public.site_settings
-  ADD COLUMN IF NOT EXISTS career_form_email TEXT DEFAULT 'bekir.filizdag@gmail.com';
+  ADD COLUMN IF NOT EXISTS career_form_email TEXT DEFAULT 'isbasvuru@anadoluhastaneleri.com';
 
 -- Mevcut satırda kolon boşsa doldur
 UPDATE public.site_settings
-SET career_form_email = 'bekir.filizdag@gmail.com'
+SET career_form_email = 'isbasvuru@anadoluhastaneleri.com'
 WHERE career_form_email IS NULL OR career_form_email = '';
 
 -- 4) Aday belgeleri için storage bucket (fotoğraf, CV)
