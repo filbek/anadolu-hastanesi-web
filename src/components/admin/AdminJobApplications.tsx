@@ -25,6 +25,9 @@ import {
   FaUserFriends,
   FaStar,
   FaRegStickyNote,
+  FaExternalLinkAlt,
+  FaSyncAlt,
+  FaCloudUploadAlt,
 } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
 import { useSupabase } from '../../contexts/SupabaseContext';
@@ -79,6 +82,12 @@ interface JobApplication {
   admin_note: string | null;
   is_read: boolean;
   created_at: string;
+  /** Aday formu yeniden gönderdiyse damgalanır (bkz. dedupe migration) */
+  updated_at: string | null;
+  /** Kaç kez gönderildi; 1 ise tek başvuru */
+  submission_count: number | null;
+  /** Üzerine yazılan gönderimlerin eski başvuru numaraları */
+  previous_reference_codes: string[] | null;
 }
 
 /*
@@ -95,6 +104,16 @@ interface JobApplication {
  * Yazar bilgisi sunucudaki tetikleyici tarafından damgalanır
  * (bkz. job_application_notes_migration.sql), istemciden gönderilmez.
  */
+/** Üzerine yazılan bir gönderimin arşivlenmiş hâli */
+interface ApplicationRevision {
+  id: number;
+  application_id: number;
+  reference_code: string | null;
+  submitted_at: string | null;
+  archived_at: string;
+  snapshot: Record<string, any>;
+}
+
 interface ApplicationNote {
   id: number;
   application_id: number;
@@ -117,6 +136,9 @@ const STATUS_OPTIONS = [
   { value: 'kara_liste', label: 'Kara Liste', className: 'bg-neutral-800 text-white' },
   { value: 'arsiv', label: 'Arşiv', className: 'bg-slate-100 text-slate-600' },
 ];
+
+/** Aday formu birden çok kez gönderdiyse true */
+const isResubmitted = (a: JobApplication) => (a.submission_count ?? 1) > 1;
 
 const statusMeta = (value: string) =>
   STATUS_OPTIONS.find((s) => s.value === value) ?? STATUS_OPTIONS[0];
@@ -201,8 +223,9 @@ const toStoragePath = (value: string): string => {
 
 /**
  * Gizli bucket'taki belgeyi süreli bir bağlantıyla açar.
- * Bağlantı önceden üretilip DOM'a gömülmez; yalnızca tıklandığında istenir,
- * böylece açılmayan belge için imzalı URL hiç oluşmaz.
+ * Özgeçmiş için bağlantı yalnızca tıklandığında istenir; açılmayan CV için
+ * imzalı URL hiç oluşmaz. Vesikalıklar listede doğrudan gösterildiği için
+ * onların bağlantısı önden toplu üretilir (bkz. signPaths).
  */
 const openDocument = async (value: string) => {
   const { data, error } = await supabase.storage
@@ -215,6 +238,162 @@ const openDocument = async (value: string) => {
     return;
   }
   window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+};
+
+/**
+ * Birden çok belgeyi TEK istekte imzalar; satır başına ayrı çağrı
+ * atmak 30+ başvuruda listeyi gözle görülür yavaşlatırdı.
+ * Dönen kayıt, yol -> imzalı URL eşlemesidir.
+ */
+const signPaths = async (values: string[]): Promise<Record<string, string>> => {
+  const paths = [...new Set(values.map(toStoragePath))];
+  if (!paths.length) return {};
+
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrls(paths, SIGNED_URL_TTL);
+
+  if (error || !data) {
+    console.error('Fotoğraf bağlantıları oluşturulamadı:', error);
+    return {};
+  }
+
+  const map: Record<string, string> = {};
+  for (const item of data) {
+    if (item.signedUrl && item.path) map[item.path] = item.signedUrl;
+  }
+  return map;
+};
+
+/** Ad soyaddan baş harfler — fotoğrafı olmayan aday için yer tutucu */
+const initials = (name: string) =>
+  name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0] ?? '')
+    .join('')
+    .toLocaleUpperCase('tr-TR');
+
+/**
+ * Aday vesikalığı. Fotoğrafı yoksa (düzeltme öncesi başvurular ve
+ * fotoğrafın zorunlu olmadığı dönem) baş harfli yer tutucu gösterilir.
+ */
+const CandidatePhoto = ({
+  name,
+  url,
+  className = '',
+  onClick,
+}: {
+  name: string;
+  url?: string;
+  className?: string;
+  onClick?: () => void;
+}) => {
+  const [failed, setFailed] = useState(false);
+
+  if (!url || failed) {
+    return (
+      <div
+        className={`flex items-center justify-center bg-gray-100 text-gray-500 font-bold select-none ${className}`}
+        aria-hidden="true"
+      >
+        {initials(name) || '—'}
+      </div>
+    );
+  }
+
+  const img = (
+    <img
+      src={url}
+      alt={`${name} vesikalık fotoğrafı`}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className={`object-cover bg-gray-100 ${className}`}
+    />
+  );
+
+  if (!onClick) return img;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title="Fotoğrafı tam boyutta aç"
+      className="rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+    >
+      {img}
+    </button>
+  );
+};
+
+/**
+ * Vesikalığın büyük hâlini gösteren pencere.
+ * Yeni sekme yerine burada açılır; İK listeden çıkmadan yüze bakıp
+ * Esc ile geri dönebilsin diye.
+ */
+const PhotoLightbox = ({
+  name,
+  url,
+  onClose,
+  onOpenOriginal,
+}: {
+  name: string;
+  url: string;
+  onClose: () => void;
+  onOpenOriginal?: () => void;
+}) => {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      // Başvuru detayı z-50'de; bu pencere onun da üstünde durmalı
+      className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${name} vesikalık fotoğrafı`}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="max-w-lg w-full">
+        <div className="flex items-center justify-between gap-3 mb-3 text-white">
+          <p className="font-semibold truncate">{name}</p>
+          <div className="flex items-center gap-1 shrink-0">
+            {onOpenOriginal && (
+              <button
+                type="button"
+                onClick={onOpenOriginal}
+                className="p-2 rounded-lg hover:bg-white/10"
+                title="Yeni sekmede aç"
+                aria-label="Fotoğrafı yeni sekmede aç"
+              >
+                <FaExternalLinkAlt />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-white/10"
+              aria-label="Kapat"
+              autoFocus
+            >
+              <FaTimes />
+            </button>
+          </div>
+        </div>
+        <img
+          src={url}
+          alt={`${name} vesikalık fotoğrafı`}
+          className="w-full max-h-[75vh] object-contain rounded-lg bg-white"
+        />
+      </div>
+    </div>
+  );
 };
 
 const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) => {
@@ -337,11 +516,26 @@ const AdminJobApplications = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [groupFilter, setGroupFilter] = useState('all');
+  const [hospitalFilter, setHospitalFilter] = useState('all');
   const [selected, setSelected] = useState<JobApplication | null>(null);
   /** Başvuru kimliğine göre notlar; liste ve detay aynı kaynaktan okur */
   const [notes, setNotes] = useState<Record<number, ApplicationNote[]>>({});
   /** Listede not bölümü açık olan satır */
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  /**
+   * Başvuru kimliğine göre imzalı fotoğraf URL'leri.
+   * Küçük görsel listede doğrudan gösterileceği için bağlantılar burada
+   * önden üretilir; süresi (SIGNED_URL_TTL) dolduğunda görsel kırılmasın
+   * diye sayfa yenilendiğinde yeniden imzalanır.
+   */
+  const [photoUrls, setPhotoUrls] = useState<Record<number, string>>({});
+  /** Büyütülmüş vesikalığı gösterilen aday */
+  const [photoPreview, setPhotoPreview] = useState<JobApplication | null>(null);
+  /** Açılan başvurunun önceki gönderimleri; detay açılırken çekilir */
+  const [revisions, setRevisions] = useState<ApplicationRevision[]>([]);
+  /** Detayda vesikalık yükleniyor mu / hata verdi mi */
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoUploadError, setPhotoUploadError] = useState('');
   const { user } = useSupabase();
 
   useEffect(() => {
@@ -358,12 +552,25 @@ const AdminJobApplications = () => {
       if (error) throw error;
       const list = (data ?? []) as JobApplication[];
       setApplications(list);
-      await fetchNotes(list.map((a) => a.id));
+      await Promise.all([fetchNotes(list.map((a) => a.id)), fetchPhotoUrls(list)]);
     } catch (err) {
       console.error('Başvurular yüklenemedi:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  /** Fotoğrafı olan başvurular için imzalı URL'leri tek istekte üretir */
+  const fetchPhotoUrls = async (list: JobApplication[]) => {
+    const withPhoto = list.filter((a) => a.photo_url);
+    const map = await signPaths(withPhoto.map((a) => a.photo_url!));
+    setPhotoUrls(
+      Object.fromEntries(
+        withPhoto
+          .map((a) => [a.id, map[toStoragePath(a.photo_url!)]])
+          .filter(([, url]) => url),
+      ),
+    );
   };
 
   /*
@@ -439,6 +646,75 @@ const AdminJobApplications = () => {
       await supabase.from('job_applications').update({ is_read: true }).eq('id', app.id);
       setApplications((prev) => prev.map((a) => (a.id === app.id ? { ...a, is_read: true } : a)));
     }
+
+    setPhotoUploadError('');
+
+    // Önceki gönderimler yalnızca detay açılınca çekilir; liste için
+    // her satıra ayrıca sorgu atmaya değmez.
+    setRevisions([]);
+    if (isResubmitted(app)) {
+      const { data, error } = await supabase
+        .from('job_application_revisions')
+        .select('*')
+        .eq('application_id', app.id)
+        .order('submitted_at', { ascending: false });
+      if (error) console.error('Önceki gönderimler okunamadı:', error);
+      else setRevisions((data ?? []) as ApplicationRevision[]);
+    }
+  };
+
+  /*
+   * Vesikalığı panelden yükleme.
+   *
+   * Fotoğraf zorunlu olmadan önce gönderilmiş başvurularda alan boş kalıyor;
+   * İK adayın gönderdiği görseli buradan ekleyebilsin diye. Yeni dosya
+   * bucket'a yazılır, ardından kaydın photo_url'i güncellenir — sıralama
+   * önemli: önce kayıt güncellenip yükleme başarısız olsaydı kırık yol
+   * kalırdı.
+   */
+  const MAX_PHOTO_MB = 10;
+
+  const uploadPhoto = async (app: JobApplication, file: File) => {
+    setPhotoUploadError('');
+
+    if (!file.type.startsWith('image/')) {
+      setPhotoUploadError('Yalnızca görsel dosyası yükleyebilirsiniz (JPG, PNG).');
+      return;
+    }
+    if (file.size > MAX_PHOTO_MB * 1024 * 1024) {
+      setPhotoUploadError(`Dosya boyutu ${MAX_PHOTO_MB}MB sınırını aşıyor.`);
+      return;
+    }
+
+    setPhotoUploading(true);
+    try {
+      const parts = file.name.split('.');
+      const ext = parts.length > 1 ? parts.pop()!.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+      const path = `photos/${crypto.randomUUID()}${ext ? `.${ext}` : ''}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, file, { contentType: file.type || 'application/octet-stream' });
+      if (uploadError) throw uploadError;
+
+      const { error: updateError } = await supabase
+        .from('job_applications')
+        .update({ photo_url: path })
+        .eq('id', app.id);
+      if (updateError) throw updateError;
+
+      const signed = await signPaths([path]);
+      setPhotoUrls((prev) => ({ ...prev, [app.id]: signed[path] }));
+      setApplications((prev) =>
+        prev.map((a) => (a.id === app.id ? { ...a, photo_url: path } : a))
+      );
+      setSelected((prev) => (prev && prev.id === app.id ? { ...prev, photo_url: path } : prev));
+    } catch (err: any) {
+      console.error('Fotoğraf yüklenemedi:', err);
+      setPhotoUploadError(err?.message ?? 'Fotoğraf yüklenemedi. Lütfen tekrar deneyin.');
+    } finally {
+      setPhotoUploading(false);
+    }
   };
 
   const updateStatus = async (id: number, status: string) => {
@@ -466,6 +742,19 @@ const AdminJobApplications = () => {
     if (selected?.id === id) setSelected(null);
   };
 
+  /**
+   * Filtredeki şube listesi başvurulardan türetilir; hastaneler tablosundan
+   * değil. Böylece eski bir şube adıyla kaydedilmiş başvurular da
+   * filtrelenebilir ve hiç başvurusu olmayan şube listede yer kaplamaz.
+   */
+  const hospitalOptions = useMemo(
+    () =>
+      [...new Set(applications.map((a) => a.hospital).filter(Boolean) as string[])].sort(
+        (a, b) => a.localeCompare(b, 'tr')
+      ),
+    [applications]
+  );
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return applications.filter((a) => {
@@ -476,6 +765,8 @@ const AdminJobApplications = () => {
         a.position.toLowerCase().includes(q) ||
         a.mobile_phone.includes(q) ||
         a.reference_code.toLowerCase().includes(q) ||
+        // Aday elindeki ESKİ numarayla arandığında da bulunsun
+        (a.previous_reference_codes ?? []).some((c) => c.toLowerCase().includes(q)) ||
         // Referans kişinin adı/kurumu da aranabilir: "Arkaz" yazıp o kişiyi
         // referans gösteren tüm başvurular tek seferde bulunabilsin.
         filledReferences(a).some(
@@ -485,9 +776,25 @@ const AdminJobApplications = () => {
         );
       const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
       const matchesGroup = groupFilter === 'all' || a.position_group === groupFilter;
-      return matchesSearch && matchesStatus && matchesGroup;
-    });
-  }, [applications, search, statusFilter, groupFilter]);
+      // 'none': şube seçilmeden gönderilmiş eski başvurular
+      const matchesHospital =
+        hospitalFilter === 'all' ||
+        (hospitalFilter === 'none' ? !a.hospital : a.hospital === hospitalFilter);
+      return matchesSearch && matchesStatus && matchesGroup && matchesHospital;
+    })
+      /*
+       * Yeniden gönderilen başvuru listenin başına gelsin diye son hareket
+       * tarihine göre sıralanır. Sıralama SUNUCUDA değil burada yapılır:
+       * updated_at kolonu dedupe migration ile geliyor, sorguya konursa
+       * migration çalıştırılmamış bir veritabanında istek 400 döner ve
+       * liste tamamen boş kalırdı.
+       */
+      .sort(
+        (a, b) =>
+          new Date(b.updated_at ?? b.created_at).getTime() -
+          new Date(a.updated_at ?? a.created_at).getTime()
+      );
+  }, [applications, search, statusFilter, groupFilter, hospitalFilter]);
 
   /** Excel'de açılabilmesi için UTF-8 BOM'lu, noktalı virgül ayraçlı CSV */
   const exportCsv = () => {
@@ -583,6 +890,20 @@ const AdminJobApplications = () => {
             <option key={g.value} value={g.value}>{g.label}</option>
           ))}
         </select>
+        <select
+          value={hospitalFilter}
+          onChange={(e) => setHospitalFilter(e.target.value)}
+          aria-label="Hastane şubesine göre filtrele"
+          className="px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <option value="all">Tüm şubeler</option>
+          {hospitalOptions.map((h) => (
+            <option key={h} value={h}>{h}</option>
+          ))}
+          {applications.some((a) => !a.hospital) && (
+            <option value="none">Şube belirtilmemiş</option>
+          )}
+        </select>
       </div>
 
       {/* Liste */}
@@ -610,58 +931,85 @@ const AdminJobApplications = () => {
                 <Fragment key={a.id}>
                 <tr className={a.is_read ? '' : 'bg-blue-50/40'}>
                   <td className="px-4 py-3">
-                    <div className="font-semibold text-gray-900 flex items-center gap-2">
-                      {!a.is_read && (
-                        <span className="w-2 h-2 rounded-full bg-accent shrink-0" aria-label="Okunmadı" />
-                      )}
-                      {a.full_name}
-                      {certificateCount(a) > 0 && (
-                        <span
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[11px] font-bold"
-                          title={`${certificateCount(a)} sertifika bildirildi`}
-                        >
-                          <FaCertificate aria-hidden="true" />
-                          {certificateCount(a)}
-                          <span className="sr-only">sertifika bildirildi</span>
-                        </span>
-                      )}
-                      {/*
-                        Yalnızca SAYI gösterilir. Referans kişiler başvuru
-                        sahibi değil, kendi verisinin işlenmesine rıza
-                        vermemiş üçüncü kişiler; ad ve telefonları sürekli
-                        açık ekranda durmak yerine İK'nın bilerek açtığı
-                        bölümde görünür.
-                      */}
-                      {filledReferences(a).length > 0 && (
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                            hasHighlightedReference(a)
-                              ? 'bg-amber-400 text-amber-950 ring-2 ring-amber-500'
-                              : 'bg-violet-100 text-violet-800'
-                          }`}
-                          title={
-                            hasHighlightedReference(a)
-                              ? `${filledReferences(a).length} referans — aralarında vurgulanan bir soyad var`
-                              : `${filledReferences(a).length} referans bildirildi`
-                          }
-                        >
-                          <FaUserFriends aria-hidden="true" />
-                          {filledReferences(a).length}
-                          <span className="sr-only">
-                            referans bildirildi
-                            {hasHighlightedReference(a) && ', aralarında vurgulanan bir soyad var'}
-                          </span>
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-500 font-mono">{a.reference_code}</div>
-                    {/* Son not, satır açılmadan da okunabilsin */}
-                    {(notes[a.id]?.length ?? 0) > 0 && (
-                      <div className="mt-1 flex items-start gap-1.5 text-xs text-gray-600 max-w-xs">
-                        <FaRegStickyNote className="mt-0.5 shrink-0 text-amber-500" aria-hidden="true" />
-                        <span className="line-clamp-2 italic">{notes[a.id][0].note}</span>
+                    <div className="flex items-start gap-3">
+                      {/* Vesikalık; adayı listede yüzünden tanımak için */}
+                      <CandidatePhoto
+                        name={a.full_name}
+                        url={photoUrls[a.id]}
+                        className="w-10 h-[52px] rounded-md shrink-0 text-xs"
+                        onClick={photoUrls[a.id] ? () => setPhotoPreview(a) : undefined}
+                      />
+                      <div className="min-w-0">
+                        <div className="font-semibold text-gray-900 flex items-center gap-2">
+                          {!a.is_read && (
+                            <span className="w-2 h-2 rounded-full bg-accent shrink-0" aria-label="Okunmadı" />
+                          )}
+                          {a.full_name}
+                          {/*
+                            Aday formu yeniden gönderdiğinde yeni satır
+                            açılmaz, mevcut kayıt güncellenir. İK'nın bunu
+                            fark etmesi için rozet gösterilir.
+                          */}
+                          {isResubmitted(a) && (
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 text-[11px] font-bold"
+                              title={`Aday ${a.submission_count} kez başvuru gönderdi. Son güncelleme: ${
+                                a.updated_at ? formatDateTime(a.updated_at) : '-'
+                              }`}
+                            >
+                              <FaSyncAlt aria-hidden="true" />
+                              {a.submission_count}× güncellendi
+                            </span>
+                          )}
+                          {certificateCount(a) > 0 && (
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[11px] font-bold"
+                              title={`${certificateCount(a)} sertifika bildirildi`}
+                            >
+                              <FaCertificate aria-hidden="true" />
+                              {certificateCount(a)}
+                              <span className="sr-only">sertifika bildirildi</span>
+                            </span>
+                          )}
+                          {/*
+                            Yalnızca SAYI gösterilir. Referans kişiler başvuru
+                            sahibi değil, kendi verisinin işlenmesine rıza
+                            vermemiş üçüncü kişiler; ad ve telefonları sürekli
+                            açık ekranda durmak yerine İK'nın bilerek açtığı
+                            bölümde görünür.
+                          */}
+                          {filledReferences(a).length > 0 && (
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                                hasHighlightedReference(a)
+                                  ? 'bg-amber-400 text-amber-950 ring-2 ring-amber-500'
+                                  : 'bg-violet-100 text-violet-800'
+                              }`}
+                              title={
+                                hasHighlightedReference(a)
+                                  ? `${filledReferences(a).length} referans — aralarında vurgulanan bir soyad var`
+                                  : `${filledReferences(a).length} referans bildirildi`
+                              }
+                            >
+                              <FaUserFriends aria-hidden="true" />
+                              {filledReferences(a).length}
+                              <span className="sr-only">
+                                referans bildirildi
+                                {hasHighlightedReference(a) && ', aralarında vurgulanan bir soyad var'}
+                              </span>
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500 font-mono">{a.reference_code}</div>
+                        {/* Son not, satır açılmadan da okunabilsin */}
+                        {(notes[a.id]?.length ?? 0) > 0 && (
+                          <div className="mt-1 flex items-start gap-1.5 text-xs text-gray-600 max-w-xs">
+                            <FaRegStickyNote className="mt-0.5 shrink-0 text-amber-500" aria-hidden="true" />
+                            <span className="line-clamp-2 italic">{notes[a.id][0].note}</span>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="text-gray-900">{a.position}</div>
@@ -817,11 +1165,25 @@ const AdminJobApplications = () => {
         >
           <div className="bg-white rounded-2xl w-full max-w-3xl my-8 shadow-2xl">
             <div className="sticky top-0 bg-primary text-white px-6 py-4 rounded-t-2xl flex items-start justify-between gap-4 z-10">
-              <div>
+              <div className="flex items-center gap-3 min-w-0">
+                <CandidatePhoto
+                  name={selected.full_name}
+                  url={photoUrls[selected.id]}
+                  className="w-9 h-11 rounded-md shrink-0 text-xs bg-white/20 text-white"
+                />
+                <div className="min-w-0">
                 <h2 className="text-lg font-bold">{selected.full_name}</h2>
                 <p className="text-sm text-white/70">
                   {selected.position} · {selected.reference_code}
                 </p>
+                {isResubmitted(selected) && (
+                  <p className="text-xs text-sky-100 flex items-center gap-1.5 mt-0.5">
+                    <FaSyncAlt aria-hidden="true" />
+                    {selected.submission_count} kez gönderildi · son güncelleme{' '}
+                    {selected.updated_at ? formatDateTime(selected.updated_at) : '-'}
+                  </p>
+                )}
+                </div>
               </div>
               <button
                 onClick={() => setSelected(null)}
@@ -833,8 +1195,12 @@ const AdminJobApplications = () => {
             </div>
 
             <div className="p-6">
-              {/* Hızlı işlemler */}
-              <div className="flex flex-wrap gap-2 mb-6">
+              {/*
+                Vesikalık, basılı özgeçmiş formlarındaki gibi sağ üstte
+                gömülü durur; tıklanınca tam boyutta yeni sekmede açılır.
+              */}
+              <div className="flex flex-col-reverse sm:flex-row sm:items-start gap-4 mb-6">
+              <div className="flex flex-wrap gap-2 flex-1">
                 <a
                   href={`mailto:${selected.email}`}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:brightness-125"
@@ -867,10 +1233,70 @@ const AdminJobApplications = () => {
                 )}
               </div>
 
+                <figure className="shrink-0 self-start">
+                  {photoUrls[selected.id] ? (
+                    <CandidatePhoto
+                      name={selected.full_name}
+                      url={photoUrls[selected.id]}
+                      className="w-32 h-40 rounded-lg border border-gray-200 shadow-sm text-2xl"
+                      onClick={() => setPhotoPreview(selected)}
+                    />
+                  ) : (
+                    /*
+                      Fotoğrafın zorunlu olmadığı dönemde gönderilmiş
+                      başvurularda alan boş kalıyor; İK boşluğa tıklayıp
+                      vesikalığı buradan tamamlayabilsin.
+                    */
+                    <label
+                      className={`w-32 h-40 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center gap-1.5 text-center px-2 transition-colors focus-within:ring-2 focus-within:ring-primary ${
+                        photoUploading
+                          ? 'opacity-60 cursor-wait'
+                          : 'cursor-pointer hover:border-primary hover:bg-primary/5'
+                      }`}
+                    >
+                      <FaCloudUploadAlt className="text-2xl text-primary" aria-hidden="true" />
+                      <span className="text-xs font-semibold text-gray-600 leading-tight">
+                        {photoUploading ? 'Yükleniyor…' : 'Fotoğraf yükle'}
+                      </span>
+                      <span className="text-[10px] text-gray-400 leading-tight">JPG, PNG</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="sr-only"
+                        disabled={photoUploading}
+                        aria-label={`${selected.full_name} için vesikalık fotoğraf yükle`}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          // Aynı dosya tekrar seçilebilsin diye input sıfırlanır
+                          e.target.value = '';
+                          if (file) uploadPhoto(selected, file);
+                        }}
+                      />
+                    </label>
+                  )}
+                  {photoUploadError && (
+                    <p role="alert" className="text-xs text-accent font-medium mt-1.5 w-32">
+                      {photoUploadError}
+                    </p>
+                  )}
+                  <figcaption className="sr-only">
+                    {selected.full_name} vesikalık fotoğrafı
+                  </figcaption>
+                </figure>
+              </div>
+
               <DetailSection title="Başvuru">
                 <dl>
                   <DetailRow label="Başvuru No" value={selected.reference_code} />
                   <DetailRow label="Başvuru Tarihi" value={formatDateTime(selected.created_at)} />
+                  <DetailRow
+                    label="Son Güncelleme"
+                    value={selected.updated_at ? formatDateTime(selected.updated_at) : null}
+                  />
+                  <DetailRow
+                    label="Eski Başvuru No"
+                    value={(selected.previous_reference_codes ?? []).join(', ') || null}
+                  />
                   <DetailRow label="Pozisyon" value={selected.position} />
                   <DetailRow label="Pozisyon Grubu" value={groupLabel(selected.position_group)} />
                   <DetailRow label="Tercih Edilen Hastane" value={selected.hospital} />
@@ -1028,6 +1454,42 @@ const AdminJobApplications = () => {
                 </dl>
               </DetailSection>
 
+              {/*
+                Üzerine yazılan gönderimler burada durur; hangi bilgiyi ne
+                zaman değiştirdiği görülebilsin diye ilk gönderime kadar
+                tüm sürümler listelenir.
+              */}
+              {revisions.length > 0 && (
+                <DetailSection title="Önceki Gönderimler">
+                  <ul className="space-y-2">
+                    {revisions.map((r) => (
+                      <li
+                        key={r.id}
+                        className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                      >
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                          <span className="font-semibold text-gray-900">
+                            {r.submitted_at ? formatDateTime(r.submitted_at) : 'Tarih yok'}
+                          </span>
+                          <span className="font-mono text-xs text-gray-500">
+                            {r.reference_code}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          {[
+                            r.snapshot?.position,
+                            r.snapshot?.email,
+                            r.snapshot?.mobile_phone,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </DetailSection>
+              )}
+
               <DetailSection title="İK Notları">
                 <NoteThread
                   notes={notes[selected.id] ?? []}
@@ -1039,6 +1501,19 @@ const AdminJobApplications = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {photoPreview && photoUrls[photoPreview.id] && (
+        <PhotoLightbox
+          name={photoPreview.full_name}
+          url={photoUrls[photoPreview.id]}
+          onClose={() => setPhotoPreview(null)}
+          onOpenOriginal={
+            photoPreview.photo_url
+              ? () => openDocument(photoPreview.photo_url!)
+              : undefined
+          }
+        />
       )}
     </div>
   );

@@ -120,6 +120,7 @@ const REQUIRED_BY_STEP: Record<number, { field: keyof typeof initialScalars; lab
   1: [
     { field: 'position', label: 'Pozisyon' },
     { field: 'position_group', label: 'Pozisyon Grubu' },
+    { field: 'hospital', label: 'Tercih Ettiğiniz Hastane' },
     { field: 'full_name', label: 'Adınız Soyadınız' },
     { field: 'national_id', label: 'T.C. Kimlik No' },
     { field: 'mobile_phone', label: 'Cep Telefonu' },
@@ -489,7 +490,7 @@ const JobApplicationPage = () => {
         reference_code: code,
         position: form.position,
         position_group: form.position_group,
-        hospital: form.hospital || null,
+        hospital: form.hospital,
         full_name: form.full_name,
         national_id: form.national_id,
         gender: form.gender || null,
@@ -563,9 +564,9 @@ const JobApplicationPage = () => {
         references_list: filledReferences,
         expected_salary: form.expected_salary,
         earliest_start_date: form.earliest_start_date,
-        // Belgelerin kendisi e-postaya EK olarak konmaz (kalıcı kopya bırakır).
-        // Edge function, reference_code ile yolları DB'den okuyup 7 gün
-        // geçerli imzalı bağlantı üretir; yollar buradan gönderilmez.
+        // Belgelerin kendisi e-postaya konmaz; bucket gizli ve bağlantı
+        // iletilirse KVKK kapsamındaki dosya e-posta zincirinde dolaşır.
+        // Bunun yerine panele yönlendirilir, orada imzalı URL ile açılır.
         has_attachments: Boolean(photoUrl || cvUrl),
         admin_url: `${window.location.origin}/admin/job-applications`,
       });
@@ -787,17 +788,17 @@ const JobApplicationPage = () => {
                               </select>
                             )}
                           </Field>
-                          <Field label="Tercih Ettiğiniz Hastane">
+                          <Field label="Tercih Ettiğiniz Hastane" required error={errors.hospital}>
                             {(p) => (
                               <select
                                 {...p}
-                                className={`${inputClass} border-gray-300`}
+                                className={`${inputClass} ${errors.hospital ? 'border-accent' : 'border-gray-300'}`}
                                 value={form.hospital}
                                 onChange={(e) => setField('hospital', e.target.value)}
                                 disabled={hospitalsLoading}
                               >
                                 <option value="">
-                                  {hospitalsLoading ? 'Yükleniyor...' : 'Fark etmez'}
+                                  {hospitalsLoading ? 'Yükleniyor...' : 'Seçiniz...'}
                                 </option>
                                 {hospitals.map((h) => (
                                   <option key={h.id} value={h.name}>
