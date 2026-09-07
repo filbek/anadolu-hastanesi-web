@@ -99,6 +99,7 @@ const AdminAuditLogs = lazy(() => import('./components/admin/AdminAuditLogs'))
 const AdminManagementTeam = lazy(() => import('./components/admin/AdminManagementTeam'))
 const AdminSecondOpinion = lazy(() => import('./components/admin/AdminSecondOpinion'))
 const AdminJobApplications = lazy(() => import('./components/admin/AdminJobApplications'))
+const JobApplicationSharePage = lazy(() => import('./pages/JobApplicationSharePage'))
 const ManagementTeamForm = lazy(() => import('./components/admin/ManagementTeamForm'))
 const AdminTranslations = lazy(() => import('./components/admin/AdminTranslations'))
 const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'))
@@ -188,6 +189,13 @@ function App() {
             <Route path="test" element={<TestPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
+
+          {/*
+            İş başvurusu paylaşım sayfası: İK'nın ürettiği süreli bağlantı.
+            Site şablonu (Layout) DIŞINDA duruyor — menü/footer olmadan,
+            yalnızca aday bilgisi gösterilir. Sayfa kendisi noindex.
+          */}
+          <Route path="/basvuru-paylasim/:token" element={<JobApplicationSharePage />} />
 
           {/* Admin Login Route */}
           <Route path="/admin/login" element={<AdminLoginPage />} />

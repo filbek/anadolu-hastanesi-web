@@ -1,0 +1,13 @@
+# Anadolu Hastaneleri Grubu
+
+User-agent: *
+Allow: /
+
+# İş başvurusu paylaşım bağlantıları: aday kişisel verisi içerir,
+# arama motorlarına hiçbir koşulda düşmemeli.
+# Sayfanın kendisi de noindex meta etiketi basar; bu satır, JavaScript
+# çalıştırmayan tarayıcılar için ikinci katmandır.
+Disallow: /basvuru-paylasim/
+
+# Yönetim paneli
+Disallow: /admin/

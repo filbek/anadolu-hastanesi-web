@@ -24,13 +24,16 @@ import {
   FaCommentDots,
   FaUserFriends,
   FaStar,
+  FaShareAlt,
   FaRegStickyNote,
   FaExternalLinkAlt,
   FaSyncAlt,
   FaCloudUploadAlt,
+  FaFilePdf,
 } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
 import { useSupabase } from '../../contexts/SupabaseContext';
+import JobApplicationShareModal from './JobApplicationShareModal';
 import {
   SKILL_BLOCKS,
   POSITION_GROUPS,
@@ -415,6 +418,223 @@ const DetailSection = ({ title, children }: { title: string; children: React.Rea
   </section>
 );
 
+/*
+ * PDF çıktısı tarayıcının yazdırma motoruyla alınır; jsPDF/html2canvas
+ * eklenmedi. Gerekçe: Türkçe karakterler ve fotoğraf yazdırmada sorunsuz
+ * çıkar, sayfa kırılımını CSS yönetir ve bağımlılık maliyeti yoktur.
+ * Kullanıcı yazdırma penceresinde "PDF olarak kaydet"i seçer.
+ */
+const PRINT_CSS = `
+@media print {
+  /* Ekrandaki her şey gizlenir, yalnızca yazdırma kökü görünür.
+     visibility kullanılır; display:none ata elemanları da gizlerdi. */
+  body * { visibility: hidden; }
+  #job-print-root, #job-print-root * { visibility: visible; }
+  #job-print-root {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .job-print-page { page-break-after: always; }
+  .job-print-page:last-child { page-break-after: auto; }
+  /* Bir bölüm sayfa ortasından bölünmesin */
+  .job-print-section { break-inside: avoid; }
+  @page { size: A4; margin: 14mm; }
+}
+`;
+
+/** Tek adayın yazdırılabilir başvuru formu */
+const ApplicationPrintSheet = ({
+  app,
+  photoUrl,
+  notes,
+}: {
+  app: JobApplication;
+  photoUrl?: string;
+  notes: ApplicationNote[];
+}) => (
+  <article className="job-print-page text-black">
+    <header className="flex items-start justify-between gap-4 border-b-2 border-black pb-3 mb-4">
+      <div>
+        <h1 className="text-xl font-black">{app.full_name}</h1>
+        <p className="text-sm">
+          {app.position} · {groupLabel(app.position_group)}
+        </p>
+        <p className="text-xs text-gray-600 mt-0.5">
+          {app.reference_code} · {formatDateTime(app.created_at)}
+        </p>
+      </div>
+      {photoUrl && (
+        <img
+          src={photoUrl}
+          alt=""
+          className="w-24 h-32 object-cover border border-gray-300 shrink-0"
+        />
+      )}
+    </header>
+
+    <div className="job-print-section">
+      <DetailSection title="Başvuru">
+        <dl>
+          <DetailRow label="Tercih Edilen Hastane" value={app.hospital} />
+          <DetailRow label="En Erken Başlama" value={formatDate(app.earliest_start_date)} />
+          <DetailRow label="Son Ücret" value={app.last_salary} />
+          <DetailRow label="Ücret Beklentisi" value={app.expected_salary} />
+          <DetailRow
+            label="Gönderim Sayısı"
+            value={isResubmitted(app) ? `${app.submission_count} kez` : null}
+          />
+        </dl>
+      </DetailSection>
+    </div>
+
+    <div className="job-print-section">
+      <DetailSection title="Kişisel Bilgiler">
+        <dl>
+          <DetailRow label="T.C. Kimlik No" value={app.national_id} />
+          <DetailRow label="E-posta" value={app.email} />
+          <DetailRow label="Cep Telefonu" value={app.mobile_phone} />
+          <DetailRow label="Doğum Yeri / Tarihi" value={app.birth_place_date} />
+          <DetailRow
+            label="Cinsiyet"
+            value={app.gender === 'kadin' ? 'Kadın' : app.gender === 'erkek' ? 'Erkek' : null}
+          />
+          <DetailRow label="Medeni Hâl" value={app.marital_status} />
+          <DetailRow label="Uyruk" value={app.nationality} />
+          <DetailRow label="Kan Grubu" value={app.blood_type} />
+          <DetailRow label="Ehliyet" value={app.drivers_license} />
+          <DetailRow label="Askerlik" value={app.military_status} />
+          <DetailRow label="Adres" value={app.address} />
+        </dl>
+      </DetailSection>
+    </div>
+
+    {app.education?.length > 0 && (
+      <div className="job-print-section">
+        <DetailSection title="Eğitim">
+          <dl>
+            {app.education.map((e, i) => (
+              <DetailRow
+                key={i}
+                label={e.level}
+                value={[e.school, e.graduation, e.degree].filter(Boolean).join(' · ')}
+              />
+            ))}
+          </dl>
+        </DetailSection>
+      </div>
+    )}
+
+    {app.experience?.length > 0 && (
+      <div className="job-print-section">
+        <DetailSection title="İş Deneyimi">
+          <dl>
+            {app.experience.map((x, i) => (
+              <DetailRow
+                key={i}
+                label={x.company}
+                value={[x.department, x.period, x.reason && `Ayrılma: ${x.reason}`]
+                  .filter(Boolean)
+                  .join(' · ')}
+              />
+            ))}
+          </dl>
+        </DetailSection>
+      </div>
+    )}
+
+    {readableSkills(app.skills ?? {}).length > 0 && (
+      <div className="job-print-section">
+        <DetailSection title="Mesleki Deneyim (0 = hiç · 3 = çok iyi)">
+          <dl>
+            {readableSkills(app.skills).map((block) => (
+              <DetailRow
+                key={block.title}
+                label={block.title}
+                value={block.scored.map((x) => `${x.item}: ${x.score}`).join(' · ')}
+              />
+            ))}
+          </dl>
+        </DetailSection>
+      </div>
+    )}
+
+    {app.profession_notes && (
+      <div className="job-print-section">
+        <DetailSection title="Mesleki Yetkinlik Notu">
+          <p className="text-sm whitespace-pre-wrap">{app.profession_notes}</p>
+        </DetailSection>
+      </div>
+    )}
+
+    {app.certificates?.length > 0 && (
+      <div className="job-print-section">
+        <DetailSection title="Sertifikalar">
+          <dl>
+            {app.certificates.map((c, i) => (
+              <DetailRow
+                key={i}
+                label={c.name}
+                value={[c.institution, c.date, c.duration && `${c.duration} gün`]
+                  .filter(Boolean)
+                  .join(' · ')}
+              />
+            ))}
+          </dl>
+        </DetailSection>
+      </div>
+    )}
+
+    {filledReferences(app).length > 0 && (
+      <div className="job-print-section">
+        <DetailSection title="Referanslar">
+          <dl>
+            {filledReferences(app).map((r, i) => (
+              <DetailRow
+                key={i}
+                label={r.name}
+                value={[r.company, r.phone, r.duration].filter(Boolean).join(' · ')}
+              />
+            ))}
+          </dl>
+        </DetailSection>
+      </div>
+    )}
+
+    <div className="job-print-section">
+      <DetailSection title="Çalışma Koşulları">
+        <dl>
+          <DetailRow label="Fazla Mesai" value={YES_NO_LABEL[app.overtime ?? '']} />
+          <DetailRow label="Hafta Sonu" value={YES_NO_LABEL[app.weekend_work ?? '']} />
+          <DetailRow label="Gece Vardiyası" value={YES_NO_LABEL[app.night_shift ?? '']} />
+          <DetailRow label="Resmî Tatil" value={YES_NO_LABEL[app.public_holiday ?? '']} />
+          <DetailRow label="Seyahat Engeli" value={YES_NO_LABEL[app.travel ?? '']} />
+        </dl>
+      </DetailSection>
+    </div>
+
+    {notes.length > 0 && (
+      <div className="job-print-section">
+        <DetailSection title="İK Notları">
+          <ul className="text-sm space-y-1.5">
+            {notes.map((n) => (
+              <li key={n.id}>
+                <span className="whitespace-pre-wrap">{n.note}</span>
+                <span className="text-xs text-gray-600">
+                  {' — '}
+                  {n.author_name || 'Bilinmeyen kullanıcı'} · {formatDateTime(n.created_at)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </DetailSection>
+      </div>
+    )}
+  </article>
+);
+
 /**
  * Bir başvurunun not akışı. Hem listedeki genişleyen satırda hem de
  * detay kartında AYNI bileşen kullanılır — iki yerde iki farklı not
@@ -517,11 +737,15 @@ const AdminJobApplications = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [groupFilter, setGroupFilter] = useState('all');
   const [hospitalFilter, setHospitalFilter] = useState('all');
+  /** PDF için işaretlenen başvurular */
+  const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set());
   const [selected, setSelected] = useState<JobApplication | null>(null);
   /** Başvuru kimliğine göre notlar; liste ve detay aynı kaynaktan okur */
   const [notes, setNotes] = useState<Record<number, ApplicationNote[]>>({});
   /** Listede not bölümü açık olan satır */
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  /** Paylaşım penceresi açık olan başvuru */
+  const [shareTarget, setShareTarget] = useState<JobApplication | null>(null);
   /**
    * Başvuru kimliğine göre imzalı fotoğraf URL'leri.
    * Küçük görsel listede doğrudan gösterileceği için bağlantılar burada
@@ -717,6 +941,14 @@ const AdminJobApplications = () => {
     }
   };
 
+  const toggleChecked = (id: number) =>
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
   const updateStatus = async (id: number, status: string) => {
     const { error } = await supabase.from('job_applications').update({ status }).eq('id', id);
     if (error) return console.error('Durum güncellenemedi:', error);
@@ -795,6 +1027,29 @@ const AdminJobApplications = () => {
           new Date(a.updated_at ?? a.created_at).getTime()
       );
   }, [applications, search, statusFilter, groupFilter, hospitalFilter]);
+
+  /*
+   * Başlıktaki kutu, FİLTRELENMİŞ listeyi seçer; görünmeyen bir kaydın
+   * sessizce PDF'e girmesi şaşırtıcı olurdu. Hepsi zaten seçiliyse temizler.
+   */
+  const allFilteredChecked =
+    filtered.length > 0 && filtered.every((a) => checkedIds.has(a.id));
+
+  const toggleAllFiltered = () =>
+    setCheckedIds((prev) => {
+      if (allFilteredChecked) {
+        const next = new Set(prev);
+        filtered.forEach((a) => next.delete(a.id));
+        return next;
+      }
+      return new Set([...prev, ...filtered.map((a) => a.id)]);
+    });
+
+  /** Seçilenler; yazdırma sırası listedeki sırayla aynı olsun */
+  const checkedApplications = useMemo(
+    () => filtered.filter((a) => checkedIds.has(a.id)),
+    [filtered, checkedIds]
+  );
 
   /** Excel'de açılabilmesi için UTF-8 BOM'lu, noktalı virgül ayraçlı CSV */
   const exportCsv = () => {
@@ -907,6 +1162,30 @@ const AdminJobApplications = () => {
       </div>
 
       {/* Liste */}
+      {checkedIds.size > 0 && (
+        <div className="bg-primary/5 border border-primary/20 rounded-lg px-4 py-3 mb-4 flex flex-wrap items-center gap-3">
+          <span className="font-semibold text-secondary">
+            {checkedIds.size} aday seçildi
+          </span>
+          <button
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:brightness-125"
+          >
+            <FaFilePdf aria-hidden="true" />
+            PDF olarak indir
+          </button>
+          <button
+            onClick={() => setCheckedIds(new Set())}
+            className="px-3 py-2 rounded-lg border border-gray-300 text-sm font-semibold hover:border-primary"
+          >
+            Seçimi temizle
+          </button>
+          <span className="text-xs text-gray-600">
+            Açılan pencerede hedef olarak "PDF olarak kaydet"i seçin.
+          </span>
+        </div>
+      )}
+
       {filtered.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-12 text-center text-gray-500">
           {applications.length === 0
@@ -918,6 +1197,16 @@ const AdminJobApplications = () => {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left">
               <tr>
+                <th scope="col" className="px-4 py-3 w-10">
+                  <input
+                    type="checkbox"
+                    checked={allFilteredChecked}
+                    onChange={toggleAllFiltered}
+                    aria-label="Listelenen tüm başvuruları seç"
+                    title="Listelenen tüm başvuruları seç"
+                    className="w-4 h-4 accent-primary cursor-pointer"
+                  />
+                </th>
                 <th scope="col" className="px-4 py-3 font-semibold text-gray-600">Aday</th>
                 <th scope="col" className="px-4 py-3 font-semibold text-gray-600">Pozisyon</th>
                 <th scope="col" className="px-4 py-3 font-semibold text-gray-600 hidden lg:table-cell">İletişim</th>
@@ -930,6 +1219,15 @@ const AdminJobApplications = () => {
               {filtered.map((a) => (
                 <Fragment key={a.id}>
                 <tr className={a.is_read ? '' : 'bg-blue-50/40'}>
+                  <td className="px-4 py-3 align-top">
+                    <input
+                      type="checkbox"
+                      checked={checkedIds.has(a.id)}
+                      onChange={() => toggleChecked(a.id)}
+                      aria-label={`${a.full_name} başvurusunu seç`}
+                      className="w-4 h-4 accent-primary cursor-pointer"
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-start gap-3">
                       {/* Vesikalık; adayı listede yüzünden tanımak için */}
@@ -1055,6 +1353,14 @@ const AdminJobApplications = () => {
                         )}
                       </button>
                       <button
+                        onClick={() => setShareTarget(a)}
+                        className="p-2 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors"
+                        aria-label={`${a.full_name} başvurusunu paylaş`}
+                        title="Süreli bağlantıyla paylaş"
+                      >
+                        <FaShareAlt />
+                      </button>
+                      <button
                         onClick={() => openDetail(a)}
                         className="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors"
                         aria-label={`${a.full_name} başvurusunu görüntüle`}
@@ -1073,7 +1379,7 @@ const AdminJobApplications = () => {
                 </tr>
                 {expandedId === a.id && (
                   <tr key={`${a.id}-notes`} className="bg-amber-50/50">
-                    <td colSpan={6} className="px-4 py-4">
+                    <td colSpan={7} className="px-4 py-4">
                       <div className="grid lg:grid-cols-2 gap-6">
                         <div>
                           <h3 className="text-xs font-black text-amber-800 uppercase tracking-wide mb-3">
@@ -1152,6 +1458,15 @@ const AdminJobApplications = () => {
             </tbody>
           </table>
         </div>
+      )}
+
+      {shareTarget && (
+        <JobApplicationShareModal
+          applicationId={shareTarget.id}
+          candidateName={shareTarget.full_name}
+          position={shareTarget.position}
+          onClose={() => setShareTarget(null)}
+        />
       )}
 
       {/* Detay */}
@@ -1502,6 +1817,23 @@ const AdminJobApplications = () => {
           </div>
         </div>
       )}
+
+      {/*
+        Yazdırma kökü ekranda gizlidir; yalnızca yazdırmada görünür
+        (bkz. PRINT_CSS). Seçili başvurular zaten DOM'da olduğu için
+        window.print() ek bir bekleme gerektirmez.
+      */}
+      <style>{PRINT_CSS}</style>
+      <div id="job-print-root" className="hidden">
+        {checkedApplications.map((a) => (
+          <ApplicationPrintSheet
+            key={a.id}
+            app={a}
+            photoUrl={photoUrls[a.id]}
+            notes={notes[a.id] ?? []}
+          />
+        ))}
+      </div>
 
       {photoPreview && photoUrls[photoPreview.id] && (
         <PhotoLightbox
