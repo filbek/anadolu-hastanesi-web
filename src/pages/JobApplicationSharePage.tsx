@@ -20,6 +20,8 @@ interface SharedApplication {
 interface ShareResponse {
   application: SharedApplication;
   cv_url: string | null;
+  /** Vesikalık — süreli imzalı URL, her iki kapsamda da gelir */
+  photo_url: string | null;
   scope: 'ozet' | 'tam';
   shared_by: string | null;
   shared_at: string;
@@ -210,17 +212,27 @@ const JobApplicationSharePage = () => {
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
-            <div className="mb-6">
-              <p className="text-xs font-mono text-gray-500">{app.reference_code}</p>
-              <h1 className="text-2xl font-black text-secondary">{app.full_name}</h1>
-              <p className="text-gray-600">
-                {app.position} · {groupLabel(app.position_group)}
-              </p>
-              {!isFull && (
-                <p className="mt-2 inline-block text-xs font-semibold px-2 py-1 rounded-full bg-slate-100 text-slate-600">
-                  Özet görünüm — kimlik ve iletişim bilgileri paylaşılmamıştır
-                </p>
+            <div className="mb-6 flex items-start gap-4">
+              {data!.photo_url && (
+                <img
+                  src={data!.photo_url}
+                  alt={`${app.full_name} vesikalık fotoğrafı`}
+                  referrerPolicy="no-referrer"
+                  className="w-24 h-32 rounded-lg object-cover border border-gray-200 shrink-0 bg-gray-100"
+                />
               )}
+              <div>
+                <p className="text-xs font-mono text-gray-500">{app.reference_code}</p>
+                <h1 className="text-2xl font-black text-secondary">{app.full_name}</h1>
+                <p className="text-gray-600">
+                  {app.position} · {groupLabel(app.position_group)}
+                </p>
+                {!isFull && (
+                  <p className="mt-2 inline-block text-xs font-semibold px-2 py-1 rounded-full bg-slate-100 text-slate-600">
+                    Özet görünüm — kimlik ve iletişim bilgileri paylaşılmamıştır
+                  </p>
+                )}
+              </div>
             </div>
 
             {isFull && (

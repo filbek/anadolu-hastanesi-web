@@ -39,7 +39,8 @@ const json = (body: unknown, status = 200) =>
  *
  * Bilinçli olarak DIŞARIDA bırakılanlar: TC kimlik, adres, telefon,
  * e-posta, kan grubu, sağlık durumu, doğum yeri/tarihi, medeni hal,
- * askerlik, sigara, ücret bilgileri, fotoğraf.
+ * askerlik, sigara, ücret bilgileri.
+ * (Vesikalık fotoğraf istisnadır; aşağıya bakınız.)
  *
  * Bölüm sorumlusu "bu adayı görüşmeye çağıralım mı" sorusuna cevap
  * verirken bunlara ihtiyaç duymaz; özel nitelikli veriyi kimliği
@@ -59,8 +60,17 @@ const FULL_EXTRA_FIELDS = [
   'national_id', 'gender', 'birth_place_date', 'marital_status', 'nationality',
   'address', 'mobile_phone', 'home_phone', 'alternative_phone', 'email',
   'blood_type', 'military_status', 'smoker', 'health_issues',
-  'last_salary', 'expected_salary', 'photo_url',
+  'last_salary', 'expected_salary',
 ] as const;
+
+/*
+ * Vesikalık her iki kapsamda da paylaşılır — adayı değerlendiren kişi
+ * görüşmeye çağırırken kimi beklediğini bilsin diye.
+ *
+ * Alan listesine KONMAZ: kayıttaki değer gizli bucket içindeki yoldur,
+ * istemciye olduğu gibi verilse açılamaz. Aşağıda süreli imzalı URL'e
+ * çevrilir.
+ */
 
 const BUCKET = 'job-applications';
 const DOC_URL_TTL = 60 * 60; // paylaşılan belge bağlantısı 1 saat
@@ -144,21 +154,25 @@ Deno.serve(async (req: Request) => {
 
       if (appError || !app) return invalid();
 
-      // CV yalnızca paylaşım sırasında açıkça işaretlendiyse
-      let cvUrl: string | null = null;
-      if (share.include_cv) {
-        const { data: row } = await admin
-          .from('job_applications')
-          .select('cv_url')
-          .eq('id', share.application_id)
-          .maybeSingle();
-        if (row?.cv_url) {
-          const { data: signed } = await admin.storage
-            .from(BUCKET)
-            .createSignedUrl(toStoragePath(row.cv_url), DOC_URL_TTL);
-          cvUrl = signed?.signedUrl ?? null;
-        }
-      }
+      // Belge yolları ayrı okunur: kapsam listelerinde yer almazlar,
+      // çünkü ham yol istemciye verilmez — imzalı URL'e çevrilir.
+      const { data: files } = await admin
+        .from('job_applications')
+        .select('cv_url, photo_url')
+        .eq('id', share.application_id)
+        .maybeSingle();
+
+      const signUrl = async (value?: string | null) => {
+        if (!value) return null;
+        const { data: signed } = await admin.storage
+          .from(BUCKET)
+          .createSignedUrl(toStoragePath(value), DOC_URL_TTL);
+        return signed?.signedUrl ?? null;
+      };
+
+      // Vesikalık her kapsamda; CV yalnızca paylaşımda işaretlendiyse
+      const photoUrl = await signUrl(files?.photo_url);
+      const cvUrl = share.include_cv ? await signUrl(files?.cv_url) : null;
 
       // Erişim kaydı. Başarısız olsa da sayfa açılmalı — log yazamamak
       // bölüm sorumlusunun işini durdurmaz.
@@ -187,6 +201,7 @@ Deno.serve(async (req: Request) => {
       return json({
         application: app,
         cv_url: cvUrl,
+        photo_url: photoUrl,
         scope: share.scope,
         shared_by: share.created_by_name,
         shared_at: share.created_at,
