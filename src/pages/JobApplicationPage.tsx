@@ -413,6 +413,19 @@ const JobApplicationPage = () => {
       setFile(file);
     };
 
+  /**
+   * Mobilde zayıf bağlantıda istek yanıtsız kalırsa buton sonsuza kadar
+   * "Gönderiliyor..." durumunda kalıyordu; süre dolunca reddedilir.
+   */
+  const withTimeout = <T,>(promise: PromiseLike<T>, ms: number, message: string): Promise<T> =>
+    new Promise<T>((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error(message)), ms);
+      Promise.resolve(promise).then(
+        (v) => { clearTimeout(timer); resolve(v); },
+        (e) => { clearTimeout(timer); reject(e); },
+      );
+    });
+
   /*
    * Bucket gizlidir (bkz. hr_role_job_applications_migration.sql): CV ve
    * vesikalık, URL'i bilen herkese açık olamaz. Bu yüzden public URL yerine
@@ -422,10 +435,19 @@ const JobApplicationPage = () => {
   const uploadFile = async (file: File, folder: string): Promise<string> => {
     const parts = file.name.split('.');
     const ext = parts.length > 1 ? parts.pop()!.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
-    const path = `${folder}/${crypto.randomUUID()}${ext ? `.${ext}` : ''}`;
-    const { error } = await supabase.storage
-      .from('job-applications')
-      .upload(path, file, { contentType: file.type || 'application/octet-stream' });
+    // crypto.randomUUID eski iOS Safari / Android WebView'da yok; yoksa getRandomValues'a düş
+    const uid =
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
+    const path = `${folder}/${uid}${ext ? `.${ext}` : ''}`;
+    const { error } = await withTimeout(
+      supabase.storage
+        .from('job-applications')
+        .upload(path, file, { contentType: file.type || 'application/octet-stream' }),
+      90000,
+      `${file.name} yüklenirken bağlantı zaman aşımına uğradı. İnternet bağlantınızı kontrol edip tekrar deneyin.`,
+    );
     if (error) {
       console.error('Dosya yüklenemedi:', error);
       // Sessizce null dönülürse başvuru belgesiz kaydediliyor ve aday bunu
@@ -464,7 +486,11 @@ const JobApplicationPage = () => {
 
     try {
       if (turnstileEnabled) {
-        const ok = await verifyTurnstile(captchaToken);
+        const ok = await withTimeout(
+          verifyTurnstile(captchaToken),
+          20000,
+          'Güvenlik doğrulaması zaman aşımına uğradı. Lütfen tekrar deneyin.',
+        );
         if (!ok) {
           setCaptchaToken(null);
           setFormError('Güvenlik doğrulaması başarısız oldu. Lütfen tekrar deneyin.');
@@ -537,12 +563,18 @@ const JobApplicationPage = () => {
         consent,
       };
 
-      const { error: insertError } = await supabase.from('job_applications').insert([record]);
+      const { error: insertError } = await withTimeout(
+        supabase.from('job_applications').insert([record]),
+        45000,
+        'Başvuru gönderilirken bağlantı zaman aşımına uğradı. Lütfen tekrar deneyin.',
+      );
       if (insertError) throw insertError;
 
       // E-posta bildirimi başarısız olsa da başvuru kaydedilmiş olur;
       // kullanıcı akışı bozulmaz (bkz. emailService).
-      await sendFormEmail('job_application', {
+      // Başvuru artık kayıtlı; e-posta yavaşsa aday ekranda beklemesin (en fazla 12 sn).
+      await Promise.race([
+        sendFormEmail('job_application', {
         reference_code: code,
         position: form.position,
         position_group:
@@ -564,12 +596,14 @@ const JobApplicationPage = () => {
         references_list: filledReferences,
         expected_salary: form.expected_salary,
         earliest_start_date: form.earliest_start_date,
-        // Belgelerin kendisi e-postaya konmaz; bucket gizli ve bağlantı
-        // iletilirse KVKK kapsamındaki dosya e-posta zincirinde dolaşır.
-        // Bunun yerine panele yönlendirilir, orada imzalı URL ile açılır.
+        // Belgelerin kendisi e-postaya EK olarak konmaz (kalıcı kopya bırakır).
+        // Edge function, reference_code ile yolları DB'den okuyup 7 gün
+        // geçerli imzalı bağlantı üretir; yollar buradan gönderilmez.
         has_attachments: Boolean(photoUrl || cvUrl),
         admin_url: `${window.location.origin}/admin/job-applications`,
-      });
+        }),
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 12000)),
+      ]);
 
       setReferenceCode(code);
       window.scrollTo({ top: 0, behavior: 'smooth' });
