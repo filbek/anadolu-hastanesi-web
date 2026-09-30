@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { getHospitals } from '../../services/hospitalService';
 import { getLocalized } from '../../hooks/useLocalized';
-import { normalizeLang } from '../../services/translationService';
+import type { SupportedLang } from '../../services/translationService';
 import type { Hospital } from '../../lib/supabase';
 
 // Satır sonu (gerçek ya da "\n" yazısı olarak kaydedilmiş) veya "|" ile ayrılmış birimler
@@ -21,7 +21,8 @@ const unitsOf = (description?: string) =>
  */
 const FloorPlansSection = () => {
   const { t, i18n } = useTranslation();
-  const lang = normalizeLang(i18n.language);
+  // "en-US" -> "en"; desteklenmeyen dil getLocalized içinde Türkçe'ye düşer
+  const lang = ((i18n.language || 'tr').slice(0, 2).toLowerCase() || 'tr') as SupportedLang;
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [activeId, setActiveId] = useState<Hospital['id'] | null>(null);
 
