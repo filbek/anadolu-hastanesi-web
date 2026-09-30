@@ -13,6 +13,7 @@ import {
   FaArrowUp,
 } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
+import FloorPlansSection from '../components/guide/FloorPlansSection';
 
 const guideItems = (t: any) => [
   {
@@ -164,7 +165,8 @@ const HospitalGuidePage = () => {
         </div>
       </section>
 
-
+      {/* ─── FLOOR PLANS (admin: Hastaneler > Kat Planları) ─── */}
+      <FloorPlansSection />
 
       {/* ─── HELP POINTS ─── */}
       <section className="bg-gray-50 py-20 lg:py-28">

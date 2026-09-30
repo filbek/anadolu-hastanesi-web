@@ -22,7 +22,18 @@ export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
 // `translations` alanı: Türkçeden otomatik üretilen diğer dil çevirileri.
 // Yapı: { en: { name: "...", description: "..." }, ar: { ... } }
 // Bkz. src/services/translationService.ts ve src/sql/translations_migration.sql
-export type Translations = Partial<Record<'en' | 'ar', Record<string, any>>>;
+export type Translations = Partial<Record<'en' | 'ar' | 'ru' | 'es' | 'fr' | 'de', Record<string, any>>>;
+
+// Hastane içi rehberdeki kat kartı (görselsiz: başlık + birim listesi).
+// Hastane formundan yönetilir; bkz. src/sql/hospital_floor_plans_migration.sql
+export type FloorPlan = {
+  /** Kısa kat etiketi: "-2", "Zemin", "3" */
+  floor: string;
+  /** Kartta görünen başlık: "3. Kat" */
+  title: string;
+  /** Kattaki birimler; her satır bir birim */
+  description?: string;
+};
 
 export type Hospital = {
   id: number | string;
@@ -57,6 +68,8 @@ export type Hospital = {
   // kendineiyibak.app randevu linkindeki facilityId (GUID).
   // Bkz. src/sql/hbys_appointment_ids_migration.sql
   hbys_facility_id?: string | null;
+  // Hastane içi rehber sayfasında gösterilen kat planları (sıra = dizi sırası)
+  floor_plans?: FloorPlan[] | null;
   translations?: Translations;
   created_at: string;
   updated_at?: string;

@@ -4,6 +4,7 @@ import { useQueryClient } from 'react-query';
 import { FaSave, FaArrowLeft, FaImage, FaMapMarkerAlt, FaPhone, FaEnvelope, FaUpload, FaTrash, FaEye, FaGripVertical, FaStethoscope } from 'react-icons/fa';
 import { useParams, useNavigate } from 'react-router-dom';
 import TranslationsPanel from './TranslationsPanel';
+import HospitalFloorPlansEditor from './HospitalFloorPlansEditor';
 import { supabase } from '../../lib/supabase';
 import { createHospital, updateHospital, uploadHospitalImage } from '../../services/hospitalService';
 import { CACHE_KEYS } from '../../services';
@@ -48,6 +49,7 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
     images: [],
     department_ids: [],
     hbys_facility_id: '',
+    floor_plans: [],
     translations: {}
   });
   const { data: allDepartments = [] } = useDepartments();
@@ -60,6 +62,9 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const mainImageRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
+  // floor_plans sütunu (hospital_floor_plans_migration.sql) veritabanında var mı?
+  // Yoksa ve liste boşsa payload'a eklenmez; böylece migration çalışmadan da hastane kaydedilebilir.
+  const floorPlansColumnRef = useRef(false);
 
   useEffect(() => {
     if (hospital) {
@@ -69,7 +74,9 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
     }
   }, [hospital, id]);
 
-  const normalizeHospitalData = (data: any): HospitalFormData => ({
+  const normalizeHospitalData = (data: any): HospitalFormData => {
+    if ('floor_plans' in data) floorPlansColumnRef.current = true;
+    return {
     ...data,
     images: data.images || [],
     emergency_hours: data.emergency_hours || '',
@@ -88,8 +95,10 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
     map_url: data.map_url || '',
     department_ids: Array.isArray(data.department_ids) ? data.department_ids.map((n: any) => Number(n)) : [],
     hbys_facility_id: data.hbys_facility_id || '',
+    floor_plans: Array.isArray(data.floor_plans) ? data.floor_plans : [],
     translations: data.translations || {},
-  });
+    };
+  };
 
   const fetchHospital = async (hospitalId: string | number) => {
     try {
@@ -296,6 +305,9 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
         ...formData,
         created_at: formData.created_at || new Date().toISOString()
       };
+      if (!floorPlansColumnRef.current && !(hospitalData.floor_plans || []).length) {
+        delete hospitalData.floor_plans;
+      }
 
       if (onSave) {
         onSave(hospitalData as Hospital);
@@ -867,6 +879,12 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
             </div>
           </div>
         </div>
+
+        {/* Kat planları — Hastane İçi Rehber sayfasında gösterilir */}
+        <HospitalFloorPlansEditor
+          value={formData.floor_plans || []}
+          onChange={(next) => setFormData({ ...formData, floor_plans: next })}
+        />
 
         {/* Çeviriler — TR alanları doldurulduktan sonra otomatik üretilebilir */}
         <div className="lg:col-span-3">
