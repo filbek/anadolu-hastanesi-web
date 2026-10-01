@@ -4,6 +4,9 @@ import { FaArrowRight, FaCalendarCheck, FaChevronLeft, FaChevronRight, FaPause, 
 import { useTranslation } from 'react-i18next'
 import AutoTranslate from '../common/AutoTranslate'
 import { useHeroSlides } from '../../hooks/useHeroSlides'
+import { useLocalizedList } from '../../hooks/useLocalizedList'
+
+const NO_SLIDES: any[] = []
 
 interface SlideData {
   id: number
@@ -14,6 +17,8 @@ interface SlideData {
   image: string
   ctaText: string
   ctaLink: string
+  /** CMS'ten gelen (translations sütunu olmayan) metin — ekranda anlık çevrilir */
+  autoTranslate?: boolean
 }
 
 interface HeroBannerProps {
@@ -84,7 +89,9 @@ const lineReveal = {
    ═══════════════════════════════════════════ */
 const HeroBanner = ({ dynamicData }: HeroBannerProps) => {
   const { t } = useTranslation()
-  const { data: dbSlides, isLoading } = useHeroSlides()
+  const { data: dbSlidesRaw, isLoading } = useHeroSlides()
+  // DB'deki translations sütunu varsa onu, yoksa anlık çeviriyi kullanır
+  const dbSlides = useLocalizedList(dbSlidesRaw ?? NO_SLIDES, ['title', 'subtitle', 'button_text'])
 
   function mapDbSlides(dbSlides: any[]): SlideData[] {
     if (!dbSlides || dbSlides.length === 0) return []
@@ -151,6 +158,7 @@ const HeroBanner = ({ dynamicData }: HeroBannerProps) => {
             'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=85',
           ctaText: t('home.onlineAppointment', 'Online Randevu Al'),
           ctaLink: 'https://anadoluhastaneleri.kendineiyibak.app/',
+          autoTranslate: true,
         },
       ]
     }
@@ -185,6 +193,7 @@ const HeroBanner = ({ dynamicData }: HeroBannerProps) => {
   }, [paginate, isPaused, slides.length])
 
   const slide = slides[currentSlide]
+  const tx = (text: string) => (slide?.autoTranslate ? <AutoTranslate text={text} /> : text)
 
   if (isLoading || !slide) {
     return (
@@ -284,7 +293,7 @@ const HeroBanner = ({ dynamicData }: HeroBannerProps) => {
                   className="mb-5"
                 >
                   <span className="inline-block text-[11px] md:text-xs font-semibold tracking-[0.2em] uppercase text-coral-400/90">
-                    <AutoTranslate text={slide.badge || ''} />
+                    {tx(slide.badge || '')}
                   </span>
                 </motion.div>
               )}
@@ -298,18 +307,18 @@ const HeroBanner = ({ dynamicData }: HeroBannerProps) => {
                 exit="exit"
                 className="font-display text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold text-white leading-[1.02] tracking-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
               >
-                <AutoTranslate text={slide.title} />
+                {tx(slide.title || '')}
                 {slide.highlight && (
                   <>
                     <br />
                     <span className="text-coral-500">
-                      <AutoTranslate text={slide.highlight} />
+                      {tx(slide.highlight || '')}
                     </span>
                   </>
                 )}
                 {!slide.highlight && slide.title && (
                   <span className="text-coral-500">
-                    <AutoTranslate text={slide.title} />
+                    {tx(slide.title || '')}
                   </span>
                 )}
               </motion.h1>
@@ -323,7 +332,7 @@ const HeroBanner = ({ dynamicData }: HeroBannerProps) => {
                 exit="exit"
                 className="mt-6 text-base md:text-lg text-white/90 font-medium leading-relaxed max-w-lg tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
               >
-                <AutoTranslate text={slide.subtitle} />
+                {tx(slide.subtitle || '')}
               </motion.p>
 
               {/* CTAs */}
@@ -345,7 +354,7 @@ const HeroBanner = ({ dynamicData }: HeroBannerProps) => {
                   <span className="absolute inset-0 bg-[#E30613] translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]" />
                   <span className="relative flex items-center gap-3 group-hover:text-white transition-colors duration-500">
                     <FaCalendarCheck className="text-sm" />
-                    <AutoTranslate text={slide.ctaText} />
+                    {tx(slide.ctaText || '')}
                     <FaArrowRight className="text-sm opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 delay-100" />
                   </span>
                 </a>

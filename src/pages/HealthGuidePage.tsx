@@ -129,11 +129,10 @@ const HealthGuidePage = () => {
             </span>
             {/* text-white açıkça verilmeli: global `h2 { color }` kuralı miras rengi ezer */}
             <h2 className="text-xl md:text-2xl font-black text-white mb-2">
-              Fraxis Duo Lazer Nedir, Hangi İşlemlerde Kullanılır?
+              {t('healthGuide.fraxisTitle', 'Fraxis Duo Lazer Nedir, Hangi İşlemlerde Kullanılır?')}
             </h2>
             <p className="text-white/75 text-sm md:text-base max-w-3xl">
-              İdrar kaçırma, vajinal kuruluk ve gevşeklikten akne izi ve çatlaklara kadar; fraksiyonel CO₂ lazer ve
-              mikro iğne radyofrekans teknolojisinin hangi sorunlarda kullanıldığını uzmanlarımız anlatıyor.
+              {t('healthGuide.fraxisDesc', 'İdrar kaçırma, vajinal kuruluk ve gevşeklikten akne izi ve çatlaklara kadar; fraksiyonel CO₂ lazer ve mikro iğne radyofrekans teknolojisinin hangi sorunlarda kullanıldığını uzmanlarımız anlatıyor.')}
             </p>
           </Link>
 

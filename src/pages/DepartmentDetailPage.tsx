@@ -173,7 +173,7 @@ const DepartmentDetailPage = () => {
                       }`}
                     onClick={() => setActiveTab('process')}
                   >
-                    Tedavi Süreci
+                    {t('deptDetail.tabProcess', 'Tedavi Süreci')}
                   </button>
                   {equipment.length > 0 && (
                     <button
@@ -381,9 +381,9 @@ const DepartmentDetailPage = () => {
                 {/* Equipment Tab */}
                 {activeTab === 'equipment' && (
                   <motion.div key="equipment" {...tabMotionProps}>
-                    <h2 className="text-2xl font-semibold text-primary mb-6">Teknolojik Altyapımız</h2>
+                    <h2 className="text-2xl font-semibold text-primary mb-6">{t('deptDetail.equipmentTitle', 'Teknolojik Altyapımız')}</h2>
                     <p className="text-text-light mb-8">
-                      <AutoTranslate text={`${department.name} bölümümüzde en son teknolojik cihazlar ve ekipmanlar kullanılmaktadır.`} />
+                      {t('deptDetail.equipmentDesc', '{{name}} bölümümüzde en son teknolojik cihazlar ve ekipmanlar kullanılmaktadır.', { name: department.name })}
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {equipment.map((item: any, index: number) => (

@@ -1,5 +1,6 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import Header from './Header'
 import Footer from './Footer'
 import EmergencyBanner from './EmergencyBanner'
@@ -7,6 +8,7 @@ import ScrollToTop from '../ui/ScrollToTop'
 import AccessibilityWidget from '../common/AccessibilityWidget'
 
 const Layout = () => {
+  const { t } = useTranslation()
   const location = useLocation()
 
   useEffect(() => {
@@ -19,7 +21,7 @@ const Layout = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <a href="#main-content" className="skip-to-content">
-        İçeriğe atla
+        {t('layout.skipToContent', 'İçeriğe atla')}
       </a>
       <EmergencyBanner />
       <Header />

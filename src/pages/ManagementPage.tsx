@@ -138,7 +138,7 @@ const ManagementPage = () => {
       setHospitals((hospitalData || []) as Hospital[]);
     } catch (err: any) {
       console.error('Error fetching management team:', err);
-      setError(err?.message || 'Yönetim ekibi yüklenirken bir hata oluştu.');
+      setError(err?.message || t('management.loadError', 'Yönetim ekibi yüklenirken bir hata oluştu.'));
     } finally {
       setLoading(false);
     }
@@ -157,8 +157,8 @@ const ManagementPage = () => {
     if (members.some(m => hospitalKey(m.hospital_id) === GROUP_KEY)) {
       list.push({
         key: GROUP_KEY,
-        label: 'Grup Yönetimi',
-        shortLabel: 'Grup Yönetimi',
+        label: t('management.groupManagement', 'Grup Yönetimi'),
+        shortLabel: t('management.groupManagement', 'Grup Yönetimi'),
       });
     }
 
@@ -238,19 +238,18 @@ const ManagementPage = () => {
             <div className="flex items-center gap-2 mb-6">
               <span className="block h-px w-10 bg-accent" />
               <span className="text-accent text-xs uppercase tracking-[0.25em] font-semibold">
-                Kurumsal
+                {t('management.corporateTag', 'Kurumsal')}
               </span>
             </div>
 
             <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-6">
-              Yönetim
+              {t('management.heroTitle1', 'Yönetim')}
               <br />
-              <span className="text-accent">Kadromuz</span>
+              <span className="text-accent">{t('management.heroTitle2', 'Kadromuz')}</span>
             </h1>
 
             <p className="text-white/70 text-lg md:text-xl leading-relaxed max-w-xl">
-              Anadolu Hastaneleri Grubu olarak, uzman ve deneyimli yönetim kadromuzla sağlık
-              hizmetlerinde sürdürülebilir kalite ve hasta memnuniyetini önceliklendiriyoruz.
+              {t('management.heroDesc', 'Anadolu Hastaneleri Grubu olarak, uzman ve deneyimli yönetim kadromuzla sağlık hizmetlerinde sürdürülebilir kalite ve hasta memnuniyetini önceliklendiriyoruz.')}
             </p>
           </motion.div>
         </div>
@@ -267,7 +266,7 @@ const ManagementPage = () => {
         <section className="bg-gray-50 py-20">
           <div className="container-custom flex flex-col items-center justify-center">
             <FaSpinner className="animate-spin text-primary text-4xl mb-4" />
-            <p className="text-gray-600">Yönetim ekibi yükleniyor...</p>
+            <p className="text-gray-600">{t('management.loading', 'Yönetim ekibi yükleniyor...')}</p>
           </div>
         </section>
       )}
@@ -289,7 +288,7 @@ const ManagementPage = () => {
       {!loading && !error && members.length === 0 && (
         <section className="bg-gray-50 py-20">
           <div className="container-custom text-center">
-            <p className="text-gray-500 text-lg">Henüz yönetim ekibi bilgisi eklenmemiş.</p>
+            <p className="text-gray-500 text-lg">{t('management.empty', 'Henüz yönetim ekibi bilgisi eklenmemiş.')}</p>
           </div>
         </section>
       )}
@@ -299,11 +298,11 @@ const ManagementPage = () => {
         <section className="bg-gray-50 pt-12 lg:pt-16">
           <div className="container-custom">
             <p className="text-xs uppercase tracking-[0.25em] text-gray-500 font-bold mb-4">
-              Hastane Seçin
+              {t('management.selectHospital', 'Hastane Seçin')}
             </p>
             <div
               role="tablist"
-              aria-label="Hastane yönetim kadroları"
+              aria-label={t('management.tabsLabel', 'Hastane yönetim kadroları')}
               className="flex flex-wrap gap-2 border-b border-gray-200 pb-px"
             >
               {tabs.map(tab => {
@@ -335,7 +334,7 @@ const ManagementPage = () => {
         <section className="bg-gray-50 py-20">
           <div className="container-custom text-center">
             <p className="text-gray-500 text-lg">
-              {activeTabMeta.label} için henüz yönetim kadrosu bilgisi eklenmemiş.
+              {t('management.branchEmpty', '{{branch}} için henüz yönetim kadrosu bilgisi eklenmemiş.', { branch: activeTabMeta.label })}
             </p>
           </div>
         </section>
@@ -352,7 +351,7 @@ const ManagementPage = () => {
           <div className="container-custom">
             <h2 className="text-2xl md:text-3xl font-black text-secondary">
               {activeTabMeta.label}
-              <span className="text-primary"> Yönetim Kadrosu</span>
+              <span className="text-primary"> {t('management.branchTeam', 'Yönetim Kadrosu')}</span>
             </h2>
           </div>
         </section>
@@ -365,7 +364,7 @@ const ManagementPage = () => {
             <motion.div {...fadeUp} className="flex items-center gap-3 mb-12">
               <span className="block h-px flex-1 bg-gray-200 max-w-[60px]" />
               <span className="text-xs uppercase tracking-[0.25em] text-primary font-bold">
-                {roleSectionMeta.board.label}
+                {t('management.boardLabel', 'Üst Yönetim')}
               </span>
             </motion.div>
 
@@ -412,12 +411,12 @@ const ManagementPage = () => {
             <motion.div {...fadeUp} className="flex items-center gap-3 mb-6">
               <span className="block h-px flex-1 bg-gray-200 max-w-[60px]" />
               <span className="text-xs uppercase tracking-[0.25em] text-primary font-bold">
-                Tıbbi Yönetim
+                {t('management.medicalLabel', 'Tıbbi Yönetim')}
               </span>
             </motion.div>
 
             <motion.h2 {...fadeUp} className="text-3xl md:text-4xl font-black text-secondary mb-12">
-              Başhekimlik <span className="text-primary">Kadrosu</span>
+              {t('management.medicalTitle', 'Başhekimlik')} <span className="text-primary">{t('management.medicalHighlight', 'Kadrosu')}</span>
             </motion.h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -482,12 +481,12 @@ const ManagementPage = () => {
             <motion.div {...fadeUp} className="flex items-center gap-3 mb-6">
               <span className="block h-px flex-1 bg-gray-200 max-w-[60px]" />
               <span className="text-xs uppercase tracking-[0.25em] text-primary font-bold">
-                İdari Yönetim
+                {t('management.adminLabel', 'İdari Yönetim')}
               </span>
             </motion.div>
 
             <motion.h2 {...fadeUp} className="text-3xl md:text-4xl font-black text-secondary mb-12">
-              İdari ve Hizmet <span className="text-primary">Yönetimi</span>
+              {t('management.adminTitle', 'İdari ve Hizmet')} <span className="text-primary">{t('management.adminHighlight', 'Yönetimi')}</span>
             </motion.h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -532,7 +531,7 @@ const ManagementPage = () => {
                       className={`text-base font-bold mb-1 ${isEmpty ? 'text-gray-400' : 'text-secondary'
                         }`}
                     >
-                      {isEmpty ? 'Pozisyon Açık' : member.name}
+                      {isEmpty ? t('management.positionOpen', 'Pozisyon Açık') : member.name}
                     </h3>
 
                     {member.department && (

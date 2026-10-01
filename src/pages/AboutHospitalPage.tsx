@@ -154,7 +154,7 @@ const AboutHospitalPage = () => {
               />
               <div className="absolute -bottom-6 -left-6 bg-accent text-white p-6 rounded-2xl shadow-xl">
                 <p className="text-4xl font-black">30+</p>
-                <p className="text-sm font-medium opacity-90">Yıllık Deneyim</p>
+                <p className="text-sm font-medium opacity-90">{t('aboutHospital.yearsExperience', 'Yıllık Deneyim')}</p>
               </div>
             </motion.div>
           </div>
@@ -172,13 +172,13 @@ const AboutHospitalPage = () => {
           >
             <div className="flex items-center gap-3 mb-5">
               <span className="block h-px w-[60px] bg-accent" />
-              <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">Birimlerimiz</span>
+              <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">{t('aboutHospital.unitsTag', 'Birimlerimiz')}</span>
             </div>
             <h2 className="text-4xl lg:text-5xl font-black text-secondary leading-tight mb-4">
-              Kapsamlı <span className="text-primary">Sağlık Hizmetleri</span>
+              {t('aboutHospital.unitsTitle', 'Kapsamlı')} <span className="text-primary">{t('aboutHospital.unitsHighlight', 'Sağlık Hizmetleri')}</span>
             </h2>
             <p className="text-gray-500 text-lg leading-relaxed">
-              Acil Servis'ten Yoğun Bakım'a, Laboratuvar'dan Radyoloji'ye kadar tüm birimlerimizle hasta ve hasta yakınlarına bilgilendirici hizmet vermek için yola çıktık. Hastalıkların önlenmesi ve erken tanısı için eğitim çalışmalarıyla önemli bir görevi de üstlendik.
+              {t('aboutHospital.unitsDesc', "Acil Servis'ten Yoğun Bakım'a, Laboratuvar'dan Radyoloji'ye kadar tüm birimlerimizle hasta ve hasta yakınlarına bilgilendirici hizmet vermek için yola çıktık. Hastalıkların önlenmesi ve erken tanısı için eğitim çalışmalarıyla önemli bir görevi de üstlendik.")}
             </p>
           </motion.div>
 
@@ -211,10 +211,10 @@ const AboutHospitalPage = () => {
             viewport={{ once: true }}
           >
             <p className="text-accent text-xs uppercase tracking-[0.2em] font-bold mb-2">
-              Anadolu Hastaneleri Grubu
+              {t('common.brand', 'Anadolu Hastaneleri Grubu')}
             </p>
             <h3 className="text-2xl md:text-3xl font-black text-white">
-              "Herşey Sağlığınız İçin..."
+              {t('emergency.ctaTitle', '"Herşey Sağlığınız İçin..."')}
             </h3>
           </motion.div>
           <motion.a

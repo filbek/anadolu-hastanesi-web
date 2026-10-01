@@ -1,17 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { translateText, TARGET_LANGS, type TargetLang } from '../services/translationService'
+import { translateText, normalizeLang, TARGET_LANGS, type TargetLang } from '../services/translationService'
 
 type WithTranslations = {
   translations?: Partial<Record<TargetLang, Record<string, any>>> | null
 } & Record<string, any>
-
-function normalizeLang(raw: string | undefined): 'tr' | TargetLang {
-  if (!raw) return 'tr'
-  if (raw.startsWith('en')) return 'en'
-  if (raw.startsWith('ar')) return 'ar'
-  return 'tr'
-}
 
 function isTurkish(text: string): boolean {
   if (!text) return false

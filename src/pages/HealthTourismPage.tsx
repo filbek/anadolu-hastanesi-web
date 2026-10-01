@@ -441,13 +441,13 @@ const HealthTourismPage = () => {
                   <label className="block text-sm font-medium text-slate-600 mb-2">{t('healthTourismPage.treatmentLabel', 'İlgilendiğiniz Tedavi')}</label>
                   <select className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary bg-white">
                     <option>{t('healthTourismPage.selectTreatment', 'Tedavi Seçiniz')}</option>
-                    <option>Kardiyoloji</option>
-                    <option>Ortopedi</option>
-                    <option>Göz Hastalıkları</option>
-                    <option>Plastik Cerrahi</option>
-                    <option>Diş Tedavileri</option>
-                    <option>Saç Ekimi</option>
-                    <option>Diğer</option>
+                    <option>{t('healthTourismPage.treatment1', 'Kardiyoloji')}</option>
+                    <option>{t('healthTourismPage.treatment2', 'Ortopedi')}</option>
+                    <option>{t('healthTourismPage.treatment3', 'Göz Hastalıkları')}</option>
+                    <option>{t('healthTourismPage.treatment4', 'Plastik Cerrahi')}</option>
+                    <option>{t('healthTourismPage.treatment5', 'Diş Tedavileri')}</option>
+                    <option>{t('healthTourismPage.treatment6', 'Saç Ekimi')}</option>
+                    <option>{t('healthTourismPage.treatment7', 'Diğer')}</option>
                   </select>
                 </div>
                 <div>

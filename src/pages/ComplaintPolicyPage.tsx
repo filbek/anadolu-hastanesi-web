@@ -114,7 +114,7 @@ const ComplaintPolicyPage = () => {
           >
             <div className="flex items-center gap-2 mb-6">
               <span className="block h-px w-10 bg-accent" />
-              <span className="text-accent text-xs uppercase tracking-[0.25em] font-semibold">Hasta Hakları Birimi</span>
+              <span className="text-accent text-xs uppercase tracking-[0.25em] font-semibold">{t('complaint.heroTag', 'Hasta Hakları Birimi')}</span>
             </div>
             <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-6">
               {t('complaint.titleLine1', 'Şikayet')}
@@ -155,16 +155,16 @@ const ComplaintPolicyPage = () => {
 
               <div className="space-y-5 text-gray-600 text-lg leading-relaxed">
                 <p>
-                  <strong className="text-secondary">Hasta Hakları Birimi</strong> olarak; hastanelerimizden arzu ettiğiniz hizmeti almak ve sizlerin memnuniyetini sağlamak için çalışmaktayız.
+                  <strong className="text-secondary">{t('complaint.p1Strong', 'Hasta Hakları Birimi')}</strong> {t('complaint.p1b', 'olarak; hastanelerimizden arzu ettiğiniz hizmeti almak ve sizlerin memnuniyetini sağlamak için çalışmaktayız.')}
                 </p>
                 <p>
-                  Hastanemizden hizmet alan tüm hasta ve yakınlarının hastanemiz ile ilgili <strong className="text-secondary">görüş ve düşüncelerini alır</strong>. Bildirilen tüm görüşleri ilgili departman yöneticileri ile değerlendirir ve sizlerin talepleri doğrultusunda hizmet kalitemizi artırmak için çalışırız.
+                  {t('complaint.p2a', 'Hastanemizden hizmet alan tüm hasta ve yakınlarının hastanemiz ile ilgili')} <strong className="text-secondary">{t('complaint.p2Strong', 'görüş ve düşüncelerini alır')}</strong>{t('complaint.p2b', '. Bildirilen tüm görüşleri ilgili departman yöneticileri ile değerlendirir ve sizlerin talepleri doğrultusunda hizmet kalitemizi artırmak için çalışırız.')}
                 </p>
                 <p>
-                  Değerlendirme sonrası alınan kararlar ve sonuçlar hakkında, bölüme bildirimi yapan hastamıza <strong className="text-secondary">geri dönüş yaparız</strong>.
+                  {t('complaint.p3a', 'Değerlendirme sonrası alınan kararlar ve sonuçlar hakkında, bölüme bildirimi yapan hastamıza')} <strong className="text-secondary">{t('complaint.p3Strong', 'geri dönüş yaparız')}</strong>.
                 </p>
                 <p>
-                  Hasta Hakları Birimi, sizlerin memnuniyetine katkı sağladığı kadar, sizlerin de öneri ve görüşleriniz ile hastanemizin gelişimine katkı sağlar. Şikayetleriniz ve olumsuz görüşlerinizle de sadece Hasta Hakları Birimimiz değil ilgili tüm üst düzey yöneticilerimiz <strong className="text-secondary">çözüm amaçlı ilgilenir</strong>.
+                  {t('complaint.p4a', 'Hasta Hakları Birimi, sizlerin memnuniyetine katkı sağladığı kadar, sizlerin de öneri ve görüşleriniz ile hastanemizin gelişimine katkı sağlar. Şikayetleriniz ve olumsuz görüşlerinizle de sadece Hasta Hakları Birimimiz değil ilgili tüm üst düzey yöneticilerimiz')} <strong className="text-secondary">{t('complaint.p4Strong', 'çözüm amaçlı ilgilenir')}</strong>.
                 </p>
               </div>
             </motion.div>
@@ -218,7 +218,7 @@ const ComplaintPolicyPage = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-2xl mb-14">
             <div className="flex items-center gap-3 mb-5">
               <span className="block h-px w-[60px] bg-accent" />
-              <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">Süreç</span>
+              <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">{t('complaint.processTag', 'Süreç')}</span>
             </div>
             <h2 className="text-4xl lg:text-5xl font-black text-secondary leading-tight mb-4">
               {t('complaint.processTitle', 'Başvuru')} <span className="text-primary">{t('complaint.processHighlight', 'Süreci')}</span>
@@ -258,7 +258,7 @@ const ComplaintPolicyPage = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-2xl mb-14">
             <div className="flex items-center gap-3 mb-5">
               <span className="block h-px w-[60px] bg-accent" />
-              <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">Başvuru Kanalları</span>
+              <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">{t('complaint.channelsTag', 'Başvuru Kanalları')}</span>
             </div>
             <h2 className="text-4xl lg:text-5xl font-black text-secondary leading-tight mb-4">
               {t('complaint.channelsTitle', 'Bize')} <span className="text-primary">{t('complaint.channelsHighlight', 'Nasıl Ulaşırsınız?')}</span>

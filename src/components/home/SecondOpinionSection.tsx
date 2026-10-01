@@ -135,7 +135,7 @@ const SecondOpinionSection = () => {
       setSubmitted(true);
     } catch (err: any) {
       console.error('Form submission error:', err);
-      alert('Başvuru gönderilirken hata oluştu: ' + (err?.message || ''));
+      alert(t('secondOpinion.submitError', 'Başvuru gönderilirken hata oluştu:') + ' ' + (err?.message || ''));
     } finally {
       setSubmitting(false);
     }

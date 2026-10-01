@@ -83,10 +83,10 @@ const DoctorDetailPage = () => {
     return (
       <div className="pt-24 pb-12 min-h-screen bg-neutral">
         <div className="container-custom py-20 text-center">
-          <h2 className="text-2xl font-bold mb-4">Doktor Bulunamadı</h2>
-          <p className="mb-8">Aradığınız doktor bulunamadı. Lütfen tüm doktorlarımızı görüntüleyin.</p>
+          <h2 className="text-2xl font-bold mb-4">{t('doctorDetail.notFound', 'Doktor Bulunamadı')}</h2>
+          <p className="mb-8">{t('doctorDetail.notFoundDesc', 'Aradığınız doktor bulunamadı. Lütfen tüm doktorlarımızı görüntüleyin.')}</p>
           <Link to="/doktorlar" className="btn btn-primary">
-            Tüm Doktorlarımız
+            {t('doctorDetail.allDoctors', 'Tüm Doktorlarımız')}
           </Link>
         </div>
       </div>

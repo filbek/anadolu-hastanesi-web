@@ -43,13 +43,15 @@ const fallbackDescriptions: Record<string, string> = {
 }
 
 const DepartmentsSection = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.1 })
   const { data: departmentsRaw = [] } = useDepartments({ onlyPublished: true })
   const departments = useLocalizedList(departmentsRaw, ['name', 'description'])
 
   const displayDepartments = departments.slice(0, 8)
+  // İkon ve yedek açıklama eşlemeleri Türkçe ada göre; çevrilmiş listede orijinal adı kullan
+  const originalName = (id: unknown) => departmentsRaw.find((d) => d.id === id)?.name ?? ''
 
   return (
     <section className="py-20 md:py-28 bg-white">
@@ -84,13 +86,13 @@ const DepartmentsSection = () => {
                   className="group bg-surface rounded-2xl p-6 transition-all duration-300 hover:bg-white hover:shadow-hover border border-transparent hover:border-ocean-200 hover:border-l-4 hover:border-l-ocean-500"
                 >
                   <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-ocean-500 text-xl mb-4 shadow-soft group-hover:bg-ocean-500 group-hover:text-white transition-all duration-300">
-                    {categoryIcons[department.name] || <FaStethoscope />}
+                    {categoryIcons[originalName(department.id)] || <FaStethoscope />}
                   </div>
                   <h3 className="font-display text-lg font-semibold text-primary-600 mb-2 group-hover:text-ocean-600 transition-colors">
                     {department.name}
                   </h3>
                   <p className="text-sm text-neutral-500 line-clamp-2 mb-4">
-                    {department.description || fallbackDescriptions[department.name] || t('home.defaultDepartmentDesc', 'Alanında uzman doktorlarımızla modern teknoloji ve hasta odaklı yaklaşımla hizmetinizdeyiz.')}
+                    {department.description || (i18n.language === 'tr' && fallbackDescriptions[department.name]) || t('home.defaultDepartmentDesc', 'Alanında uzman doktorlarımızla modern teknoloji ve hasta odaklı yaklaşımla hizmetinizdeyiz.')}
                   </p>
                   <Link
                     to={`/bolumlerimiz/${department.slug}`}

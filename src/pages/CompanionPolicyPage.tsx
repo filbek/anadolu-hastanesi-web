@@ -98,18 +98,18 @@ const CompanionPolicyPage = () => {
           </div>
           <div className="p-8">
             <ul className="space-y-4 columns-1 md:columns-2 gap-8 text-gray-600">
-              <li className="break-inside-avoid">Refakatçiler doktor ve hemşire direktifleri dışında hastaya herhangi bir uygulama yapmamalıdır.</li>
-              <li className="break-inside-avoid">Hastane kuralları konusunda görevlilere yardımcı olunmalıdır.</li>
-              <li className="break-inside-avoid">Refakatçi için hasta kabulü sırasında kimlik ibrazı ile refakatçi kaydı yapılır.</li>
-              <li className="break-inside-avoid">Değişimde mutlaka servis hemşiresine bilgi verilmesi gerekmektedir. İlgili hekim ya da hemşire istemi dışında, hasta dışarı çıkarılmamalıdır.</li>
-              <li className="break-inside-avoid">Yatış sırasında değerli eşyalar hasta tarafından refakatçisine teslim edilmelidir.</li>
-              <li className="break-inside-avoid">Hastanın sağlığı açısından herhangi bir sorun olduğunda öncelikle servis hemşirelerine bilgi verilmelidir.</li>
-              <li className="break-inside-avoid">Topraklı çiçekler, enfeksiyon taşıma riskleri nedeniyle hasta odalarına kabul edilmemektedir.</li>
-              <li className="break-inside-avoid">Kadın servisinde erkek refakatçi kalamaz.</li>
-              <li className="break-inside-avoid">Refakatçiler adlarına düzenlenmiş refakat kimlik kartlarını sürekli takılı tutmak mecburiyetindedirler.</li>
-              <li className="break-inside-avoid">Odalar içerisinde elektrikli ev aletleri (çay, kahve makinesi) kullanılmamalıdır.</li>
-              <li className="break-inside-avoid">Çocuk hastalar için küçük oyuncaklar getirmeyiniz. Yere düşen oyuncakları temizlemeden vermeyiniz.</li>
-              <li className="break-inside-avoid">Hasta düşmelerini önlemek için yatak korkuluklarının kalkık pozisyonda olmasına özen gösteriniz.</li>
+              <li className="break-inside-avoid">{t('companion.detail1', 'Refakatçiler doktor ve hemşire direktifleri dışında hastaya herhangi bir uygulama yapmamalıdır.')}</li>
+              <li className="break-inside-avoid">{t('companion.detail2', 'Hastane kuralları konusunda görevlilere yardımcı olunmalıdır.')}</li>
+              <li className="break-inside-avoid">{t('companion.detail3', 'Refakatçi için hasta kabulü sırasında kimlik ibrazı ile refakatçi kaydı yapılır.')}</li>
+              <li className="break-inside-avoid">{t('companion.detail4', 'Değişimde mutlaka servis hemşiresine bilgi verilmesi gerekmektedir. İlgili hekim ya da hemşire istemi dışında, hasta dışarı çıkarılmamalıdır.')}</li>
+              <li className="break-inside-avoid">{t('companion.detail5', 'Yatış sırasında değerli eşyalar hasta tarafından refakatçisine teslim edilmelidir.')}</li>
+              <li className="break-inside-avoid">{t('companion.detail6', 'Hastanın sağlığı açısından herhangi bir sorun olduğunda öncelikle servis hemşirelerine bilgi verilmelidir.')}</li>
+              <li className="break-inside-avoid">{t('companion.detail7', 'Topraklı çiçekler, enfeksiyon taşıma riskleri nedeniyle hasta odalarına kabul edilmemektedir.')}</li>
+              <li className="break-inside-avoid">{t('companion.detail8', 'Kadın servisinde erkek refakatçi kalamaz.')}</li>
+              <li className="break-inside-avoid">{t('companion.detail9', 'Refakatçiler adlarına düzenlenmiş refakat kimlik kartlarını sürekli takılı tutmak mecburiyetindedirler.')}</li>
+              <li className="break-inside-avoid">{t('companion.detail10', 'Odalar içerisinde elektrikli ev aletleri (çay, kahve makinesi) kullanılmamalıdır.')}</li>
+              <li className="break-inside-avoid">{t('companion.detail11', 'Çocuk hastalar için küçük oyuncaklar getirmeyiniz. Yere düşen oyuncakları temizlemeden vermeyiniz.')}</li>
+              <li className="break-inside-avoid">{t('companion.detail12', 'Hasta düşmelerini önlemek için yatak korkuluklarının kalkık pozisyonda olmasına özen gösteriniz.')}</li>
             </ul>
           </div>
         </motion.div>
@@ -171,9 +171,9 @@ const CompanionPolicyPage = () => {
               {t('companion.specialRulesTitle', 'Özellikli Bölüm Refakatçi Kuralları')}
             </h3>
             <ul className="space-y-4 text-gray-600 pl-4 list-disc marker:text-accent">
-              <li>Terminal dönem, geriatri, bağışıklık sistemi baskılanmış veya istismara uğramış hastaların bulunduğu bölümlerde refakatçiler mutlaka kişisel koruyucu ekipman (maske, bone vb.) kullanmalıdır.</li>
-              <li>Bu özellikli hasta gruplarının yanında kalacak kişilerin enfeksiyon veya ciddi kronik hastalığı olmamalıdır ve hastanın tanıdığı, güven duyduğu kişiler olmalıdır.</li>
-              <li>Ameliyat sonrası veya yoğun bakım çıkışı süreçlerinde bölüm hemşiresinin direktiflerine harfiyen uyulmalıdır.</li>
+              <li>{t('companion.special1', 'Terminal dönem, geriatri, bağışıklık sistemi baskılanmış veya istismara uğramış hastaların bulunduğu bölümlerde refakatçiler mutlaka kişisel koruyucu ekipman (maske, bone vb.) kullanmalıdır.')}</li>
+              <li>{t('companion.special2', 'Bu özellikli hasta gruplarının yanında kalacak kişilerin enfeksiyon veya ciddi kronik hastalığı olmamalıdır ve hastanın tanıdığı, güven duyduğu kişiler olmalıdır.')}</li>
+              <li>{t('companion.special3', 'Ameliyat sonrası veya yoğun bakım çıkışı süreçlerinde bölüm hemşiresinin direktiflerine harfiyen uyulmalıdır.')}</li>
             </ul>
           </motion.div>
         </div>

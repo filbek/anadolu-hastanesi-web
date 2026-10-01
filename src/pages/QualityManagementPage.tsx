@@ -367,7 +367,7 @@ const QualityManagementPage = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-2xl mb-14">
             <div className="flex items-center gap-3 mb-5">
               <span className="block h-px w-[60px] bg-accent" />
-              <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">Yapı</span>
+              <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">{t('quality.orgTag', 'Yapı')}</span>
             </div>
             <h2 className="text-4xl lg:text-5xl font-black text-secondary leading-tight mb-4">
               {t('quality.orgTitle', 'Kalite Yönetim Birimi')} <span className="text-primary">{t('quality.orgHighlight', 'Organizasyon Şeması')}</span>
@@ -450,7 +450,7 @@ const QualityManagementPage = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-2xl mb-14">
             <div className="flex items-center gap-3 mb-5">
               <span className="block h-px w-[60px] bg-accent" />
-              <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">Kalite Yapısı</span>
+              <span className="text-xs uppercase tracking-[0.25em] text-accent font-bold">{t('quality.committeeTag', 'Kalite Yapısı')}</span>
             </div>
             <h2 className="text-4xl lg:text-5xl font-black text-secondary leading-tight mb-4">
               {t('quality.committeeTitle', 'Komiteler ve Ekipler')}

@@ -17,6 +17,8 @@ import {
 import Logo from '../ui/Logo'
 import { useFocusTrap } from '../../hooks/useFocusTrap'
 import { useHospitals } from '../../hooks/useHospitals'
+import { SITE_LANGUAGES, normalizeLang } from '../../services/translationService'
+import { setUserLanguage } from '../../i18n'
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -24,6 +26,7 @@ const Header = () => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const location = useLocation()
   const { t, i18n } = useTranslation()
+  const currentLang = normalizeLang(i18n.language)
   const mobileMenuRef = useFocusTrap<HTMLDivElement>(isOpen, () => setIsOpen(false))
   const { data: hospitals = [] } = useHospitals({ onlyPublished: true })
 
@@ -248,29 +251,29 @@ const Header = () => {
               aria-label={t('nav.language', 'Dil seçimi')}
               aria-haspopup="true"
             >
-              {i18n.language || 'tr'}
+              {currentLang}
               <FaChevronDown aria-hidden="true" className="text-[10px] opacity-50 group-hover:rotate-180 transition-transform duration-300" />
             </button>
 
             <div className="absolute top-full right-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-300">
               <div className="bg-white rounded-2xl shadow-elevated border border-neutral-100 p-1 min-w-[120px] flex flex-col gap-0.5">
-                {(['tr', 'en', 'ar'] as const).map((lang) => (
+                {SITE_LANGUAGES.map(({ code: lang, name }) => (
                   <button
                     key={lang}
                     onClick={() => {
-                      i18n.changeLanguage(lang)
+                      setUserLanguage(lang)
                       closeMenu()
                     }}
-                    aria-label={lang === 'tr' ? 'Türkçe' : lang === 'en' ? 'English' : 'العربية'}
-                    aria-current={i18n.language === lang ? 'true' : undefined}
+                    aria-label={name}
+                    aria-current={currentLang === lang ? 'true' : undefined}
                     lang={lang}
                     className={`px-4 py-2.5 text-sm font-medium rounded-xl text-left transition-colors flex items-center justify-between ${
-                      i18n.language === lang
+                      currentLang === lang
                         ? 'bg-coral-50 text-coral-600'
                         : 'text-neutral-600 hover:bg-surface hover:text-primary-600'
                     }`}
                   >
-                    <span>{lang === 'tr' ? 'Türkçe' : lang === 'en' ? 'English' : 'العربية'}</span>
+                    <span>{name}</span>
                     <span className="text-[10px] uppercase opacity-50">{lang}</span>
                   </button>
                 ))}
@@ -390,23 +393,23 @@ const Header = () => {
                 {/* Mobile Language Switcher */}
                 <div className="flex flex-col gap-1 mb-4">
                   <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1">{t('nav.language', 'Dil Seçimi')}</span>
-                  {(['tr', 'en', 'ar'] as const).map((lang) => (
+                  {SITE_LANGUAGES.map(({ code: lang, name }) => (
                     <button
                       key={lang}
                       onClick={() => {
-                        i18n.changeLanguage(lang)
+                        setUserLanguage(lang)
                         closeMenu()
                       }}
-                      aria-label={lang === 'tr' ? 'Türkçe' : lang === 'en' ? 'English' : 'العربية'}
-                      aria-current={i18n.language === lang ? 'true' : undefined}
+                      aria-label={name}
+                      aria-current={currentLang === lang ? 'true' : undefined}
                       lang={lang}
                       className={`px-4 py-2 text-sm font-medium rounded-xl text-left transition-colors flex items-center justify-between ${
-                        i18n.language === lang
+                        currentLang === lang
                           ? 'bg-coral-50 text-coral-600'
                           : 'text-neutral-600 hover:bg-surface hover:text-primary-600'
                       }`}
                     >
-                      <span>{lang === 'tr' ? 'Türkçe' : lang === 'en' ? 'English' : 'العربية'}</span>
+                      <span>{name}</span>
                       <span className="text-[10px] uppercase opacity-50">{lang}</span>
                     </button>
                   ))}

@@ -156,7 +156,7 @@ const NewsPage = () => {
           >
             <div className="flex items-center gap-2 mb-6">
               <span className="block h-px w-10 bg-accent" />
-              <span className="text-accent text-xs uppercase tracking-[0.25em] font-semibold">Basın & İletişim</span>
+              <span className="text-accent text-xs uppercase tracking-[0.25em] font-semibold">{t('news.heroTag', 'Basın & İletişim')}</span>
             </div>
             <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-6">
               {t('news.titleLine1', 'Bizden')}

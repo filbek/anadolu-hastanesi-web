@@ -4,13 +4,31 @@
  * - Çeviriler localStorage'da cache'lenir (runtime fallback senaryosu için).
  * - Admin formları için çoklu alan + çoklu dil batch çevirisi yapar.
  *
- * Kaynak dil daima Türkçe (tr). Hedef diller: en, ar.
+ * Kaynak dil daima Türkçe (tr). Hedef diller: en, ar, ru, es, fr, de.
  */
 
 const SOURCE_LANG = 'tr'
-export const TARGET_LANGS = ['en', 'ar'] as const
+export const TARGET_LANGS = ['en', 'ar', 'ru', 'es', 'fr', 'de'] as const
 export type TargetLang = typeof TARGET_LANGS[number]
 export type SupportedLang = 'tr' | TargetLang
+
+/** Sitede sunulan diller — dil seçici bu sırayla listeler. */
+export const SITE_LANGUAGES: { code: SupportedLang; name: string; dir: 'ltr' | 'rtl' }[] = [
+  { code: 'tr', name: 'Türkçe', dir: 'ltr' },
+  { code: 'en', name: 'English', dir: 'ltr' },
+  { code: 'ar', name: 'العربية', dir: 'rtl' },
+  { code: 'ru', name: 'Русский', dir: 'ltr' },
+  { code: 'es', name: 'Español', dir: 'ltr' },
+  { code: 'fr', name: 'Français', dir: 'ltr' },
+  { code: 'de', name: 'Deutsch', dir: 'ltr' },
+]
+
+/** 'en-US', 'de-DE' gibi değerleri desteklenen dil koduna indirger; bilinmeyen → 'tr'. */
+export function normalizeLang(raw: string | null | undefined): SupportedLang {
+  if (!raw) return 'tr'
+  const base = raw.toLowerCase().split('-')[0]
+  return (TARGET_LANGS as readonly string[]).includes(base) ? (base as TargetLang) : 'tr'
+}
 
 /* ------------------------------------------------------------------ *
  * localStorage cache (runtime için — DB'de saklanan çeviriler için değil)
@@ -274,7 +292,7 @@ export async function translateFields<T extends Record<string, any>>(
 
 /**
  * Bir nesneyi TÜM hedef dillere çevirir.
- * Çıktı: { en: {...}, ar: {...} } — DB'deki `translations` sütununa direkt yazılabilir.
+ * Çıktı: { en: {...}, ar: {...}, ru: {...}, ... } — DB'deki `translations` sütununa direkt yazılabilir.
  */
 export async function translateToAllLangs<T extends Record<string, any>>(
   source: T,
@@ -369,16 +387,11 @@ export function shouldTranslateString(s: string): boolean {
  * ------------------------------------------------------------------ */
 
 export function useShouldTranslate(): boolean {
-  const currentLang = typeof window !== 'undefined'
-    ? localStorage.getItem('i18nextLng') || document.documentElement.lang || 'tr'
-    : 'tr'
-  return currentLang !== 'tr' && (TARGET_LANGS as readonly string[]).includes(currentLang)
+  return getCurrentTargetLang() !== 'tr'
 }
 
 export function getCurrentTargetLang(): SupportedLang {
-  if (typeof window === 'undefined') return 'tr'
-  const lng = localStorage.getItem('i18nextLng') || document.documentElement.lang || 'tr'
-  if (lng.startsWith('en')) return 'en'
-  if (lng.startsWith('ar')) return 'ar'
-  return 'tr'
+  // <html lang> src/i18n.ts tarafından aktif dile senkron tutulur
+  if (typeof document === 'undefined') return 'tr'
+  return normalizeLang(document.documentElement.lang)
 }

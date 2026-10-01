@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { useAutoTranslation } from '../../hooks/useAutoTranslation'
-import { TARGET_LANGS, type TargetLang } from '../../services/translationService'
+import { TARGET_LANGS, normalizeLang, type TargetLang } from '../../services/translationService'
 
 interface AutoTranslateProps {
   /** Çevrilecek (Türkçe) metin */
@@ -63,13 +63,6 @@ const AutoTranslate = ({
       )}
     </Tag>
   )
-}
-
-function normalizeLang(raw: string | undefined): 'tr' | TargetLang {
-  if (!raw) return 'tr'
-  if (raw.startsWith('en')) return 'en'
-  if (raw.startsWith('ar')) return 'ar'
-  return 'tr'
 }
 
 export default AutoTranslate

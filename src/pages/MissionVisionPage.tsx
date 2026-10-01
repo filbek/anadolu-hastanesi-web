@@ -76,19 +76,18 @@ const MissionVisionPage = () => {
             <div className="flex items-center gap-2 mb-6">
               <span className="block h-px w-10 bg-accent" />
               <span className="text-accent text-xs uppercase tracking-[0.25em] font-semibold">
-                Kurumsal Kimlik
+                {t('mission.heroTag', 'Kurumsal Kimlik')}
               </span>
             </div>
 
             <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-6">
-              Misyon, Vizyon
+              {t('mission.heroTitle1', 'Misyon, Vizyon')}
               <br />
-              <span className="text-accent">&amp; Değerlerimiz</span>
+              <span className="text-accent">{t('mission.heroTitle2', '& Değerlerimiz')}</span>
             </h1>
 
             <p className="text-white/70 text-lg md:text-xl leading-relaxed max-w-xl">
-              Anadolu Hastaneleri Grubu olarak sağlık hizmetinde öncü, güvenilir ve insan
-              odaklı bir yaklaşımla topluma değer katmak için çalışıyoruz.
+              {t('mission.heroDesc', 'Anadolu Hastaneleri Grubu olarak sağlık hizmetinde öncü, güvenilir ve insan odaklı bir yaklaşımla topluma değer katmak için çalışıyoruz.')}
             </p>
           </motion.div>
         </div>

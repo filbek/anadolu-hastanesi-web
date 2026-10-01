@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { TARGET_LANGS, type SupportedLang, type TargetLang } from '../services/translationService'
+import { TARGET_LANGS, normalizeLang, type SupportedLang, type TargetLang } from '../services/translationService'
 
 type WithTranslations = {
   translations?: Partial<Record<TargetLang, Record<string, any>>> | null
@@ -43,11 +43,4 @@ export function useLocalized<T extends WithTranslations>(item: T | null | undefi
   return <K extends keyof T & string>(field: K): T[K] | string => {
     return getLocalized(item, field, lang)
   }
-}
-
-function normalizeLang(raw: string | undefined): SupportedLang {
-  if (!raw) return 'tr'
-  if (raw.startsWith('en')) return 'en'
-  if (raw.startsWith('ar')) return 'ar'
-  return 'tr'
 }

@@ -35,6 +35,10 @@ interface TranslationsPanelProps {
 const LANG_LABELS: Record<TargetLang, { name: string; flag: string; dir: 'ltr' | 'rtl' }> = {
   en: { name: 'English', flag: '🇬🇧', dir: 'ltr' },
   ar: { name: 'العربية', flag: '🇸🇦', dir: 'rtl' },
+  ru: { name: 'Русский', flag: '🇷🇺', dir: 'ltr' },
+  es: { name: 'Español', flag: '🇪🇸', dir: 'ltr' },
+  fr: { name: 'Français', flag: '🇫🇷', dir: 'ltr' },
+  de: { name: 'Deutsch', flag: '🇩🇪', dir: 'ltr' },
 }
 
 const TranslationsPanel = ({
