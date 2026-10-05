@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import {
   FaArrowDown,
   FaArrowUp,
   FaCertificate,
   FaCheckCircle,
+  FaExclamationTriangle,
   FaExternalLinkAlt,
   FaPlus,
   FaSave,
@@ -21,6 +22,16 @@ const STORAGE_BUCKET = 'quality-documents';
 const STORAGE_PATH = 'health-tourism';
 const MAX_SIZE = 10 * 1024 * 1024;
 
+export interface CertificatesHandle {
+  /** Belgeleri kaydeder; başarılıysa true döner. */
+  save: () => Promise<boolean>;
+}
+
+const serialize = (list: HealthTourismCertificate[]) =>
+  JSON.stringify(
+    list.map((c) => ({ id: c.id, title: c.title.trim(), subtitle: c.subtitle?.trim() || '', image_url: c.image_url }))
+  );
+
 const newId = () => `cert-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
 /**
@@ -28,14 +39,17 @@ const newId = () => `cert-${Date.now()}-${Math.random().toString(36).slice(2, 7)
  * Veri: site_settings.health_tourism_certificates (JSONB) —
  * bkz. src/sql/health_tourism_certificates_migration.sql
  */
-const AdminHealthTourismCertificates = () => {
-  const [settingsId, setSettingsId] = useState<string | number | null>(null);
+const AdminHealthTourismCertificates = forwardRef<CertificatesHandle>((_props, ref) => {
   const [certificates, setCertificates] = useState<HealthTourismCertificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  // Veritabanındaki son hal — kaydedilmemiş değişiklik var mı diye karşılaştırmak için
+  const [persistedJson, setPersistedJson] = useState('[]');
+  const isDirty = !loading && !loadError && serialize(certificates) !== persistedJson;
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
   // Kayıtlı görseller — kaydetme sonrası artık kullanılmayan dosyaları silmek için
   const persistedUrlsRef = useRef<string[]>([]);
@@ -43,9 +57,9 @@ const AdminHealthTourismCertificates = () => {
   useEffect(() => {
     (async () => {
       try {
-        const { settingsId, certificates } = await fetchHealthTourismCertificates();
-        setSettingsId(settingsId);
+        const { certificates } = await fetchHealthTourismCertificates();
         setCertificates(certificates);
+        setPersistedJson(serialize(certificates));
         persistedUrlsRef.current = certificates.map((c) => c.image_url);
       } catch (error: any) {
         console.error('Error fetching health tourism certificates:', error);
@@ -58,6 +72,17 @@ const AdminHealthTourismCertificates = () => {
       }
     })();
   }, []);
+
+  // Kaydedilmemiş değişiklik varken sayfadan çıkılırsa tarayıcı uyarsın
+  useEffect(() => {
+    if (!isDirty) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [isDirty]);
 
   const update = (id: string, patch: Partial<HealthTourismCertificate>) =>
     setCertificates((list) => list.map((c) => (c.id === id ? { ...c, ...patch } : c)));
@@ -130,30 +155,41 @@ const AdminHealthTourismCertificates = () => {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (): Promise<boolean> => {
+    setSaveError('');
+    if (uploadingId) {
+      setSaveError('Görsel yüklemesi bitmeden kaydedilemez.');
+      return false;
+    }
     const incomplete = certificates.find((c) => !c.title.trim() || !c.image_url);
     if (incomplete) {
-      alert('Her belge için hastane adı ve belge görseli zorunludur.');
-      return;
-    }
-    if (!settingsId) {
-      alert('site_settings kaydı bulunamadı. Önce Genel Ayarlar sayfasından ayarları bir kez kaydedin.');
-      return;
+      setSaveError('Her belge için hastane adı ve belge görseli zorunludur.');
+      return false;
     }
 
     try {
       setSaving(true);
-      const payload = certificates.map((c) => ({
-        id: c.id,
-        title: c.title.trim(),
-        subtitle: c.subtitle?.trim() || '',
-        image_url: c.image_url,
-      }));
-      const { error } = await supabase
-        .from('site_settings')
-        .update({ health_tourism_certificates: payload, updated_at: new Date().toISOString() })
-        .eq('id', settingsId);
-      if (error) throw error;
+      const payload = JSON.parse(serialize(certificates)) as HealthTourismCertificate[];
+
+      // Yetkiyi sunucuda kontrol eden fonksiyon (health_tourism_certificates_save_rpc.sql)
+      const { data, error } = await supabase.rpc('save_health_tourism_certificates', {
+        p_certificates: payload,
+      });
+      if (error) {
+        if (error.code === 'PGRST202') {
+          throw new Error(
+            "Kaydetme fonksiyonu bulunamadı. src/sql/health_tourism_certificates_save_rpc.sql dosyasını Supabase SQL Editor'da çalıştırın."
+          );
+        }
+        throw error;
+      }
+
+      // Veritabanının döndürdüğü hal, gönderdiğimizle aynı olmalı
+      const stored = Array.isArray(data) ? (data as HealthTourismCertificate[]) : [];
+      if (serialize(stored) !== serialize(payload)) {
+        throw new Error('Kayıt doğrulanamadı; veritabanı farklı bir içerik döndürdü.');
+      }
+      setPersistedJson(serialize(stored));
 
       const current = payload.map((c) => c.image_url);
       await deleteFromStorage(persistedUrlsRef.current.filter((url) => !current.includes(url)));
@@ -161,13 +197,17 @@ const AdminHealthTourismCertificates = () => {
 
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
+      return true;
     } catch (error: any) {
       console.error('Error saving health tourism certificates:', error);
-      alert('Kaydedilirken hata oluştu: ' + (error?.message || ''));
+      setSaveError('Belgeler kaydedilemedi: ' + (error?.message || 'bilinmeyen hata'));
+      return false;
     } finally {
       setSaving(false);
     }
   };
+
+  useImperativeHandle(ref, () => ({ save: handleSave }));
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -177,7 +217,7 @@ const AdminHealthTourismCertificates = () => {
         </h2>
         <button
           type="button"
-          onClick={handleSave}
+          onClick={() => { void handleSave(); }}
           disabled={saving || loading || !!loadError || !!uploadingId}
           className="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
         >
@@ -188,6 +228,18 @@ const AdminHealthTourismCertificates = () => {
       <p className="text-sm text-gray-500 mb-6">
         Sağlık Turizmi sayfasında gösterilen belgeler. Sıralama, sayfadaki görünüm sırasıdır.
       </p>
+
+      {isDirty && !saving && (
+        <div className="mb-4 p-3 rounded-lg bg-amber-50 text-amber-800 text-sm flex items-center gap-2" role="status">
+          <FaExclamationTriangle aria-hidden="true" />
+          Kaydedilmemiş değişiklikler var. Sitede görünmesi için "Belgeleri Kaydet"e basın.
+        </div>
+      )}
+      {saveError && (
+        <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm" role="alert">
+          {saveError}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center gap-2 text-gray-500 text-sm">
@@ -309,6 +361,8 @@ const AdminHealthTourismCertificates = () => {
       )}
     </div>
   );
-};
+});
+
+AdminHealthTourismCertificates.displayName = 'AdminHealthTourismCertificates';
 
 export default AdminHealthTourismCertificates;

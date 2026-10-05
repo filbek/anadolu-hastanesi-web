@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FaSave, FaGlobe, FaPlus, FaTrash, FaQuestionCircle, FaListUl } from 'react-icons/fa';
-import AdminHealthTourismCertificates from './AdminHealthTourismCertificates';
+import AdminHealthTourismCertificates, { type CertificatesHandle } from './AdminHealthTourismCertificates';
 
 const AdminHealthTourism = () => {
     const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const certificatesRef = useRef<CertificatesHandle>(null);
 
     const [content, setContent] = useState({
         hero: {
@@ -25,9 +26,11 @@ const AdminHealthTourism = () => {
 
     const handleSave = async () => {
         setLoading(true);
+        setMessage({ type: '', text: '' });
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            setMessage({ type: 'success', text: t('admin.healthTourism.saved', 'Sağlık Turizmi ayarları kaydedildi!') });
+            // Şimdilik yalnızca yetki belgeleri veritabanına kaydediliyor; hata mesajını bölüm kendisi gösterir.
+            const ok = await certificatesRef.current?.save();
+            if (ok) setMessage({ type: 'success', text: 'Sağlık turizmi yetki belgeleri kaydedildi.' });
         } catch (error) {
             setMessage({ type: 'error', text: t('admin.saveError', 'Kaydedilirken bir hata oluştu.') });
         } finally {
@@ -58,7 +61,7 @@ const AdminHealthTourism = () => {
 
             {/* Tabs / Modules */}
             <div className="grid grid-cols-1 gap-6">
-                <AdminHealthTourismCertificates />
+                <AdminHealthTourismCertificates ref={certificatesRef} />
 
                 {/* Why Choose Us */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
