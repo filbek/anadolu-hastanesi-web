@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FaSave, FaGlobe, FaPlus, FaTrash, FaQuestionCircle, FaListUl } from 'react-icons/fa';
+import AdminHealthTourismCertificates from './AdminHealthTourismCertificates';
 
 const AdminHealthTourism = () => {
     const { t } = useTranslation();
@@ -57,6 +58,8 @@ const AdminHealthTourism = () => {
 
             {/* Tabs / Modules */}
             <div className="grid grid-cols-1 gap-6">
+                <AdminHealthTourismCertificates />
+
                 {/* Why Choose Us */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h2 className="text-lg font-semibold mb-6 flex items-center text-gray-700">

@@ -577,7 +577,7 @@ const ManagementPage = () => {
 
       <section className="bg-white py-6 border-t border-gray-100">
         <div className="container-custom">
-          <LastUpdated date="22.06.2026" />
+          <LastUpdated />
         </div>
       </section>
     </>

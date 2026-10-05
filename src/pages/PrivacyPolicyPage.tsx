@@ -305,7 +305,7 @@ const PrivacyPolicyPage = () => {
         </section>
 
         <div className="pt-4 border-t border-slate-100">
-          <LastUpdated date="10.07.2026" />
+          <LastUpdated />
         </div>
       </div>
     </div>

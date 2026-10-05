@@ -170,7 +170,7 @@ const KvkkPage = () => {
         </section>
 
         <div className="pt-4 border-t border-slate-100">
-          <LastUpdated date="23.06.2026" />
+          <LastUpdated />
         </div>
       </div>
     </div>

@@ -252,7 +252,7 @@ const FeaturedProceduresPage = () => {
       {/* ─── LAST UPDATED ─── */}
       <section className="bg-white py-6 border-t border-gray-100">
         <div className="container-custom">
-          <LastUpdated date="07.07.2026" />
+          <LastUpdated />
         </div>
       </section>
     </>

@@ -1,11 +1,12 @@
 import { FaCalendarAlt } from 'react-icons/fa';
 
 interface LastUpdatedProps {
-  date: string;
+  /** Verilmezse sitenin son yayın (derleme) tarihi gösterilir; her güncellemede kendiliğinden yenilenir. */
+  date?: string;
   className?: string;
 }
 
-const LastUpdated = ({ date, className = '' }: LastUpdatedProps) => {
+const LastUpdated = ({ date = __BUILD_DATE__, className = '' }: LastUpdatedProps) => {
   return (
     <div
       className={`inline-flex items-center gap-2 text-xs font-medium text-gray-400 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 ${className}`}

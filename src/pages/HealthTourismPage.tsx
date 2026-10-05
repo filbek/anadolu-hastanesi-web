@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import { useTranslation } from 'react-i18next'
@@ -8,10 +8,28 @@ import {
   FaHeartbeat, FaBone, FaEye, FaUserEdit, FaTooth, FaCut,
   FaPhone, FaEnvelope, FaWhatsapp, FaFacebookF, FaTwitter, FaInstagram, FaYoutube, FaSearchPlus
 } from 'react-icons/fa'
+import {
+  DEFAULT_HEALTH_TOURISM_CERTIFICATES,
+  fetchHealthTourismCertificates,
+  type HealthTourismCertificate,
+} from '../services/healthTourismCertificates'
 
 const HealthTourismPage = () => {
   const { t } = useTranslation()
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+  const [lightboxCert, setLightboxCert] = useState<HealthTourismCertificate | null>(null)
+  const [certificates, setCertificates] = useState<HealthTourismCertificate[]>(DEFAULT_HEALTH_TOURISM_CERTIFICATES)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchHealthTourismCertificates()
+      .then(({ certificates }) => { if (!cancelled) setCertificates(certificates) })
+      // Okunamazsa (ör. migration henüz çalıştırılmadı) varsayılan belge kalır
+      .catch((err) => console.error('Sağlık turizmi belgeleri alınamadı:', err))
+    return () => { cancelled = true }
+  }, [])
+
+  const certSubtitle = (cert: HealthTourismCertificate) =>
+    cert.subtitle || 'Uluslararası Sağlık Turizmi Yetki Belgesi'
   const whyUs = [
     { title: t('healthTourism.whyUsTitle1', 'Uluslararası Kalite Standartları'), desc: t('healthTourism.whyUsDesc1', 'Uluslararası standartlarda sağlık hizmeti sunduğumuzu belgeleyen kalite sertifikalarına sahibiz.') },
     { title: 'Uzman Doktor Kadrosu', desc: 'Alanında uzman ve uluslararası deneyime sahip doktorlarımızla hizmet veriyoruz.' },
@@ -145,21 +163,37 @@ const HealthTourismPage = () => {
                 ))}
               </div>
             </div>
-            <div className="relative group cursor-pointer" onClick={() => setIsLightboxOpen(true)}>
-              <div className="absolute inset-0 bg-primary/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
-                <div className="bg-white/90 p-4 rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-all duration-300">
-                  <FaSearchPlus className="text-primary text-2xl" />
-                </div>
+            {certificates.length > 0 && (
+              <div className={certificates.length > 1 ? 'grid grid-cols-1 sm:grid-cols-2 gap-6' : ''}>
+                {certificates.map((cert) => (
+                  <figure key={cert.id}>
+                    <button
+                      type="button"
+                      onClick={() => setLightboxCert(cert)}
+                      className="relative group block w-full cursor-zoom-in rounded-3xl focus:outline-none focus-visible:ring-4 focus-visible:ring-accent/50"
+                      aria-label={`${cert.title} - ${certSubtitle(cert)} (büyüt)`}
+                    >
+                      <div className="absolute inset-0 bg-primary/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-10">
+                        <div className="bg-white/90 p-4 rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-all duration-300">
+                          <FaSearchPlus className="text-primary text-2xl" aria-hidden="true" />
+                        </div>
+                      </div>
+                      <img
+                        src={cert.image_url}
+                        alt={`${cert.title} - ${certSubtitle(cert)}`}
+                        className="rounded-3xl shadow-xl border border-slate-200 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                      />
+                      <span className="absolute -bottom-4 -right-4 z-20 bg-accent text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg">
+                        <AutoTranslate text="T.C. Sağlık Bakanlığı Onaylı" />
+                      </span>
+                    </button>
+                    <figcaption className="mt-6 text-center text-sm font-semibold text-primary">
+                      {cert.title}
+                    </figcaption>
+                  </figure>
+                ))}
               </div>
-              <img
-                src="/uploads/saglik-turizmi-yetki-belgesi.png"
-                alt={t('healthTourismPage.heroTitle', 'Sağlık Turizmi Yetki Belgesi')}
-                className="rounded-3xl shadow-xl border border-slate-200 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-              />
-              <div className="absolute -bottom-4 -right-4 bg-accent text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg">
-                <AutoTranslate text="T.C. Sağlık Bakanlığı Onaylı" />
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
@@ -471,12 +505,12 @@ const HealthTourismPage = () => {
 
       {/* LIGHTBOX MODAL */}
       <AnimatePresence>
-        {isLightboxOpen && (
+        {lightboxCert && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setIsLightboxOpen(false)}
+            onClick={() => setLightboxCert(null)}
             className="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center z-[9999] p-4 cursor-zoom-out"
           >
             <motion.div
@@ -488,19 +522,19 @@ const HealthTourismPage = () => {
               className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center"
             >
               <button
-                onClick={() => setIsLightboxOpen(false)}
+                onClick={() => setLightboxCert(null)}
                 className="absolute -top-12 right-0 text-white hover:text-accent text-3xl font-bold transition-colors"
                 aria-label="Kapat"
               >
                 &times;
               </button>
               <img
-                src="/uploads/saglik-turizmi-yetki-belgesi.png"
-                alt={t('healthTourismPage.heroTitle', 'Sağlık Turizmi Yetki Belgesi')}
+                src={lightboxCert.image_url}
+                alt={`${lightboxCert.title} - ${certSubtitle(lightboxCert)}`}
                 className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl border-4 border-white/10"
               />
               <p className="text-white/80 text-sm mt-4 font-semibold tracking-wider uppercase">
-                <AutoTranslate text="Uluslararası Sağlık Turizmi Yetki Belgesi" />
+                {lightboxCert.title} · <AutoTranslate text={certSubtitle(lightboxCert)} />
               </p>
             </motion.div>
           </motion.div>

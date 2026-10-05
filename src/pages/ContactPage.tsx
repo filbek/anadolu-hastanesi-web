@@ -446,14 +446,16 @@ const ContactPage = () => {
       <section className="py-8 bg-white border-t border-slate-100">
         <div className="container-custom text-center">
           <p className="text-sm text-slate-500">
-            {t('contactPage.editorInfo')} &nbsp;|&nbsp; {t('footer.contactTitle')}: <a href="tel:4445058" className="text-primary hover:underline">444 50 58</a>
+            {t('contactPage.editorInfo')} &nbsp;·&nbsp; {t('common.phone', 'Telefon')}:{' '}
+            <a href="tel:+905352306902" className="text-primary hover:underline">+90 535 230 69 02</a>
+            &nbsp;|&nbsp; {t('footer.contactTitle')}: <a href="tel:4445058" className="text-primary hover:underline">444 50 58</a>
           </p>
         </div>
       </section>
 
       <section className="bg-white py-6 border-t border-gray-100">
         <div className="container-custom">
-          <LastUpdated date="22.06.2026" />
+          <LastUpdated />
         </div>
       </section>
     </div>
