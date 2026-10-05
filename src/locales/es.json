@@ -2261,7 +2261,16 @@
     "helpTag": "Puntos de ayuda",
     "helpTitle": "Estamos aquí",
     "helpHighlight": "para ayudarle",
-    "ctaTitle": "¿Tiene alguna pregunta?"
+    "ctaTitle": "¿Tiene alguna pregunta?",
+    "floorTag": "Planos de plantas",
+    "floorTitle": "Qué unidad",
+    "floorHighlight": "en qué planta",
+    "floorDesc": "Consulte a continuación en qué planta se encuentra la unidad que busca.",
+    "floorHospitals": "Seleccione un hospital",
+    "floorEmpty": "El plano de plantas de este hospital se añadirá pronto.",
+    "floorPdfDownload": "Descargar plano (PDF)",
+    "floorPdfPreparing": "Preparando PDF...",
+    "floorPdfError": "No se pudo crear el PDF. Inténtelo de nuevo."
   },
   "management": {
     "pageTitle": "Nuestro equipo directivo",

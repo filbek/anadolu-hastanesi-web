@@ -2261,7 +2261,16 @@
     "helpTag": "Anlaufstellen",
     "helpTitle": "Wir helfen",
     "helpHighlight": "Ihnen gerne",
-    "ctaTitle": "Haben Sie Fragen?"
+    "ctaTitle": "Haben Sie Fragen?",
+    "floorTag": "Etagenpläne",
+    "floorTitle": "Welche Abteilung",
+    "floorHighlight": "Auf welcher Etage?",
+    "floorDesc": "Hier sehen Sie, auf welcher Etage sich die gesuchte Abteilung befindet.",
+    "floorHospitals": "Krankenhaus wählen",
+    "floorEmpty": "Der Etagenplan für dieses Krankenhaus wird in Kürze ergänzt.",
+    "floorPdfDownload": "Etagenplan als PDF herunterladen",
+    "floorPdfPreparing": "PDF wird erstellt...",
+    "floorPdfError": "Das PDF konnte nicht erstellt werden. Bitte versuchen Sie es erneut."
   },
   "management": {
     "pageTitle": "Unsere Geschäftsleitung",

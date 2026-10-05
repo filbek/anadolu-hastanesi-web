@@ -2261,7 +2261,16 @@
     "helpTag": "Yardım Noktaları",
     "helpTitle": "Size",
     "helpHighlight": "Yardımcı Oluyoruz",
-    "ctaTitle": "Sorularınız mı Var?"
+    "ctaTitle": "Sorularınız mı Var?",
+    "floorTag": "Kat Planları",
+    "floorTitle": "Hangi Birim",
+    "floorHighlight": "Hangi Katta?",
+    "floorDesc": "Gitmek istediğiniz birimin hangi katta olduğunu aşağıdan görebilirsiniz.",
+    "floorHospitals": "Hastane seçin",
+    "floorEmpty": "Bu hastanenin kat planı yakında eklenecektir.",
+    "floorPdfDownload": "Kat Planını PDF İndir",
+    "floorPdfPreparing": "PDF hazırlanıyor...",
+    "floorPdfError": "PDF oluşturulamadı. Lütfen tekrar deneyin."
   },
   "management": {
     "pageTitle": "Yönetim Kadromuz",

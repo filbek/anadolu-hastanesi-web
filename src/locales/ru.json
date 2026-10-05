@@ -2261,7 +2261,16 @@
     "helpTag": "Где получить помощь",
     "helpTitle": "Мы всегда",
     "helpHighlight": "готовы помочь",
-    "ctaTitle": "Остались вопросы?"
+    "ctaTitle": "Остались вопросы?",
+    "floorTag": "Планы этажей",
+    "floorTitle": "Какое отделение",
+    "floorHighlight": "на каком этаже?",
+    "floorDesc": "Ниже указано, на каком этаже находится нужное вам отделение.",
+    "floorHospitals": "Выберите больницу",
+    "floorEmpty": "План этажей этой больницы скоро будет добавлен.",
+    "floorPdfDownload": "Скачать план этажей (PDF)",
+    "floorPdfPreparing": "Подготовка PDF...",
+    "floorPdfError": "Не удалось создать PDF. Попробуйте ещё раз."
   },
   "management": {
     "pageTitle": "Наше руководство",

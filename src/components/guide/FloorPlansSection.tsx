@@ -5,6 +5,8 @@ import { getHospitals } from '../../services/hospitalService';
 import { getLocalized } from '../../hooks/useLocalized';
 import type { SupportedLang } from '../../services/translationService';
 import type { Hospital } from '../../lib/supabase';
+import { FaFilePdf, FaSpinner } from 'react-icons/fa';
+import { downloadFloorPlanPdf } from '../../utils/floorPlanPdf';
 
 // Satır sonu (gerçek ya da "\n" yazısı olarak kaydedilmiş) veya "|" ile ayrılmış birimler
 const unitsOf = (description?: string) =>
@@ -13,11 +15,21 @@ const unitsOf = (description?: string) =>
     .map((u) => u.trim())
     .filter(Boolean);
 
+const floorsOf = (h: Hospital) => (h.floor_plans ?? []).filter((f) => f.title?.trim());
+
+const slugify = (text: string) =>
+  text
+    .toLocaleLowerCase('tr-TR')
+    .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
 /**
  * Hastane İçi Rehber > Kat Planları (kat başlığı + birim listesi).
  * Veri hastaneler tablosundaki `floor_plans` alanından gelir; admin panelde
  * Hastaneler > (hastane) > "Kat Planları" bölümünden yönetilir.
- * Kat tanımlı hastane yoksa bölüm hiç görünmez.
+ * Her yayındaki şube bir sekmedir; seçili şubenin planı tek sayfalık PDF
+ * olarak (şube logosuyla) indirilebilir. Hiçbir şubede kat yoksa bölüm görünmez.
  */
 const FloorPlansSection = () => {
   const { t, i18n } = useTranslation();
@@ -25,16 +37,17 @@ const FloorPlansSection = () => {
   const lang = ((i18n.language || 'tr').slice(0, 2).toLowerCase() || 'tr') as SupportedLang;
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [activeId, setActiveId] = useState<Hospital['id'] | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const [pdfError, setPdfError] = useState('');
 
   useEffect(() => {
     let alive = true;
     getHospitals({ onlyPublished: true }).then((list) => {
       if (!alive) return;
-      const withFloors = list.filter(
-        (h) => Array.isArray(h.floor_plans) && h.floor_plans.some((f) => f.title?.trim()),
-      );
-      setHospitals(withFloors);
-      if (withFloors.length) setActiveId(withFloors[0].id);
+      // Kat planı olmayan şubeler de sekme olarak görünür; ilk sekme planı olan ilk şube
+      if (!list.some((h) => floorsOf(h).length > 0)) return;
+      setHospitals(list);
+      setActiveId((list.find((h) => floorsOf(h).length > 0) ?? list[0]).id);
     });
     return () => {
       alive = false;
@@ -44,7 +57,33 @@ const FloorPlansSection = () => {
   if (hospitals.length === 0) return null;
 
   const active = hospitals.find((h) => h.id === activeId) ?? hospitals[0];
-  const floors = (active.floor_plans ?? []).filter((f) => f.title?.trim());
+  const floors = floorsOf(active);
+  const activeName = getLocalized(active, 'name', lang);
+
+  const handleDownload = async () => {
+    setPdfError('');
+    setDownloading(true);
+    try {
+      await downloadFloorPlanPdf({
+        hospitalName: activeName,
+        logoUrl: active.logo_url,
+        address: active.address,
+        phone: active.phone,
+        floors: floors.map((f) => ({ title: f.title, units: unitsOf(f.description) })),
+        labels: {
+          heading: t('guide.floorTag', 'Kat Planları'),
+          subheading: `${t('guide.floorTitle', 'Hangi Birim')} ${t('guide.floorHighlight', 'Hangi Katta?')}`,
+          date: new Date().toLocaleDateString(i18n.language || 'tr-TR'),
+        },
+        fileName: `${slugify(active.name || 'hastane')}-kat-plani.pdf`,
+      });
+    } catch (err) {
+      console.error('Kat planı PDF oluşturulamadı:', err);
+      setPdfError(t('guide.floorPdfError', 'PDF oluşturulamadı. Lütfen tekrar deneyin.'));
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <section className="bg-white py-20 lg:py-28" aria-labelledby="floor-plans-heading">
@@ -70,17 +109,30 @@ const FloorPlansSection = () => {
           </p>
         </motion.div>
 
-        {hospitals.length > 1 && (
-          <div role="tablist" aria-label={t('guide.floorHospitals', 'Hastane seçin')} className="flex flex-wrap gap-2 mb-8">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
+          <div role="tablist" aria-label={t('guide.floorHospitals', 'Hastane seçin')} className="flex flex-wrap gap-2">
             {hospitals.map((h) => {
               const selected = h.id === active.id;
               return (
                 <button
                   key={h.id}
+                  id={`floor-tab-${h.id}`}
                   role="tab"
                   type="button"
                   aria-selected={selected}
-                  onClick={() => setActiveId(h.id)}
+                  aria-controls="floor-panel"
+                  tabIndex={selected ? 0 : -1}
+                  onClick={() => {
+                    setActiveId(h.id);
+                    setPdfError('');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+                    const idx = hospitals.findIndex((x) => x.id === h.id);
+                    const next = hospitals[(idx + (e.key === 'ArrowRight' ? 1 : hospitals.length - 1)) % hospitals.length];
+                    setActiveId(next.id);
+                    document.getElementById(`floor-tab-${next.id}`)?.focus();
+                  }}
                   className={`px-5 py-2.5 rounded-xl text-sm font-bold border transition-colors ${
                     selected
                       ? 'bg-primary text-white border-primary'
@@ -92,6 +144,31 @@ const FloorPlansSection = () => {
               );
             })}
           </div>
+
+          {floors.length > 0 && (
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={downloading}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-accent text-white hover:bg-accent-dark transition-colors disabled:opacity-60 self-start lg:self-auto"
+            >
+              {downloading ? <FaSpinner className="animate-spin" aria-hidden="true" /> : <FaFilePdf aria-hidden="true" />}
+              {downloading ? t('guide.floorPdfPreparing', 'PDF hazırlanıyor...') : t('guide.floorPdfDownload', 'Kat Planını PDF İndir')}
+            </button>
+          )}
+        </div>
+
+        {pdfError && (
+          <p role="alert" className="mb-6 text-sm font-medium text-accent-dark">
+            {pdfError}
+          </p>
+        )}
+
+        <div id="floor-panel" role="tabpanel" aria-labelledby={`floor-tab-${active.id}`}>
+        {floors.length === 0 && (
+          <p className="text-gray-500 bg-gray-50 border border-gray-100 rounded-2xl p-6">
+            {t('guide.floorEmpty', 'Bu hastanenin kat planı yakında eklenecektir.')}
+          </p>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -122,6 +199,7 @@ const FloorPlansSection = () => {
               </motion.article>
             );
           })}
+        </div>
         </div>
       </div>
     </section>

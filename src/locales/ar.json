@@ -2261,7 +2261,16 @@
     "helpTag": "نقاط المساعدة",
     "helpTitle": "نحن هنا",
     "helpHighlight": "لمساعدتك",
-    "ctaTitle": "هل لديك أسئلة؟"
+    "ctaTitle": "هل لديك أسئلة؟",
+    "floorTag": "مخططات الطوابق",
+    "floorTitle": "أي قسم",
+    "floorHighlight": "في أي طابق؟",
+    "floorDesc": "يمكنك أن ترى أدناه الطابق الذي يقع فيه القسم الذي تريد زيارته.",
+    "floorHospitals": "اختر المستشفى",
+    "floorEmpty": "سيتم إضافة مخطط طوابق هذا المستشفى قريبًا.",
+    "floorPdfDownload": "تنزيل مخطط الطوابق (PDF)",
+    "floorPdfPreparing": "جارٍ تجهيز ملف PDF...",
+    "floorPdfError": "تعذّر إنشاء ملف PDF. يرجى المحاولة مرة أخرى."
   },
   "management": {
     "pageTitle": "فريق الإدارة",

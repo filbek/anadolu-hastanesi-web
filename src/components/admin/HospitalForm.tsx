@@ -58,6 +58,8 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
   const [loading, setLoading] = useState(false);
   const [uploadingMainImage, setUploadingMainImage] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoRef = useRef<HTMLInputElement>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const mainImageRef = useRef<HTMLInputElement>(null);
@@ -247,6 +249,35 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
     } finally {
       setUploadingMainImage(false);
       if (mainImageRef.current) mainImageRef.current.value = '';
+    }
+  };
+
+  // Şube logosu (Hastane İçi Rehber kat planı PDF'inde kullanılır). Şeffaflık
+  // korunsun diye sıkıştırılmadan yüklenir.
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert(t('admin.settings.invalidImage', 'Lütfen geçerli bir resim dosyası seçin!'));
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      alert(t('admin.settings.logoSizeError', "Dosya boyutu 2MB'dan küçük olmalıdır!"));
+      return;
+    }
+
+    try {
+      setUploadingLogo(true);
+      const { url, error } = await uploadHospitalImage(file);
+      if (error || !url) throw error;
+      setFormData(prev => ({ ...prev, logo_url: url }));
+    } catch (err) {
+      console.error('Logo upload error:', err);
+      alert(t('admin.hospitalForm.imageUploadError', 'Resim yüklenirken hata oluştu!'));
+    } finally {
+      setUploadingLogo(false);
+      if (logoRef.current) logoRef.current.value = '';
     }
   };
 
@@ -861,6 +892,37 @@ const HospitalForm = ({ hospital, onSave, onCancel }: HospitalFormProps = {}) =>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t('admin.label.logo', 'Logo')}
                 </label>
+                <p className="text-xs text-gray-500 mb-2">
+                  Şube logosu, Hastane İçi Rehber'deki kat planı PDF'inin başlığında kullanılır. Boşsa grup logosu kullanılır.
+                </p>
+                <div className="flex items-center space-x-4 mb-2">
+                  <input
+                    ref={logoRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => logoRef.current?.click()}
+                    disabled={uploadingLogo}
+                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {uploadingLogo ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        {t('admin.uploading', 'Yükleniyor...')}
+                      </>
+                    ) : (
+                      <>
+                        <FaUpload className="mr-2" />
+                        {'Logo Yükle'}
+                      </>
+                    )}
+                  </button>
+                  <span className="text-sm text-gray-500">PNG (şeffaf), JPG (Max: 2MB)</span>
+                </div>
                 <input
                   type="url"
                   value={formData.logo_url}

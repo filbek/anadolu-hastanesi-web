@@ -2261,7 +2261,16 @@
     "helpTag": "Help Points",
     "helpTitle": "We Are Here",
     "helpHighlight": "to Help You",
-    "ctaTitle": "Do You Have Questions?"
+    "ctaTitle": "Do You Have Questions?",
+    "floorTag": "Floor Plans",
+    "floorTitle": "Which Unit",
+    "floorHighlight": "Is on Which Floor?",
+    "floorDesc": "See below which floor the unit you want to visit is on.",
+    "floorHospitals": "Select a hospital",
+    "floorEmpty": "The floor plan for this hospital will be added soon.",
+    "floorPdfDownload": "Download Floor Plan (PDF)",
+    "floorPdfPreparing": "Preparing PDF...",
+    "floorPdfError": "The PDF could not be created. Please try again."
   },
   "management": {
     "pageTitle": "Our Management Team",

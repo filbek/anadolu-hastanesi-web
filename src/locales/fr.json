@@ -2261,7 +2261,16 @@
     "helpTag": "Points d'aide",
     "helpTitle": "Nous sommes là",
     "helpHighlight": "pour vous aider",
-    "ctaTitle": "Vous avez des questions ?"
+    "ctaTitle": "Vous avez des questions ?",
+    "floorTag": "Plans des étages",
+    "floorTitle": "Quel service",
+    "floorHighlight": "à quel étage ?",
+    "floorDesc": "Retrouvez ci-dessous l'étage du service que vous souhaitez rejoindre.",
+    "floorHospitals": "Choisir un hôpital",
+    "floorEmpty": "Le plan des étages de cet hôpital sera bientôt ajouté.",
+    "floorPdfDownload": "Télécharger le plan (PDF)",
+    "floorPdfPreparing": "Préparation du PDF...",
+    "floorPdfError": "Le PDF n'a pas pu être créé. Veuillez réessayer."
   },
   "management": {
     "pageTitle": "Notre équipe de direction",
