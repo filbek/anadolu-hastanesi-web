@@ -1212,7 +1212,7 @@ const AdminJobApplications = () => {
                 <th scope="col" className="px-4 py-3 font-semibold text-gray-600 hidden lg:table-cell">İletişim</th>
                 <th scope="col" className="px-4 py-3 font-semibold text-gray-600">Durum</th>
                 <th scope="col" className="px-4 py-3 font-semibold text-gray-600 hidden md:table-cell">Tarih</th>
-                <th scope="col" className="px-4 py-3 font-semibold text-gray-600 text-right">İşlem</th>
+                <th scope="col" className="px-4 py-3 font-semibold text-gray-600 text-right sticky right-0 bg-gray-50 shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.15)]">İşlem</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -1238,7 +1238,7 @@ const AdminJobApplications = () => {
                         onClick={photoUrls[a.id] ? () => setPhotoPreview(a) : undefined}
                       />
                       <div className="min-w-0">
-                        <div className="font-semibold text-gray-900 flex items-center gap-2">
+                        <div className="font-semibold text-gray-900 flex flex-wrap items-center gap-x-2 gap-y-1">
                           {!a.is_read && (
                             <span className="w-2 h-2 rounded-full bg-accent shrink-0" aria-label="Okunmadı" />
                           )}
@@ -1332,8 +1332,8 @@ const AdminJobApplications = () => {
                   <td className="px-4 py-3 hidden md:table-cell text-gray-500 text-xs whitespace-nowrap">
                     {formatDateTime(a.created_at)}
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
+                  <td className={`px-4 py-3 sticky right-0 shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.15)] ${a.is_read ? 'bg-white' : 'bg-blue-50'}`}>
+                    <div className="flex items-center justify-end gap-1 whitespace-nowrap">
                       <button
                         onClick={() => setExpandedId(expandedId === a.id ? null : a.id)}
                         aria-expanded={expandedId === a.id}
