@@ -13,6 +13,12 @@
 // tablosundaki rolü 'admin' veya 'super_admin' olmak zorundadır. Rol
 // istemciden gelen bilgiye göre değil, veritabanından okunur.
 //
+// İSTİSNA — çağrı merkezi süpervizörü: profil rolü 'call_center' ve
+// chat_agents'ta aktif 'supervisor' olan kullanıcı Canlı Destek → Ekip
+// ekranından YALNIZCA call_center hesaplarını açabilir, adını/şifresini
+// değiştirebilir ve girişini kapatıp açabilir. Listeleyemez, silemez,
+// rol değiştiremez, başka bir süpervizörün hesabına dokunamaz.
+//
 // SUPABASE_URL ve SUPABASE_SERVICE_ROLE_KEY edge runtime'da otomatik gelir.
 // ============================================================
 
@@ -90,12 +96,54 @@ Deno.serve(async (req: Request) => {
       return json({ error: 'Yetki doğrulanamadı' }, 500);
     }
 
-    if (!callerProfile || !MANAGER_ROLES.includes(callerProfile.role)) {
+    const isManager = !!callerProfile && MANAGER_ROLES.includes(callerProfile.role);
+
+    let isChatSupervisor = false;
+    if (!isManager && callerProfile?.role === 'call_center') {
+      const { data: agentRow } = await admin
+        .from('chat_agents')
+        .select('agent_role, is_active')
+        .eq('user_id', caller.user.id)
+        .maybeSingle();
+      isChatSupervisor = !!agentRow?.is_active && agentRow.agent_role === 'supervisor';
+    }
+
+    if (!isManager && !isChatSupervisor) {
       return json({ error: 'Bu işlem için yetkiniz yok' }, 403);
     }
 
     const payload = (await req.json().catch(() => ({}))) as Payload;
     const action = payload.action;
+
+    // --- 2b) Süpervizör sınırları ---
+    if (isChatSupervisor) {
+      if (action !== 'create' && action !== 'update') {
+        return json({ error: 'Bu işlem için yetkiniz yok' }, 403);
+      }
+      // Süpervizör yalnızca çağrı merkezi hesabı açar; rol değiştiremez
+      if (action === 'create') payload.role = 'call_center';
+      if (action === 'update') {
+        delete payload.role;
+        delete payload.email;
+
+        if (!payload.id) return json({ error: 'Kullanıcı kimliği eksik' }, 400);
+
+        const [{ data: target }, { data: targetAgent }] = await Promise.all([
+          admin.from('profiles').select('role').eq('id', payload.id).maybeSingle(),
+          admin
+            .from('chat_agents')
+            .select('agent_role')
+            .eq('user_id', payload.id)
+            .maybeSingle(),
+        ]);
+        if (target?.role !== 'call_center') {
+          return json({ error: 'Yalnızca çağrı merkezi hesaplarını düzenleyebilirsiniz' }, 403);
+        }
+        if (targetAgent?.agent_role === 'supervisor' && payload.id !== caller.user.id) {
+          return json({ error: 'Başka bir süpervizörün hesabını yalnızca yönetici düzenleyebilir' }, 403);
+        }
+      }
+    }
 
     // --- 3) İşlemler ---
     if (action === 'list') {
@@ -202,16 +250,43 @@ Deno.serve(async (req: Request) => {
         return json({ error: 'Kendi hesabınızı pasife alamazsınız' }, 400);
       }
 
-      const attrs: Record<string, unknown> = {
-        user_metadata: { full_name: full_name ?? '', role: role ?? 'user' },
-      };
+      if (payload.password !== undefined && payload.password.length < 6) {
+        return json({ error: 'Şifre en az 6 karakter olmalı' }, 400);
+      }
+
+      // Yalnızca gönderilen alanlar; eksik rol 'user' diye yazılmasın
+      const metadata: Record<string, unknown> = {};
+      if (full_name !== undefined) metadata.full_name = full_name;
+      if (role) metadata.role = role;
+
+      const attrs: Record<string, unknown> = {};
+      if (Object.keys(metadata).length) attrs.user_metadata = metadata;
       if (email) attrs.email = email;
+      if (payload.password) attrs.password = payload.password;
       if (payload.is_active !== undefined) {
         attrs.ban_duration = payload.is_active ? 'none' : '876000h';
       }
 
-      const { error } = await admin.auth.admin.updateUserById(id, attrs);
-      if (error) return json({ error: error.message }, 400);
+      if (Object.keys(attrs).length) {
+        const { error } = await admin.auth.admin.updateUserById(id, attrs);
+        if (error) return json({ error: error.message }, 400);
+      }
+
+      // Girişi kapatılan çağrı merkezi hesabı otomatik atama almasın;
+      // açılınca ekibe geri dönsün.
+      if (payload.is_active !== undefined) {
+        const { data: tp } = await admin
+          .from('profiles')
+          .select('role')
+          .eq('id', id)
+          .maybeSingle();
+        if ((role ?? tp?.role) === 'call_center') {
+          await admin
+            .from('chat_agents')
+            .update({ is_active: payload.is_active })
+            .eq('user_id', id);
+        }
+      }
 
       const profileUpdate: Record<string, unknown> = {};
       if (email) profileUpdate.email = email;

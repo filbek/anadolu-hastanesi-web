@@ -79,6 +79,8 @@ const AdminChatStats = () => {
   if (!stats) return null;
 
   const { totals, response } = stats;
+  // Operatör yalnızca kendine atanan görüşmelerin rakamlarını alır
+  const isSelf = stats.scope === 'self';
   const answerRate = totals.conversations
     ? Math.round((response.answered / totals.conversations) * 100)
     : 0;
@@ -87,7 +89,8 @@ const AdminChatStats = () => {
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="flex items-center gap-3 text-2xl font-semibold text-primary">
-          <FaChartBar className="text-ocean" /> Canlı Destek İstatistikleri
+          <FaChartBar className="text-ocean" />
+          {isSelf ? 'Performansım' : 'Canlı Destek İstatistikleri'}
         </h1>
 
         <div className="flex items-center gap-2">
@@ -116,6 +119,12 @@ const AdminChatStats = () => {
           </button>
         </div>
       </div>
+
+      {isSelf && (
+        <p className="-mt-3 mb-6 text-sm text-slate-500">
+          Yalnızca size atanan görüşmeler ve sizin gönderdiğiniz mesajlar sayılır.
+        </p>
+      )}
 
       {/* --- Özet kartlar --- */}
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -267,7 +276,7 @@ const AdminChatStats = () => {
 
       {/* --- Operatörler ve hazır yanıtlar --- */}
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {stats.agents.length > 0 && (
+        {!isSelf && stats.agents.length > 0 && (
           <Card title="Operatör Aktivitesi" subtitle="Gönderilen yanıt sayısı">
             <ul className="divide-y divide-slate-100">
               {stats.agents.map((a) => (
@@ -282,7 +291,7 @@ const AdminChatStats = () => {
           </Card>
         )}
 
-        {stats.canned && stats.canned.length > 0 && (
+        {!isSelf && stats.canned && stats.canned.length > 0 && (
           <Card
             title="En Çok Kullanılan Hazır Yanıtlar"
             subtitle="Hangi metinler işe yarıyor"

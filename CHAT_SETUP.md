@@ -33,6 +33,12 @@ Ardından şu iki dosyayı **bu sırayla** çalıştırın:
    yayınlanmamış içeriğin herkese açılmasını engeller
 6. `src/sql/live_chat_agents_migration.sql` — çoklu operatör
 7. `src/sql/whatsapp_routing_migration.sql` — form → WhatsApp yönlendirme
+8. `src/sql/call_center_role_migration.sql` — çağrı merkezi rolü
+9. `src/sql/call_center_supervisor_migration.sql` — süpervizör yetkileri:
+   operatör yalnızca kendi görüşmelerini ve kendi raporunu görür; süpervizör
+   Ekip ekranından çağrı merkezi hesabı açar, şifre sıfırlar, girişi kapatır.
+   Ardından `supabase functions deploy admin-users` ile edge function'ı
+   güncelleyin.
 
 Sıra önemlidir; her biri bir öncekinin oluşturduğu nesnelere dayanır.
 

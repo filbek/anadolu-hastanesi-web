@@ -837,6 +837,31 @@ export async function saveChatAgent(agent: Partial<ChatAgent>): Promise<void> {
   if (error) throw error;
 }
 
+/**
+ * Oturumdaki kullanıcı canlı destek süpervizörü mü? (RLS'teki
+ * chat_is_supervisor() ile aynı kural; super_admin da true döner.)
+ */
+export async function fetchIsChatSupervisor(): Promise<boolean> {
+  const { data, error } = await supabase.rpc('chat_is_supervisor');
+  if (error) throw error;
+  return data === true;
+}
+
+/** Ekip ekranı için hesap bilgisi — yalnızca süpervizör/yönetici */
+export interface TeamAccount {
+  user_id: string;
+  email: string;
+  full_name: string | null;
+  profile_role: string | null;
+  account_active: boolean;
+}
+
+export async function fetchTeamAccounts(): Promise<TeamAccount[]> {
+  const { data, error } = await supabase.rpc('chat_team_accounts');
+  if (error) throw error;
+  return (data || []) as TeamAccount[];
+}
+
 export async function removeChatAgent(userId: string): Promise<void> {
   const { error } = await supabase.from('chat_agents').delete().eq('user_id', userId);
   if (error) throw error;
@@ -930,6 +955,8 @@ export async function updateConversationTags(
 // ============================================================
 
 export interface ChatStats {
+  /** 'team': süpervizör/yönetici tüm ekibi görür; 'self': operatör kendini */
+  scope?: 'team' | 'self';
   period_days: number;
   totals: {
     conversations: number;

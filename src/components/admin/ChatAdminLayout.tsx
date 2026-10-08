@@ -2,8 +2,10 @@ import { NavLink, Navigate, Outlet, useLocation, useOutletContext } from 'react-
 import {
   FaComments, FaChartBar, FaHeadset, FaBolt, FaTag, FaCog,
 } from 'react-icons/fa';
+import { useEffect, useState } from 'react';
 import { useSupabase } from '../../contexts/SupabaseContext';
 import { isCallCenterOnlyRole } from '../../lib/roles';
+import { fetchIsChatSupervisor } from '../../services/chatService';
 
 /**
  * Canlı desteğin tüm alt sayfalarını tek bir panel sekmesinde toplar.
@@ -17,6 +19,12 @@ interface AdminOutletContext {
   unreadChats: number;
 }
 
+/** Canlı destek alt sayfalarına geçen bağlam */
+export interface ChatOutletContext {
+  /** Çağrı merkezi süpervizörü (yönetici değil) — ekip yetkileri sınırlı */
+  isCallCenterSupervisor: boolean;
+}
+
 const TABS = [
   { to: '', label: 'Görüşmeler', icon: FaComments, end: true, badge: true },
   { to: 'stats', label: 'Rapor', icon: FaChartBar },
@@ -27,10 +35,11 @@ const TABS = [
 ];
 
 /*
- * Çağrı merkezi operatörü yalnızca görüşmeleri ve raporu görür; ekip,
- * hazır yanıt, etiket ve ayar düzenleme supervisor/yönetici işidir.
+ * Çağrı merkezi operatörü yalnızca görüşmeleri ve KENDİ raporunu görür;
+ * ekip, hazır yanıt, etiket ve ayar düzenleme süpervizör/yönetici işidir.
  * Hazır yanıtları yine yanıt kutusunda "/" ile kullanabilir.
- * Filtre KOZMETİKTİR — asıl kapı RLS'tir (call_center_role_migration.sql).
+ * Ekip rolü 'supervisor' olan çağrı merkezi kullanıcısı tüm sekmeleri görür.
+ * Filtre KOZMETİKTİR — asıl kapı RLS'tir (call_center_supervisor_migration.sql).
  */
 const CALL_CENTER_TABS = ['', 'stats'];
 
@@ -44,13 +53,43 @@ const ChatAdminLayout = () => {
   const location = useLocation();
 
   const isCallCenter = isCallCenterOnlyRole(userProfile);
-  const tabs = isCallCenter ? TABS.filter((t) => CALL_CENTER_TABS.includes(t.to)) : TABS;
 
-  // /admin/live-chat/<alt> → alt sekme; izinsiz sekmeye elle gidilirse görüşmelere dön
+  // null = henüz bilinmiyor. Yalnızca çağrı merkezi için sorulur; yönetici
+  // zaten tüm sekmeleri görür.
+  const [isSupervisor, setIsSupervisor] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!isCallCenter) return;
+    let cancelled = false;
+    fetchIsChatSupervisor()
+      .then((v) => !cancelled && setIsSupervisor(v))
+      .catch(() => !cancelled && setIsSupervisor(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [isCallCenter, userProfile?.id]);
+
+  const restricted = isCallCenter && isSupervisor !== true;
+  const tabs = restricted ? TABS.filter((t) => CALL_CENTER_TABS.includes(t.to)) : TABS;
+
+  // /admin/live-chat/<alt> → alt sekme; izinsiz sekmeye elle gidilirse görüşmelere dön.
+  // Süpervizörlük henüz sorgulanıyorsa bekle ki doğrudan /agents açan
+  // süpervizör görüşmelere atılmasın.
   const subPath = location.pathname.replace(/^\/admin\/live-chat\/?/, '').split('/')[0];
-  if (isCallCenter && !CALL_CENTER_TABS.includes(subPath)) {
+  const onRestrictedTab = !CALL_CENTER_TABS.includes(subPath);
+  if (isCallCenter && onRestrictedTab && isSupervisor === null) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-primary" />
+      </div>
+    );
+  }
+  if (restricted && onRestrictedTab) {
     return <Navigate to="/admin/live-chat" replace />;
   }
+
+  const outletContext: ChatOutletContext = {
+    isCallCenterSupervisor: isCallCenter && isSupervisor === true,
+  };
 
   return (
     <div>
@@ -82,7 +121,7 @@ const ChatAdminLayout = () => {
         ))}
       </nav>
 
-      <Outlet />
+      <Outlet context={outletContext} />
     </div>
   );
 };
