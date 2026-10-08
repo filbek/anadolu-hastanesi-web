@@ -840,6 +840,7 @@
     "userDeleteError": "Kullanıcı silinirken hata oluştu: ",
     "role": {
       "admin": "Yönetici",
+      "callCenter": "Çağrı Merkezi",
       "editor": "Editör",
       "user": "Kullanıcı"
     },

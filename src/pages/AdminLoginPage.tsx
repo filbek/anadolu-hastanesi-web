@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSupabase } from '../contexts/SupabaseContext';
-import { canAccessAdminPanel, isHrOnlyRole } from '../lib/roles';
+import { canAccessAdminPanel, landingPathFor } from '../lib/roles';
 import { FaEye, FaEyeSlash, FaLock, FaUser } from 'react-icons/fa';
 
 
@@ -18,9 +18,9 @@ const AdminLoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // İK rolü panelin tamamını değil yalnızca kendi modülünü görür;
-  // doğrudan /admin'e atılırsa boş bir dashboard'la karşılaşır.
-  const landingPath = isHrOnlyRole(userProfile) ? '/admin/job-applications' : '/admin';
+  // İK ve çağrı merkezi rolleri panelin tamamını değil yalnızca kendi
+  // modülünü görür; doğrudan /admin'e atılırsa boş bir dashboard'la karşılaşır.
+  const landingPath = landingPathFor(userProfile);
 
   // Listen for user changes and redirect if authorized
   useEffect(() => {

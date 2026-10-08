@@ -87,6 +87,13 @@ const AdminPatientInfo = lazy(() => import('./components/admin/AdminPatientInfo'
 const AdminContractedInstitutions = lazy(() => import('./components/admin/AdminContractedInstitutions'))
 const AdminSettings = lazy(() => import('./components/admin/AdminSettings'))
 const AdminWhatsAppRouting = lazy(() => import('./components/admin/AdminWhatsAppRouting'))
+const AdminLiveChat = lazy(() => import('./components/admin/AdminLiveChat'))
+const AdminChatSettings = lazy(() => import('./components/admin/AdminChatSettings'))
+const AdminChatTags = lazy(() => import('./components/admin/AdminChatTags'))
+const AdminChatStats = lazy(() => import('./components/admin/AdminChatStats'))
+const AdminCannedResponses = lazy(() => import('./components/admin/AdminCannedResponses'))
+const AdminChatAgents = lazy(() => import('./components/admin/AdminChatAgents'))
+const ChatAdminLayout = lazy(() => import('./components/admin/ChatAdminLayout'))
 const AdminHomeSettings = lazy(() => import('./components/admin/AdminHomeSettings'))
 const AdminHealthTourism = lazy(() => import('./components/admin/AdminHealthTourism'))
 const AdminHeroSlides = lazy(() => import('./components/admin/AdminHeroSlides'))
@@ -232,6 +239,23 @@ function App() {
               <Route path="test-connection" element={<AdminTestConnection />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route path="whatsapp-routing" element={<AdminWhatsAppRouting />} />
+              {/* Canlı destek: tüm alt bölümler tek sekmede toplandı,
+                  gezinme sayfa içindeki sekme çubuğundan yapılıyor */}
+              <Route path="live-chat" element={<ChatAdminLayout />}>
+                <Route index element={<AdminLiveChat />} />
+                <Route path="stats" element={<AdminChatStats />} />
+                <Route path="agents" element={<AdminChatAgents />} />
+                <Route path="canned" element={<AdminCannedResponses />} />
+                <Route path="tags" element={<AdminChatTags />} />
+                <Route path="settings" element={<AdminChatSettings />} />
+              </Route>
+
+              {/* Eski tekil rotalar — kayıtlı bağlantılar kırılmasın */}
+              <Route path="chat-settings" element={<Navigate to="/admin/live-chat/settings" replace />} />
+              <Route path="chat-tags" element={<Navigate to="/admin/live-chat/tags" replace />} />
+              <Route path="chat-stats" element={<Navigate to="/admin/live-chat/stats" replace />} />
+              <Route path="chat-canned" element={<Navigate to="/admin/live-chat/canned" replace />} />
+              <Route path="chat-agents" element={<Navigate to="/admin/live-chat/agents" replace />} />
               <Route path="hero-slides" element={<AdminHeroSlides />} />
               <Route path="testimonials" element={<AdminTestimonials />} />
               <Route path="news" element={<AdminNews />} />

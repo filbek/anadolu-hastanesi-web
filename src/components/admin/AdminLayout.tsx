@@ -1,24 +1,70 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useSupabase } from '../../contexts/SupabaseContext';
+import {
+  canAccessAdminPanel, canUseLiveChat, restrictedPathsFor, landingPathFor,
+  ROLE_LABELS, AppRole,
+} from '../../lib/roles';
+import {
+  fetchConversations, subscribeToChatChanges, hasUnreadForAgent,
+  agentHeartbeat, AgentStatus, AGENT_STATUS_LABELS,
+} from '../../services/chatService';
+import {
+  playChatAlert, notifyNewChat, requestNotificationPermission,
+  loadNotificationPrefs, saveNotificationPrefs,
+  NotificationPrefs, DEFAULT_PREFS,
+} from '../../utils/chatNotifications';
 import {
   FaHospital, FaStethoscope, FaUserMd, FaNewspaper, FaUsers,
   FaSignOutAlt, FaTachometerAlt, FaBars, FaTimes, FaCog,
   FaImages, FaFileAlt, FaPhone, FaGlobe, FaEnvelope,
   FaDatabase, FaVideo, FaAward, FaFilePdf, FaChevronRight,
   FaSlideshare, FaComments, FaChartBar, FaCertificate, FaClipboardList, FaHistory, FaUserTie,
-  FaBaby, FaHandshake, FaSitemap, FaHandHoldingHeart, FaWhatsapp, FaBriefcase
+  FaBaby, FaHandshake, FaSitemap, FaHandHoldingHeart, FaWhatsapp, FaHeadset,
+  FaBell, FaVolumeUp, FaVolumeMute, FaBriefcase
 } from 'react-icons/fa';
+
+/** Sidebar'da rozet gösterilen menü öğesi */
+const LIVE_CHAT_PATH = '/admin/live-chat';
 
 const AdminLayout = () => {
   const { user, signOut, userProfile } = useSupabase();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [unreadChats, setUnreadChats] = useState(0);
+  const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS);
+  const [agentStatus, setAgentStatus] = useState<AgentStatus>('online');
+  // -1 = henüz ilk sayım yapılmadı; ilk yüklemede uyarı çalmasın
+  const prevUnreadRef = useRef(-1);
   const location = useLocation();
 
-  const isAdmin = user && userProfile && (userProfile.role === 'admin' || userProfile.role === 'super_admin');
+  useEffect(() => {
+    setPrefs(loadNotificationPrefs());
+  }, []);
+
+  const togglePref = useCallback(async (key: keyof NotificationPrefs) => {
+    // Masaüstü bildirimi izni yalnızca kullanıcı tıklamasından istenebilir
+    if (key === 'desktop' && !prefs.desktop) {
+      const granted = await requestNotificationPermission();
+      if (!granted) {
+        alert(
+          'Masaüstü bildirimi için tarayıcı izni gerekiyor. ' +
+            'Adres çubuğundaki kilit simgesinden bildirimlere izin verebilirsiniz.',
+        );
+        return;
+      }
+    }
+    const next = { ...prefs, [key]: !prefs[key] };
+    setPrefs(next);
+    saveNotificationPrefs(next);
+    if (key === 'sound' && next.sound) playChatAlert();
+  }, [prefs]);
+
+  // Canlı destek rozeti, uyarı sesi ve çevrimiçi sinyali: yöneticiler + çağrı merkezi
+  const isChatOperator = !!user && canUseLiveChat(userProfile);
 
   /*
-   * İK (hr) rolü: yalnızca İnsan Kaynakları modülünü görür.
+   * Kısıtlı roller: İK (hr) yalnızca İnsan Kaynakları modülünü,
+   * çağrı merkezi (call_center) yalnızca Canlı Destek'i görür.
    *
    * Buradaki filtre KOZMETİKTİR — asıl kapı veritabanındaki RLS'tir
    * (bkz. hr_role_job_applications_migration.sql). Diğer tabloların
@@ -26,20 +72,88 @@ const AdminLayout = () => {
    * elle yazsa bile veri okuyup yazamaz. Menü ve yönlendirme yalnızca
    * kullanıcıyı boş ekranlarla uğraştırmamak için.
    */
-  const isHrOnly = !!(user && userProfile && userProfile.role === 'hr');
-  const canAccessPanel = !!isAdmin || isHrOnly;
+  const allowedPaths = user ? restrictedPathsFor(userProfile) : null;
+  const canAccessPanel = !!user && canAccessAdminPanel(userProfile);
 
-  /** İK rolünün girebildiği admin rotaları */
-  const HR_ALLOWED_PATHS = ['/admin/job-applications'];
-  const hrPathAllowed = HR_ALLOWED_PATHS.some((p) => location.pathname.startsWith(p));
+  const pathAllowed =
+    !allowedPaths || allowedPaths.some((p) => location.pathname.startsWith(p));
+
+  // Yanıt bekleyen canlı destek görüşmeleri — Realtime ile anlık güncellenir.
+  // Operatör hangi sayfada olursa olsun yeni sohbeti fark etsin diye burada.
+  useEffect(() => {
+    if (!isChatOperator) return;
+
+    const refresh = () => {
+      fetchConversations('all')
+        .then((list) => {
+          // Rozet: kendine atanmış yanıtsızlar + havuzda bekleyenler.
+          // Herkesin okunmamışını saymak rozeti anlamsızlaştırırdı —
+          // operatör başkasının işi için uyarılmamalı.
+          const count = list.filter(
+            (c) =>
+              (c.assigned_to === user?.id && hasUnreadForAgent(c)) ||
+              (c.assigned_to === null && c.status !== 'closed'),
+          ).length;
+
+          // Yalnızca sayı ARTTIĞINDA uyar; her tazelemede değil.
+          // İlk yükleme (-1) sessiz geçsin ki sayfa açılışında ses çalmasın.
+          if (prevUnreadRef.current >= 0 && count > prevUnreadRef.current) {
+            if (prefs.sound) playChatAlert();
+            if (prefs.desktop) notifyNewChat(count);
+          }
+          prevUnreadRef.current = count;
+          setUnreadChats(count);
+        })
+        .catch((err) => console.error('Okunmamış sohbet sayısı alınamadı:', err));
+    };
+
+    refresh();
+    return subscribeToChatChanges(refresh);
+  }, [isChatOperator, prefs.sound, prefs.desktop, user?.id]);
+
+  /*
+   * Operatör çevrimiçi sinyali. Otomatik atamanın kime görüşme
+   * yollayacağını bu belirler — 90 saniyeden eski sinyal çevrimdışı sayılır.
+   *
+   * Presence WIDGET'A YANSITILMAZ: çağrı merkezi 7/24 çalışıyor, heartbeat
+   * bir aksaklıkla dursa widget "çevrimdışı" derdi ve teknik bir arıza
+   * doğrudan hasta erişimine dönüşürdü.
+   */
+  useEffect(() => {
+    if (!isChatOperator) return;
+
+    const beat = () => {
+      // Sekme arka plandayken "meşgul" say — otomatik atama boşa gitmesin
+      const effective: AgentStatus =
+        agentStatus === 'online' && document.visibilityState !== 'visible'
+          ? 'away'
+          : agentStatus;
+      agentHeartbeat(effective);
+    };
+
+    beat();
+    const interval = setInterval(beat, 30000);
+    document.addEventListener('visibilitychange', beat);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', beat);
+    };
+  }, [isChatOperator, agentStatus]);
+
+  // Okunmamış sayısı sekme başlığına da yazılsın
+  useEffect(() => {
+    const base = document.title.replace(/^\(\d+\)\s*/, '');
+    document.title = unreadChats > 0 ? `(${unreadChats}) ${base}` : base;
+  }, [unreadChats, location.pathname]);
 
   if (!canAccessPanel) {
     return <Navigate to="/" />;
   }
 
-  // İK kullanıcısı için panelin giriş noktası Dashboard değil, başvuru listesidir
-  if (isHrOnly && !hrPathAllowed) {
-    return <Navigate to="/admin/job-applications" replace />;
+  // Kısıtlı rollerde panelin giriş noktası Dashboard değil, kendi modülüdür
+  if (!pathAllowed) {
+    return <Navigate to={landingPathFor(userProfile)} replace />;
   }
 
   const toggleSidebar = () => {
@@ -76,6 +190,9 @@ const AdminLayout = () => {
     {
       label: 'HASTA HİZMETLERİ',
       items: [
+        // Canlı desteğin tüm alt bölümleri (rapor, ekip, hazır yanıtlar,
+        // etiketler, ayarlar) bu sayfanın içindeki sekme çubuğunda.
+        { path: LIVE_CHAT_PATH, icon: FaHeadset, label: 'Canlı Destek' },
         { path: '/admin/patient-info', icon: FaFilePdf, label: 'Hasta Bilgilendirme' },
         { path: '/admin/contracted-institutions', icon: FaHandshake, label: 'Anlaşmalı Kurumlar' },
         { path: '/admin/patient-feedback', icon: FaClipboardList, label: 'Geri Bildirimler' },
@@ -109,10 +226,10 @@ const AdminLayout = () => {
     }
   ];
 
-  // İK rolüne yalnızca izinli rotalar gösterilir; boş kalan grup başlığı düşer
-  const visibleGroups = isHrOnly
+  // Kısıtlı rollere yalnızca izinli rotalar gösterilir; boş kalan grup başlığı düşer
+  const visibleGroups = allowedPaths
     ? navGroups
-        .map((g) => ({ ...g, items: g.items.filter((i) => HR_ALLOWED_PATHS.includes(i.path)) }))
+        .map((g) => ({ ...g, items: g.items.filter((i) => allowedPaths.includes(i.path)) }))
         .filter((g) => g.items.length > 0)
     : navGroups;
 
@@ -149,7 +266,11 @@ const AdminLayout = () => {
                 </h3>
                 <ul className="space-y-1">
                   {group.items.map((item) => {
-                    const isActive = location.pathname === item.path;
+                    // Alt rotalarda da vurgulu kalsın:
+                    // /admin/live-chat/stats -> "Canlı Destek" aktif
+                    const isActive =
+                      location.pathname === item.path ||
+                      location.pathname.startsWith(`${item.path}/`);
                     return (
                       <li key={item.path}>
                         <Link
@@ -163,7 +284,16 @@ const AdminLayout = () => {
                             <item.icon className={`mr-3.5 transition-colors ${isActive ? 'text-white' : 'group-hover:text-primary'}`} />
                             <span className="text-[14px] font-medium">{item.label}</span>
                           </div>
-                          {isActive && <FaChevronRight size={10} className="text-white/50" />}
+                          {item.path === LIVE_CHAT_PATH && unreadChats > 0 ? (
+                            <span
+                              className="ml-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-coral px-1.5 text-[11px] font-bold text-white"
+                              aria-label={`${unreadChats} yanıtlanmamış görüşme`}
+                            >
+                              {unreadChats > 9 ? '9+' : unreadChats}
+                            </span>
+                          ) : (
+                            isActive && <FaChevronRight size={10} className="text-white/50" />
+                          )}
                         </Link>
                       </li>
                     );
@@ -208,12 +338,84 @@ const AdminLayout = () => {
             </div>
 
             <div className="flex items-center space-x-6">
+              {/* Operatör müsaitlik durumu — otomatik atamayı besler */}
+              <div className="flex items-center gap-2">
+                <label htmlFor="agent-status" className="sr-only">
+                  Müsaitlik durumu
+                </label>
+                <span
+                  className={`h-2.5 w-2.5 rounded-full ${
+                    agentStatus === 'online'
+                      ? 'bg-green-500'
+                      : agentStatus === 'away'
+                      ? 'bg-amber-400'
+                      : 'bg-slate-300'
+                  }`}
+                  aria-hidden="true"
+                />
+                <select
+                  id="agent-status"
+                  value={agentStatus}
+                  onChange={(e) => setAgentStatus(e.target.value as AgentStatus)}
+                  title="Canlı destek müsaitlik durumunuz"
+                  className="rounded-lg border border-slate-200 bg-white py-1.5 pl-2 pr-7 text-xs font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  {(['online', 'away', 'offline'] as AgentStatus[]).map((s) => (
+                    <option key={s} value={s}>
+                      {AGENT_STATUS_LABELS[s]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Canlı destek bildirim tercihleri — operatörün başka
+                  sekmedeyken yeni sohbeti kaçırmaması için */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => togglePref('sound')}
+                  aria-pressed={prefs.sound}
+                  title={prefs.sound ? 'Uyarı sesi açık' : 'Uyarı sesi kapalı'}
+                  aria-label={prefs.sound ? 'Uyarı sesini kapat' : 'Uyarı sesini aç'}
+                  className={`rounded-lg p-2.5 transition-colors ${
+                    prefs.sound
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-slate-400 hover:bg-slate-100'
+                  }`}
+                >
+                  {prefs.sound ? <FaVolumeUp size={14} /> : <FaVolumeMute size={14} />}
+                </button>
+                <button
+                  onClick={() => togglePref('desktop')}
+                  aria-pressed={prefs.desktop}
+                  title={
+                    prefs.desktop
+                      ? 'Masaüstü bildirimi açık'
+                      : 'Masaüstü bildirimi kapalı'
+                  }
+                  aria-label={
+                    prefs.desktop
+                      ? 'Masaüstü bildirimini kapat'
+                      : 'Masaüstü bildirimini aç'
+                  }
+                  className={`relative rounded-lg p-2.5 transition-colors ${
+                    prefs.desktop
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-slate-400 hover:bg-slate-100'
+                  }`}
+                >
+                  <FaBell size={14} />
+                  {unreadChats > 0 && (
+                    <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-coral" />
+                  )}
+                </button>
+              </div>
+
               <div className="hidden sm:flex flex-col items-end mr-4">
                 <span className="text-slate-900 font-bold text-sm leading-none mb-1">
                   {user?.user_metadata?.full_name || user?.email?.split('@')[0]}
                 </span>
                 <span className="text-primary text-[11px] font-bold uppercase tracking-wider">
-                  {userProfile?.role === 'super_admin' ? 'SÜPER ADMİN' : 'DİREKTÖR'}
+                  {ROLE_LABELS[userProfile?.role as AppRole] ?? 'Kullanıcı'}
                 </span>
               </div>
 
@@ -241,7 +443,10 @@ const AdminLayout = () => {
         {/* Dynamic Content Container */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-8 custom-scrollbar">
           <div className="max-w-7xl mx-auto animate-fade-in">
-            <Outlet />
+            {/* Okunmamış sayısı ChatAdminLayout'un sekme rozetinde de
+                kullanılıyor; ikinci bir Realtime aboneliği açmamak için
+                context ile aktarılıyor. */}
+            <Outlet context={{ unreadChats }} />
           </div>
         </main>
       </div>

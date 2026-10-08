@@ -6,6 +6,7 @@ import Footer from './Footer'
 import EmergencyBanner from './EmergencyBanner'
 import ScrollToTop from '../ui/ScrollToTop'
 import AccessibilityWidget from '../common/AccessibilityWidget'
+import ChatWidget from '../chat/ChatWidget'
 
 const Layout = () => {
   const { t } = useTranslation()
@@ -31,6 +32,7 @@ const Layout = () => {
       <Footer />
       <ScrollToTop />
       <AccessibilityWidget />
+      <ChatWidget />
     </div>
   )
 }

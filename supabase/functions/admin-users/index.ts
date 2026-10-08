@@ -25,7 +25,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-const ALLOWED_ROLES = ['user', 'editor', 'hr', 'admin', 'super_admin'] as const;
+const ALLOWED_ROLES = ['user', 'editor', 'hr', 'call_center', 'admin', 'super_admin'] as const;
 type Role = (typeof ALLOWED_ROLES)[number];
 
 // Kullanıcı yönetimi yapabilecek roller
