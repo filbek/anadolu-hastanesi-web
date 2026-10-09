@@ -64,12 +64,15 @@ const AdminUsers = () => {
           email: formData.email,
           full_name: formData.full_name,
           role: formData.role,
-          is_active: formData.is_active
+          is_active: formData.is_active,
+          // Boşsa gönderilmez; şifre değişmez
+          ...(formData.password ? { password: formData.password } : {})
         });
 
+        const { password: _password, ...rest } = formData;
         setUsers(users.map(user =>
           user.id === editingUser.id
-            ? { ...user, ...formData }
+            ? { ...user, ...rest }
             : user
         ));
       } else {
@@ -353,21 +356,24 @@ const AdminUsers = () => {
                 />
               </div>
 
-              {!editingUser && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('admin.label.password', 'Şifre')}
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    required={!editingUser}
-                    minLength={6}
-                  />
-                </div>
-              )}
+              <div>
+                <label htmlFor="user-password" className="block text-sm font-medium text-gray-700 mb-1">
+                  {editingUser
+                    ? t('admin.label.newPassword', 'Yeni Şifre')
+                    : t('admin.label.password', 'Şifre')}
+                </label>
+                <input
+                  id="user-password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  required={!editingUser}
+                  minLength={6}
+                  autoComplete="new-password"
+                  placeholder={editingUser ? t('admin.users.passwordKeep', 'Boş bırakılırsa değişmez') : undefined}
+                />
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
