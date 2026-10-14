@@ -23,7 +23,7 @@ export type AppRole = 'user' | 'editor' | 'hr' | 'call_center' | 'admin' | 'supe
 export const ADMIN_ROLES: AppRole[] = ['admin', 'super_admin'];
 
 /** Yönetim paneline (kendi izinli sayfalarıyla) girebilen roller */
-export const PANEL_ROLES: AppRole[] = [...ADMIN_ROLES, 'hr', 'call_center'];
+export const PANEL_ROLES: AppRole[] = [...ADMIN_ROLES, 'editor', 'hr', 'call_center'];
 
 export const isAdminRole = (profile?: UserProfile | null): boolean =>
   !!profile?.role && ADMIN_ROLES.includes(profile.role as AppRole);
@@ -45,11 +45,41 @@ export const isCallCenterOnlyRole = (profile?: UserProfile | null): boolean =>
 /** Çağrı merkezi rolünün girebildiği admin rotaları */
 export const CALL_CENTER_ALLOWED_PATHS = ['/admin/live-chat'];
 
+/** Editör rolü: site içeriğini yönetir; hasta verisi ve sistem ayarları kapalı */
+export const isEditorRole = (profile?: UserProfile | null): boolean =>
+  profile?.role === 'editor';
+
 /**
- * Tek modüle kısıtlı rollerin izinli rotaları; tüm panele erişen roller
+ * Editörün girebildiği admin rotaları. Yazma yetkisi veritabanında
+ * editor_role_migration.sql ile aynı modüllerin tablolarına verilir;
+ * buraya modül eklenirse oradaki tablo listesi de güncellenmelidir.
+ * İlk eleman girişten sonra açılan sayfadır.
+ */
+export const EDITOR_ALLOWED_PATHS = [
+  '/admin/home-settings',
+  '/admin/hero-slides',
+  '/admin/hospitals',
+  '/admin/departments',
+  '/admin/doctors',
+  '/admin/articles',
+  '/admin/testimonials',
+  '/admin/news',
+  '/admin/health-tourism',
+  '/admin/contact-info',
+  '/admin/management-team',
+  '/admin/gebe-okulu',
+  '/admin/social-responsibility',
+  '/admin/pages',
+  '/admin/media',
+  '/admin/video-content',
+];
+
+/**
+ * Kısıtlı rollerin izinli rotaları; tüm panele erişen roller
  * için null. Menü filtresi ve yönlendirme bunu kullanır.
  */
 export const restrictedPathsFor = (profile?: UserProfile | null): string[] | null => {
+  if (isEditorRole(profile)) return EDITOR_ALLOWED_PATHS;
   if (isHrOnlyRole(profile)) return HR_ALLOWED_PATHS;
   if (isCallCenterOnlyRole(profile)) return CALL_CENTER_ALLOWED_PATHS;
   return null;

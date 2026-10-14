@@ -63,8 +63,9 @@ const AdminLayout = () => {
   const isChatOperator = !!user && canUseLiveChat(userProfile);
 
   /*
-   * Kısıtlı roller: İK (hr) yalnızca İnsan Kaynakları modülünü,
-   * çağrı merkezi (call_center) yalnızca Canlı Destek'i görür.
+   * Kısıtlı roller: editör yalnızca içerik modüllerini, İK (hr) yalnızca
+   * İnsan Kaynakları modülünü, çağrı merkezi (call_center) yalnızca
+   * Canlı Destek'i görür.
    *
    * Buradaki filtre KOZMETİKTİR — asıl kapı veritabanındaki RLS'tir
    * (bkz. hr_role_job_applications_migration.sql). Diğer tabloların
