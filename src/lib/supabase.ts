@@ -14,6 +14,12 @@ export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce'
+  },
+  realtime: {
+    // Tarayıcı arka plandaki sekmenin zamanlayıcılarını dakikada bire kadar
+    // kısıyor; Realtime heartbeat'i gecikince sunucu soketi kapatıyor ve
+    // canlı destek olayları kaçıyordu. Heartbeat Web Worker'da kısılmaz.
+    worker: typeof Worker !== 'undefined'
   }
 });
 

@@ -93,9 +93,15 @@ const AdminLiveChat = () => {
   const agentName =
     userProfile?.full_name || user?.user_metadata?.full_name || 'Hasta Danışmanı';
 
+  // Üst üste tazelemelerde geç dönen eski yanıt yenisinin üstüne yazmasın
+  const convReqRef = useRef(0);
+  const msgReqRef = useRef(0);
+
   const loadConversations = useCallback(async () => {
+    const req = ++convReqRef.current;
     try {
-      setConversations(await fetchConversations('all'));
+      const list = await fetchConversations('all');
+      if (req === convReqRef.current) setConversations(list);
     } catch (err) {
       console.error('Görüşmeler yüklenemedi:', err);
     } finally {
@@ -104,8 +110,12 @@ const AdminLiveChat = () => {
   }, []);
 
   const loadMessages = useCallback(async (conversationId: string) => {
+    const req = ++msgReqRef.current;
     try {
-      setMessages(await fetchConversationMessages(conversationId));
+      const list = await fetchConversationMessages(conversationId);
+      if (req === msgReqRef.current && conversationId === selectedIdRef.current) {
+        setMessages(list);
+      }
     } catch (err) {
       console.error('Mesajlar yüklenemedi:', err);
     }

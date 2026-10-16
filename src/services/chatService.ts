@@ -1022,31 +1022,73 @@ let channelSeq = 0;
  * Not: Sidebar rozeti ve Canlı Destek sayfası aynı anda abone olur. Supabase
  * aynı topic'e ikinci kez abone olunmasını reddettiği için her çağrı kendi
  * benzersiz kanal adını alır.
+ *
+ * Tek mesaj birkaç olay üretir (mesaj INSERT + konuşma UPDATE + otomatik
+ * etiket UPDATE); bunlar tek tazelemede birleştirilir. Soket koptuğunda
+ * aradaki olaylar kaybolduğu için yeniden bağlanınca, sekme öne gelince ve
+ * güvence olarak periyodik olarak da tazelenir.
  */
+const CHAT_CHANGE_DEBOUNCE_MS = 250;
+const CHAT_FALLBACK_POLL_MS = 15000;
+
 export function subscribeToChatChanges(onChange: () => void): () => void {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const trigger = () => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = null;
+      onChange();
+    }, CHAT_CHANGE_DEBOUNCE_MS);
+  };
+
+  const onVisible = () => {
+    if (document.visibilityState === 'visible') trigger();
+  };
+  document.addEventListener('visibilitychange', onVisible);
+  window.addEventListener('online', trigger);
+  const poll = setInterval(trigger, CHAT_FALLBACK_POLL_MS);
+
+  const cleanupLocal = () => {
+    if (timer) clearTimeout(timer);
+    clearInterval(poll);
+    document.removeEventListener('visibilitychange', onVisible);
+    window.removeEventListener('online', trigger);
+  };
+
   try {
+    let subscribedOnce = false;
     const channel = supabase
       .channel(`admin-live-chat-${++channelSeq}-${Date.now()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'chat_messages' },
-        onChange,
+        trigger,
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'chat_conversations' },
-        onChange,
+        trigger,
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          // İlk abonelikte çağıran zaten yüklüyor; sonraki SUBSCRIBED
+          // yeniden bağlanmadır — kopukluk sırasında kaçanları topla.
+          if (subscribedOnce) trigger();
+          subscribedOnce = true;
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('Canlı destek Realtime bağlantısı sorunlu:', status, err);
+        }
+      });
 
     return () => {
+      cleanupLocal();
       supabase.removeChannel(channel);
     };
   } catch (err) {
     // Realtime kurulamazsa (yayın kapalı, soket reddi vb.) panel yine
-    // çalışmalı — yalnızca anlık güncelleme olmaz, manuel yenileme gerekir.
+    // çalışmalı — anlık güncelleme olmaz, periyodik tazeleme devam eder.
     console.error('Canlı destek Realtime aboneliği kurulamadı:', err);
-    return () => {};
+    return cleanupLocal;
   }
 }
 
