@@ -5,7 +5,10 @@ import {
   FaTag, FaTimes, FaPlus, FaBolt, FaPaperclip, FaFilePdf,
   FaFileCsv, FaPrint, FaStar, FaHandPaper, FaExchangeAlt,
 } from 'react-icons/fa';
+import { useOutletContext } from 'react-router-dom';
 import { useSupabase } from '../../contexts/SupabaseContext';
+import { isCallCenterOnlyRole } from '../../lib/roles';
+import type { ChatOutletContext } from './ChatAdminLayout';
 import {
   AttachmentPayload, CannedResponse, ChatConversation, ChatMessage, ChatStatus, ChatTag,
   fetchConversations, fetchConversationMessages, sendAgentMessage,
@@ -49,6 +52,12 @@ const STATUS_STYLES: Record<ChatStatus, { label: string; className: string }> = 
 
 const AdminLiveChat = () => {
   const { user, userProfile } = useSupabase();
+  // Süpervizör olmayan çağrı merkezi operatörü yalnızca kendine atanan
+  // görüşmeleri görür (RLS); havuz/tümü sekmeleri ona boş kalacağı için gizli.
+  const { isCallCenterSupervisor } = useOutletContext<ChatOutletContext>() ?? {
+    isCallCenterSupervisor: false,
+  };
+  const isPlainOperator = isCallCenterOnlyRole(userProfile) && !isCallCenterSupervisor;
 
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -476,7 +485,7 @@ const AdminLiveChat = () => {
           }`}
         >
           {/* Kapsam: kimin görüşmeleri — çoklu operatörde asıl ayrım burası */}
-          <div className="flex border-b border-slate-200">
+          <div className={`border-b border-slate-200 ${isPlainOperator ? 'hidden' : 'flex'}`}>
             {SCOPES.map((s) => (
               <button
                 key={s.value}

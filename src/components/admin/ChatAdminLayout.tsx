@@ -35,13 +35,13 @@ const TABS = [
 ];
 
 /*
- * Çağrı merkezi operatörü yalnızca görüşmeleri ve KENDİ raporunu görür;
- * ekip, hazır yanıt, etiket ve ayar düzenleme süpervizör/yönetici işidir.
- * Hazır yanıtları yine yanıt kutusunda "/" ile kullanabilir.
+ * Çağrı merkezi operatörü kendi görüşmelerini, KENDİ raporunu, hazır
+ * yanıtları ve etiketleri görür/yönetir; ekip ve ayar düzenleme
+ * süpervizör/yönetici işidir.
  * Ekip rolü 'supervisor' olan çağrı merkezi kullanıcısı tüm sekmeleri görür.
- * Filtre KOZMETİKTİR — asıl kapı RLS'tir (call_center_supervisor_migration.sql).
+ * Filtre KOZMETİKTİR — asıl kapı RLS'tir (call_center_operator_scope_migration.sql).
  */
-const CALL_CENTER_TABS = ['', 'stats'];
+const CALL_CENTER_TABS = ['', 'stats', 'canned', 'tags'];
 
 const ChatAdminLayout = () => {
   // Rozet sayısı AdminLayout'ta zaten hesaplanıyor; burada ikinci bir
