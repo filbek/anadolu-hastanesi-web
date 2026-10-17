@@ -11,7 +11,7 @@ import SecondOpinionBanner from '../components/common/SecondOpinionBanner'
 import { useDepartment, useDepartments } from '../hooks/useDepartments'
 import { useDoctorsByDepartment } from '../hooks/useDoctors'
 import { useAppointmentUrl } from '../hooks/useAppointmentUrl'
-import { getDepartmentImage, handleDepartmentImageError } from '../data/departmentImages'
+import { handleDepartmentImageError } from '../data/departmentImages'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
@@ -80,9 +80,9 @@ const DepartmentDetailPage = () => {
   const treatments = Array.isArray(department.treatments) ? department.treatments : [];
   const equipment = Array.isArray(department.equipment) ? department.equipment : [];
   const images = Array.isArray(department.images) ? department.images : [];
-  // Kayıtta görsel yoksa bölüme özel varsayılan kullanılır (bkz. data/departmentImages)
-  const heroImage = images[0] || department.image_url || getDepartmentImage(department.slug);
-  const processImage = images[1] || images[0] || department.image_url || getDepartmentImage(department.slug);
+  // Yalnızca admin'den yüklenen görseller kullanılır; yoksa kurumsal renkli banner gösterilir
+  const heroImage: string | undefined = (images[0] as string) || department.image_url || undefined;
+  const processImage: string | undefined = (images[1] as string) || heroImage;
 
   const process = getDepartmentProcess(department.name, t);
 
@@ -99,15 +99,17 @@ const DepartmentDetailPage = () => {
       <div className="pt-24 pb-12">
         {/* Hero Section */}
         <div className="relative h-80">
-          <div className="absolute inset-0">
-            <img
-              src={heroImage}
-              alt={department.name}
-              className="w-full h-full object-cover"
-              loading="eager"
-              onError={handleDepartmentImageError}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/30" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary-700 via-primary-600 to-ocean-600">
+            {heroImage && (
+              <img
+                src={heroImage}
+                alt={department.name}
+                className="w-full h-full object-cover"
+                loading="eager"
+                onError={handleDepartmentImageError}
+              />
+            )}
+            <div className={`absolute inset-0 ${heroImage ? 'bg-gradient-to-t from-black/80 to-black/30' : 'bg-gradient-to-t from-black/40 to-transparent'}`} />
           </div>
           <div className="container-custom relative h-full flex flex-col justify-end pb-12">
             <motion.div
@@ -234,86 +236,6 @@ const DepartmentDetailPage = () => {
                       </div>
                     )}
 
-                    {/* Doctors Section */}
-                    <div className="mt-12">
-                      <h3 className="text-xl font-bold text-primary mb-6 flex items-center flex-wrap gap-x-3 gap-y-2">
-                        <span className="flex items-center">
-                          <div className="w-2 h-8 bg-accent rounded-full mr-3" /> {t('deptDetail.featuredDoctors', 'Bölüm Doktorlarımız')}
-                        </span>
-                        {filteredHospitalName && (
-                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                            {filteredHospitalName}
-                            <Link
-                              to={`/bolumlerimiz/${department.slug}`}
-                              className="text-xs font-semibold underline hover:no-underline"
-                            >
-                              {t('deptDetail.allBranches', 'Tüm şubeler')}
-                            </Link>
-                          </span>
-                        )}
-                      </h3>
-                      {isDoctorsLoading ? (
-                        <div className="flex justify-center py-12">
-                          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
-                        </div>
-                      ) : doctors.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                          {doctors.map((doctor) => (
-                            <Link
-                              key={doctor.id}
-                              to={`/doktorlar/${doctor.slug}`}
-                              className="group bg-white rounded-2xl overflow-hidden border border-neutral-100 hover:border-ocean-200 hover:shadow-hover transition-all duration-300"
-                            >
-                              <div className="relative aspect-[3/4] overflow-hidden bg-surface">
-                                <img
-                                  src={doctor.image}
-                                  alt={doctor.name}
-                                  className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                                  loading="lazy"
-                                />
-                              </div>
-                              <div className="p-5">
-                                <span className="inline-block px-2.5 py-0.5 rounded-full bg-ocean-50 text-ocean-600 text-xs font-medium mb-2">
-                                  {(doctor as any).hospitals?.name || t('home.defaultHospital', 'Anadolu Hastanesi')}
-                                </span>
-                                <h3 className="font-display font-bold text-primary-600 text-lg mb-1 group-hover:text-ocean-600 transition-colors">
-                                  {doctor.name}
-                                </h3>
-                                <p className="text-sm text-neutral-500 mb-4">{doctor.title}</p>
-                                <div className="flex items-center gap-3 pt-3 border-t border-neutral-100">
-                                  <span className="flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-ocean-600 transition-colors">
-                                    {t('home.profile', 'Profil')} <FaArrowRight className="text-xs" />
-                                  </span>
-                                  <a
-                                    href={appointmentUrl({
-                                      hospitalId: (doctor as any).hospital_id,
-                                      departmentId: (doctor as any).department_id,
-                                      physicianId: (doctor as any).hbys_physician_id,
-                                    })}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 text-sm font-medium text-coral-500 hover:text-coral-600 transition-colors ml-auto"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <FaCalendarCheck className="text-xs" />
-                                    {t('home.appointment', 'Randevu')}
-                                  </a>
-                                </div>
-                              </div>
-                            </Link>
-                          ))}
-                        </div>
-                      ) : filteredHospitalName ? (
-                        <p className="text-text-light italic">
-                          {t('deptDetail.noDoctorsAtBranch', '{{hospital}} şubesinde bu bölüme ait doktor bulunmamaktadır.', { hospital: filteredHospitalName })}{' '}
-                          <Link to={`/bolumlerimiz/${department.slug}`} className="text-primary font-medium underline hover:no-underline not-italic">
-                            {t('deptDetail.showAllBranchDoctors', 'Tüm şubelerdeki doktorları gör')}
-                          </Link>
-                        </p>
-                      ) : (
-                        <p className="text-text-light italic">{t('deptDetail.noDoctors', 'Bu bölümde henüz doktor bulunmamaktadır.')}</p>
-                      )}
-                    </div>
                   </motion.div>
                 )}
 
@@ -344,21 +266,23 @@ const DepartmentDetailPage = () => {
                       <FaClipboardList className="text-ocean-500" />
                       <AutoTranslate text={process.title} />
                     </h2>
-                    <div className="relative mb-8">
-                      <img
-                        src={processImage}
-                        alt={`${department.name} süreç görseli`}
-                        className="w-full h-64 object-cover rounded-xl"
-                        loading="eager"
-                        onError={handleDepartmentImageError}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent rounded-xl" />
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <span className="inline-flex items-center gap-2 px-3 py-1 bg-white/90 rounded-full text-xs font-semibold text-primary">
-                          <FaStethoscope /> {t('deptDetail.modernCare', 'Modern Tanı ve Tedavi')}
-                        </span>
+                    {processImage && (
+                      <div className="relative mb-8">
+                        <img
+                          src={processImage}
+                          alt={`${department.name} süreç görseli`}
+                          className="w-full h-64 object-cover rounded-xl"
+                          loading="eager"
+                          onError={handleDepartmentImageError}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent rounded-xl" />
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <span className="inline-flex items-center gap-2 px-3 py-1 bg-white/90 rounded-full text-xs font-semibold text-primary">
+                            <FaStethoscope /> {t('deptDetail.modernCare', 'Modern Tanı ve Tedavi')}
+                          </span>
+                        </div>
                       </div>
-                    </div>
+                    )}
                     <div className="prose max-w-none text-text-light mb-8 leading-relaxed">
                       <AutoTranslate text={process.article} />
                     </div>
@@ -406,6 +330,87 @@ const DepartmentDetailPage = () => {
                   </motion.div>
                 )}
                 </AnimatePresence>
+              </div>
+
+              {/* Doctors Section — sekmeden bağımsız, her zaman görünür */}
+              <div className="mt-12">
+                <h3 className="text-xl font-bold text-primary mb-6 flex items-center flex-wrap gap-x-3 gap-y-2">
+                  <span className="flex items-center">
+                    <div className="w-2 h-8 bg-accent rounded-full mr-3" /> {t('deptDetail.featuredDoctors', 'Bölüm Doktorlarımız')}
+                  </span>
+                  {filteredHospitalName && (
+                    <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                      {filteredHospitalName}
+                      <Link
+                        to={`/bolumlerimiz/${department.slug}`}
+                        className="text-xs font-semibold underline hover:no-underline"
+                      >
+                        {t('deptDetail.allBranches', 'Tüm şubeler')}
+                      </Link>
+                    </span>
+                  )}
+                </h3>
+                {isDoctorsLoading ? (
+                  <div className="flex justify-center py-12">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+                  </div>
+                ) : doctors.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {doctors.map((doctor) => (
+                      <Link
+                        key={doctor.id}
+                        to={`/doktorlar/${doctor.slug}`}
+                        className="group bg-white rounded-2xl overflow-hidden border border-neutral-100 hover:border-ocean-200 hover:shadow-hover transition-all duration-300"
+                      >
+                        <div className="relative aspect-[3/4] overflow-hidden bg-surface">
+                          <img
+                            src={doctor.image}
+                            alt={doctor.name}
+                            className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="p-5">
+                          <span className="inline-block px-2.5 py-0.5 rounded-full bg-ocean-50 text-ocean-600 text-xs font-medium mb-2">
+                            {(doctor as any).hospitals?.name || t('home.defaultHospital', 'Anadolu Hastanesi')}
+                          </span>
+                          <h3 className="font-display font-bold text-primary-600 text-lg mb-1 group-hover:text-ocean-600 transition-colors">
+                            {doctor.name}
+                          </h3>
+                          <p className="text-sm text-neutral-500 mb-4">{doctor.title}</p>
+                          <div className="flex items-center gap-3 pt-3 border-t border-neutral-100">
+                            <span className="flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-ocean-600 transition-colors">
+                              {t('home.profile', 'Profil')} <FaArrowRight className="text-xs" />
+                            </span>
+                            <a
+                              href={appointmentUrl({
+                                hospitalId: (doctor as any).hospital_id,
+                                departmentId: (doctor as any).department_id,
+                                physicianId: (doctor as any).hbys_physician_id,
+                              })}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 text-sm font-medium text-coral-500 hover:text-coral-600 transition-colors ml-auto"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <FaCalendarCheck className="text-xs" />
+                              {t('home.appointment', 'Randevu')}
+                            </a>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : filteredHospitalName ? (
+                  <p className="text-text-light italic">
+                    {t('deptDetail.noDoctorsAtBranch', '{{hospital}} şubesinde bu bölüme ait doktor bulunmamaktadır.', { hospital: filteredHospitalName })}{' '}
+                    <Link to={`/bolumlerimiz/${department.slug}`} className="text-primary font-medium underline hover:no-underline not-italic">
+                      {t('deptDetail.showAllBranchDoctors', 'Tüm şubelerdeki doktorları gör')}
+                    </Link>
+                  </p>
+                ) : (
+                  <p className="text-text-light italic">{t('deptDetail.noDoctors', 'Bu bölümde henüz doktor bulunmamaktadır.')}</p>
+                )}
               </div>
             </div>
 
