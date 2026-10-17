@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, Outlet, Navigate, useLocation } from 'react-router-dom';
+import { Link, Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useSupabase } from '../../contexts/SupabaseContext';
 import {
   canAccessAdminPanel, canUseLiveChat, restrictedPathsFor, landingPathFor,
   ROLE_LABELS, AppRole,
 } from '../../lib/roles';
 import {
-  fetchConversations, subscribeToChatChanges, hasUnreadForAgent,
+  fetchConversations, fetchConversationMessages, subscribeToChatChanges,
+  hasUnreadForAgent, isRelevantForAgent,
   agentHeartbeat, AgentStatus, AGENT_STATUS_LABELS,
 } from '../../services/chatService';
 import {
-  playChatAlert, notifyNewChat, requestNotificationPermission,
+  playChatAlert, notifyNewChat, requestNotificationPermission, primeChatAlerts,
   loadNotificationPrefs, saveNotificationPrefs,
   NotificationPrefs, DEFAULT_PREFS,
 } from '../../utils/chatNotifications';
@@ -33,9 +34,11 @@ const AdminLayout = () => {
   const [unreadChats, setUnreadChats] = useState(0);
   const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS);
   const [agentStatus, setAgentStatus] = useState<AgentStatus>('online');
-  // -1 = henüz ilk sayım yapılmadı; ilk yüklemede uyarı çalmasın
-  const prevUnreadRef = useRef(-1);
+  // Görüşme başına en son bilinen mesaj zamanı. null = henüz ilk yükleme
+  // yapılmadı; sayfa açılışında bekleyenler için uyarı çalmasın.
+  const seenRef = useRef<Map<string, string> | null>(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setPrefs(loadNotificationPrefs());
@@ -79,38 +82,66 @@ const AdminLayout = () => {
   const pathAllowed =
     !allowedPaths || allowedPaths.some((p) => location.pathname.startsWith(p));
 
+  // İlk tıklamada ses motorunu aç ve bildirim iznini iste (tarayıcı kuralı)
+  useEffect(() => {
+    if (!isChatOperator) return;
+    return primeChatAlerts(prefs.desktop);
+  }, [isChatOperator, prefs.desktop]);
+
   // Yanıt bekleyen canlı destek görüşmeleri — Realtime ile anlık güncellenir.
-  // Operatör hangi sayfada olursa olsun yeni sohbeti fark etsin diye burada.
+  // Operatör hangi sayfada olursa olsun yeni mesajı fark etsin diye burada.
   useEffect(() => {
     if (!isChatOperator) return;
 
     const refresh = () => {
       fetchConversations('all')
         .then((list) => {
-          // Rozet: kendine atanmış yanıtsızlar + havuzda bekleyenler.
-          // Herkesin okunmamışını saymak rozeti anlamsızlaştırırdı —
-          // operatör başkasının işi için uyarılmamalı.
-          const count = list.filter(
-            (c) =>
-              (c.assigned_to === user?.id && hasUnreadForAgent(c)) ||
-              (c.assigned_to === null && c.status !== 'closed'),
-          ).length;
+          // Rozet: kendine atanmış ya da havuzda bekleyen, operatörün henüz
+          // görmediği ziyaretçi mesajı olan görüşmeler. Yanıtlanan ya da
+          // açılıp okunan görüşme sayıdan düşer. Başkasına atanmış işler
+          // sayılmaz — operatör başkasının işi için uyarılmamalı.
+          const waiting = list.filter(
+            (c) => isRelevantForAgent(c, user?.id) && hasUnreadForAgent(c),
+          );
 
-          // Yalnızca sayı ARTTIĞINDA uyar; her tazelemede değil.
-          // İlk yükleme (-1) sessiz geçsin ki sayfa açılışında ses çalmasın.
-          if (prevUnreadRef.current >= 0 && count > prevUnreadRef.current) {
-            if (prefs.sound) playChatAlert();
-            if (prefs.desktop) notifyNewChat(count);
+          // Yeni ziyaretçi mesajı: bekleyen bir görüşmenin son mesaj zamanı
+          // ilerlediyse (ya da görüşme yeni açıldıysa) uyar. Sayının artmasını
+          // beklemek, zaten bekleyen görüşmeye gelen mesajları kaçırıyordu.
+          const seen = seenRef.current;
+          const fresh = seen
+            ? waiting.filter((c) => seen.get(c.id) !== c.last_message_at)
+            : [];
+
+          seenRef.current = new Map(list.map((c) => [c.id, c.last_message_at]));
+          setUnreadChats(waiting.length);
+
+          if (fresh.length === 0) return;
+          if (prefs.sound) playChatAlert();
+          if (prefs.desktop) {
+            const conv = fresh[0];
+            const who = conv.visitor_name || 'Ziyaretçi';
+            const openChat = () => navigate(LIVE_CHAT_PATH);
+            fetchConversationMessages(conv.id)
+              .then((msgs) => {
+                const last = [...msgs].reverse().find((m) => m.sender_role === 'visitor');
+                const preview = last?.content?.trim() || (last?.attachment_name ? `📎 ${last.attachment_name}` : '');
+                notifyNewChat(
+                  `Yeni mesaj: ${who}`,
+                  (preview ? preview.slice(0, 140) : 'Yeni bir canlı destek mesajı var.') +
+                    (waiting.length > 1 ? `
+${waiting.length} görüşme yanıt bekliyor.` : ''),
+                  openChat,
+                );
+              })
+              .catch(() => notifyNewChat(`Yeni mesaj: ${who}`, 'Yeni bir canlı destek mesajı var.', openChat));
           }
-          prevUnreadRef.current = count;
-          setUnreadChats(count);
         })
         .catch((err) => console.error('Okunmamış sohbet sayısı alınamadı:', err));
     };
 
     refresh();
     return subscribeToChatChanges(refresh);
-  }, [isChatOperator, prefs.sound, prefs.desktop, user?.id]);
+  }, [isChatOperator, prefs.sound, prefs.desktop, user?.id, navigate]);
 
   /*
    * Operatör çevrimiçi sinyali. Otomatik atamanın kime görüşme

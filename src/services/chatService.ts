@@ -746,12 +746,42 @@ export async function setConversationStatus(
   if (error) throw error;
 }
 
-export async function markAgentRead(conversationId: string): Promise<void> {
+/**
+ * Görüşmeyi operatör için okundu işaretler.
+ *
+ * `last_message_at` sunucu saatiyle yazılır, `agent_read_at` ise buradan
+ * istemci saatiyle. Operatörün bilgisayar saati geride kalırsa okundu
+ * işareti son mesajdan eski kalıyor ve görüşme okunmamış görünmeye devam
+ * ediyordu; bu yüzden en az son mesaj zamanı kadar ileri yazılır.
+ */
+export async function markAgentRead(
+  conversationId: string,
+  lastMessageAt?: string | null,
+): Promise<void> {
+  const now = Date.now();
+  const last = lastMessageAt ? new Date(lastMessageAt).getTime() + 1 : 0;
   const { error } = await supabase
     .from('chat_conversations')
-    .update({ agent_read_at: new Date().toISOString() })
+    .update({ agent_read_at: new Date(Math.max(now, last)).toISOString() })
     .eq('id', conversationId);
   if (error) console.error('Okundu bilgisi güncellenemedi:', error);
+  notifyChatChanged();
+}
+
+/**
+ * Panelin kendi yaptığı değişiklikten (yanıt, okundu, üstlenme) sonra
+ * kenar çubuğu rozeti Realtime turunu beklemeden hemen tazelensin.
+ */
+export const CHAT_CHANGED_EVENT = 'ahg:chat-changed';
+
+export function notifyChatChanged(): void {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(CHAT_CHANGED_EVENT));
+}
+
+/** Operatörün ilgilenmesi gereken görüşme: kendisine atanmış ya da havuzda bekleyen */
+export function isRelevantForAgent(conv: ChatConversation, userId?: string | null): boolean {
+  if (conv.status === 'closed') return false;
+  return conv.assigned_to === null || conv.assigned_to === userId;
 }
 
 export async function deleteConversation(conversationId: string): Promise<void> {
@@ -1046,6 +1076,7 @@ export function subscribeToChatChanges(onChange: () => void): () => void {
   };
   document.addEventListener('visibilitychange', onVisible);
   window.addEventListener('online', trigger);
+  window.addEventListener(CHAT_CHANGED_EVENT, trigger);
   const poll = setInterval(trigger, CHAT_FALLBACK_POLL_MS);
 
   const cleanupLocal = () => {
@@ -1053,6 +1084,7 @@ export function subscribeToChatChanges(onChange: () => void): () => void {
     clearInterval(poll);
     document.removeEventListener('visibilitychange', onVisible);
     window.removeEventListener('online', trigger);
+    window.removeEventListener(CHAT_CHANGED_EVENT, trigger);
   };
 
   try {

@@ -10,7 +10,7 @@ import {
   AttachmentPayload, CannedResponse, ChatConversation, ChatMessage, ChatStatus, ChatTag,
   fetchConversations, fetchConversationMessages, sendAgentMessage,
   setConversationStatus, markAgentRead, deleteConversation,
-  subscribeToChatChanges, hasUnreadForAgent, formatChatTime,
+  subscribeToChatChanges, hasUnreadForAgent, formatChatTime, notifyChatChanged,
   fetchChatTags, updateConversationTags,
   fetchCannedResponses, bumpCannedUse, setAgentTyping, fetchVisitorTyping,
   uploadChatAttachment, formatFileSize, ALLOWED_ATTACHMENT_TYPES,
@@ -189,14 +189,33 @@ const AdminLiveChat = () => {
       return;
     }
     loadMessages(selectedId);
-    markAgentRead(selectedId);
   }, [selectedId, loadMessages]);
+
+  /*
+   * Açık görüşmeyi okundu işaretle — yalnızca seçim anında değil, görüşme
+   * ekrandayken gelen her yeni ziyaretçi mesajında da. Eskiden sadece seçimde
+   * işaretlendiği için açık görüşmeye düşen mesajlar "yanıtlanmamış" sayısında
+   * takılı kalıyordu. Sekme arka plandayken işaretlenmez; operatör dönünce
+   * (görünürlük tazelemesiyle) işaretlenir.
+   */
+  const selectedConv = conversations.find((c) => c.id === selectedId) || null;
+  useEffect(() => {
+    if (!selectedConv || !hasUnreadForAgent(selectedConv)) return;
+    if (document.visibilityState !== 'visible') return;
+
+    const { id, last_message_at } = selectedConv;
+    // İyimser güncelleme: sayaç sunucu turunu beklemeden düşsün
+    setConversations((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, agent_read_at: last_message_at } : c)),
+    );
+    markAgentRead(id, last_message_at);
+  }, [selectedConv]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages]);
 
-  const selected = conversations.find((c) => c.id === selectedId) || null;
+  const selected = selectedConv;
 
   const visible = useMemo(() => {
     const term = search.trim().toLocaleLowerCase('tr');
@@ -218,7 +237,7 @@ const AdminLiveChat = () => {
       mine: conversations.filter(
         (c) => c.assigned_to === user?.id && hasUnreadForAgent(c),
       ).length,
-      pool: conversations.filter((c) => c.assigned_to === null && c.status !== 'closed')
+      pool: conversations.filter((c) => c.assigned_to === null && hasUnreadForAgent(c))
         .length,
       all: conversations.filter(hasUnreadForAgent).length,
     }),
@@ -232,6 +251,7 @@ const AdminLiveChat = () => {
       if (!won) {
         alert('Bu görüşmeyi başka bir operatör aldı.');
       }
+      notifyChatChanged();
       await loadConversations();
     } catch (err) {
       console.error('Görüşme üstlenilemedi:', err);
@@ -302,6 +322,8 @@ const AdminLiveChat = () => {
       }
 
       await sendAgentMessage(selectedId, content, agentName, attachment);
+      // Kenar çubuğu rozeti de yanıtın ardından hemen düşsün
+      notifyChatChanged();
       await loadMessages(selectedId);
       await loadConversations();
     } catch (err) {

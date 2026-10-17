@@ -8,14 +8,16 @@
  * derlemeye dosya girmiyor, tarayıcı önbelleğine bağımlı değil.
  */
 
-const PREF_KEY = 'ahg_chat_notify';
+// v2: masaüstü bildirimi varsayılan açık hale geldi; eski kayıtlarda
+// çoğunlukla "kapalı" saklı olduğu için anahtar yenilendi.
+const PREF_KEY = 'ahg_chat_notify_v2';
 
 export interface NotificationPrefs {
   sound: boolean;
   desktop: boolean;
 }
 
-export const DEFAULT_PREFS: NotificationPrefs = { sound: true, desktop: false };
+export const DEFAULT_PREFS: NotificationPrefs = { sound: true, desktop: true };
 
 export function loadNotificationPrefs(): NotificationPrefs {
   try {
@@ -37,6 +39,44 @@ export function saveNotificationPrefs(prefs: NotificationPrefs): void {
 
 let audioCtx: AudioContext | null = null;
 
+function getAudioContext(): AudioContext | null {
+  const Ctor =
+    window.AudioContext ||
+    (window as unknown as { webkitAudioContext?: typeof AudioContext })
+      .webkitAudioContext;
+  if (!Ctor) return null;
+  if (!audioCtx) audioCtx = new Ctor();
+  return audioCtx;
+}
+
+/**
+ * Tarayıcılar ses çalmaya ve bildirim izni istemeye ancak bir kullanıcı
+ * etkileşiminden sonra izin verir. Operatör panelde ilk kez tıkladığında
+ * ses motoru açılır ve (henüz sorulmadıysa) bildirim izni istenir; böylece
+ * sonradan başka sekmedeyken gelen mesajlarda ses de kart da çalışır.
+ */
+export function primeChatAlerts(wantDesktop: boolean): () => void {
+  const unlock = () => {
+    try {
+      const ctx = getAudioContext();
+      if (ctx && ctx.state === 'suspended') ctx.resume();
+    } catch {
+      /* yoksay */
+    }
+    if (wantDesktop && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => {/* yoksay */});
+    }
+    remove();
+  };
+  const remove = () => {
+    window.removeEventListener('pointerdown', unlock);
+    window.removeEventListener('keydown', unlock);
+  };
+  window.addEventListener('pointerdown', unlock);
+  window.addEventListener('keydown', unlock);
+  return remove;
+}
+
 /**
  * İki notalı kısa bir uyarı sesi.
  *
@@ -46,13 +86,7 @@ let audioCtx: AudioContext | null = null;
  */
 export function playChatAlert(): void {
   try {
-    const Ctor =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext?: typeof AudioContext })
-        .webkitAudioContext;
-    if (!Ctor) return;
-
-    if (!audioCtx) audioCtx = new Ctor();
+    if (!getAudioContext() || !audioCtx) return;
     if (audioCtx.state === 'suspended') audioCtx.resume();
 
     const now = audioCtx.currentTime;
@@ -93,27 +127,33 @@ export async function requestNotificationPermission(): Promise<boolean> {
 }
 
 /**
- * Masaüstü bildirimi gösterir. Sekmeye odaklanılmışsa gösterilmez —
- * operatör zaten ekrana bakıyordur.
+ * Masaüstü bildirim kartı gösterir. Operatör panele bakıyorsa (sekme görünür
+ * ve pencere odakta) gösterilmez; başka sekmede ya da başka uygulamadaysa
+ * gösterilir. Kart, operatör tıklayana kadar ekranda kalır.
  */
-export function notifyNewChat(count: number): void {
+export function notifyNewChat(
+  title: string,
+  body: string,
+  onClick?: () => void,
+): void {
   if (!('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
-  if (typeof document !== 'undefined' && document.visibilityState === 'visible') return;
+  if (document.visibilityState === 'visible' && document.hasFocus()) return;
 
   try {
-    const notification = new Notification('Yeni canlı destek mesajı', {
-      body:
-        count > 1
-          ? `${count} görüşme yanıt bekliyor.`
-          : 'Bir görüşme yanıt bekliyor.',
-      // Aynı etiketle gönderilen bildirimler üst üste yığılmaz
+    const notification = new Notification(title, {
+      body,
+      // Aynı etiketle gönderilenler üst üste yığılmaz; renotify ile her yeni
+      // mesajda kart yeniden uyarır
       tag: 'ahg-live-chat',
+      renotify: true,
+      requireInteraction: true,
       icon: '/favicon.ico',
-    });
+    } as NotificationOptions);
 
     notification.onclick = () => {
       window.focus();
+      onClick?.();
       notification.close();
     };
   } catch {
