@@ -154,14 +154,13 @@ ${waiting.length} görüşme yanıt bekliyor.` : ''),
   useEffect(() => {
     if (!isChatOperator) return;
 
-    const beat = () => {
-      // Sekme arka plandayken "meşgul" say — otomatik atama boşa gitmesin
-      const effective: AgentStatus =
-        agentStatus === 'online' && document.visibilityState !== 'visible'
-          ? 'away'
-          : agentStatus;
-      agentHeartbeat(effective);
-    };
+    // Sekme arka plandayken de operatörün seçtiği durum gönderilir. Eskiden
+    // arka planda "meşgul" sayılıyordu; operatörler paneli genelde başka
+    // sekmede açık tuttuğu için otomatik atama kimseyi bulamıyor, görüşmeler
+    // havuzda kalıyordu. Arka planda bildirim kartı + ses uyardığı için
+    // görüşme artık kaçmaz. Panel kapanınca sinyal durur ve 90 sn sonra
+    // operatör müsait sayılmaz.
+    const beat = () => agentHeartbeat(agentStatus);
 
     beat();
     const interval = setInterval(beat, 30000);
