@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useSupabase } from '../../contexts/SupabaseContext';
 import {
-  canAccessAdminPanel, canUseLiveChat, restrictedPathsFor, landingPathFor,
+  canAccessAdminPanel, canUseLiveChat, isCallCenterOnlyRole, restrictedPathsFor, landingPathFor,
   ROLE_LABELS, AppRole,
 } from '../../lib/roles';
 import {
@@ -27,13 +27,24 @@ import {
 
 /** Sidebar'da rozet gösterilen menü öğesi */
 const LIVE_CHAT_PATH = '/admin/live-chat';
+const AGENT_STATUS_KEY = 'ahg_agent_status';
 
 const AdminLayout = () => {
   const { user, signOut, userProfile } = useSupabase();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [unreadChats, setUnreadChats] = useState(0);
   const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS);
-  const [agentStatus, setAgentStatus] = useState<AgentStatus>('online');
+  // Operatörün seçtiği durum sayfa yenilense de korunsun; eskiden her
+  // açılışta "müsait" başlıyor, "meşgul" seçen operatör görüşme alıyordu.
+  const [agentStatus, setAgentStatus] = useState<AgentStatus>(() => {
+    try {
+      const saved = localStorage.getItem(AGENT_STATUS_KEY);
+      if (saved === 'online' || saved === 'away' || saved === 'offline') return saved;
+    } catch {
+      /* yoksay */
+    }
+    return 'online';
+  });
   // Görüşme başına en son bilinen mesaj zamanı. null = henüz ilk yükleme
   // yapılmadı; sayfa açılışında bekleyenler için uyarı çalmasın.
   const seenRef = useRef<Map<string, string> | null>(null);
@@ -152,7 +163,22 @@ ${waiting.length} görüşme yanıt bekliyor.` : ''),
    * doğrudan hasta erişimine dönüşürdü.
    */
   useEffect(() => {
-    if (!isChatOperator) return;
+    try {
+      localStorage.setItem(AGENT_STATUS_KEY, agentStatus);
+    } catch {
+      /* yoksay */
+    }
+  }, [agentStatus]);
+
+  // Çağrı merkezi her sayfada sinyal gönderir; yönetici yalnızca Canlı
+  // Destek sayfasındayken müsait sayılır — slider düzenleyen yöneticiye
+  // hasta görüşmesi atanmasın.
+  const sendsPresence =
+    isChatOperator &&
+    (isCallCenterOnlyRole(userProfile) || location.pathname.startsWith(LIVE_CHAT_PATH));
+
+  useEffect(() => {
+    if (!sendsPresence) return;
 
     // Sekme arka plandayken de operatörün seçtiği durum gönderilir. Eskiden
     // arka planda "meşgul" sayılıyordu; operatörler paneli genelde başka
@@ -162,15 +188,30 @@ ${waiting.length} görüşme yanıt bekliyor.` : ''),
     // operatör müsait sayılmaz.
     const beat = () => agentHeartbeat(agentStatus);
 
+    // Sekme kapanınca 90 sn beklemeden çevrimdışı say; bu arada açılan
+    // görüşme kapanmış panele atanmasın
+    const goOffline = () => agentHeartbeat('offline');
+
     beat();
     const interval = setInterval(beat, 30000);
     document.addEventListener('visibilitychange', beat);
+    window.addEventListener('pagehide', goOffline);
 
     return () => {
       clearInterval(interval);
       document.removeEventListener('visibilitychange', beat);
+      window.removeEventListener('pagehide', goOffline);
     };
-  }, [isChatOperator, agentStatus]);
+  }, [sendsPresence, agentStatus]);
+
+  // Yönetici Canlı Destek'ten ayrılınca müsait sayılmasın. Ayrı effect:
+  // durum değişiminde çalışmasın ki "çevrimdışı" yeni durumla yarışmasın.
+  useEffect(() => {
+    if (!sendsPresence) return;
+    return () => {
+      agentHeartbeat('offline');
+    };
+  }, [sendsPresence]);
 
   // Okunmamış sayısı sekme başlığına da yazılsın
   useEffect(() => {
@@ -337,7 +378,11 @@ ${waiting.length} görüşme yanıt bekliyor.` : ''),
           {/* User Section Bottom */}
           <div className="p-4 bg-black/20 mt-auto">
             <button
-              onClick={() => signOut()}
+              onClick={async () => {
+                // Çıkışta çevrimdışı ol; oturum kapanınca sinyal gönderilemez
+                if (isChatOperator) await agentHeartbeat('offline');
+                signOut();
+              }}
               className="flex items-center w-full px-4 py-3 rounded-xl hover:bg-red-500/10 hover:text-red-500 transition-all duration-200 text-slate-400"
             >
               <FaSignOutAlt className="mr-3" />
