@@ -28,7 +28,7 @@ export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
 // `translations` alanı: Türkçeden otomatik üretilen diğer dil çevirileri.
 // Yapı: { en: { name: "...", description: "..." }, ar: { ... } }
 // Bkz. src/services/translationService.ts ve src/sql/translations_migration.sql
-export type Translations = Partial<Record<'en' | 'ar' | 'ru' | 'es' | 'fr' | 'de', Record<string, any>>>;
+export type Translations = Partial<Record<'en' | 'ar' | 'ru' | 'es' | 'fr' | 'de' | 'bg', Record<string, any>>>;
 
 // Hastane içi rehberdeki kat kartı (görselsiz: başlık + birim listesi).
 // Hastane formundan yönetilir; bkz. src/sql/hospital_floor_plans_migration.sql

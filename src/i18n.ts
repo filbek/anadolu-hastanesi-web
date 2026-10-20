@@ -8,6 +8,7 @@ import ru from './locales/ru.json'
 import es from './locales/es.json'
 import fr from './locales/fr.json'
 import de from './locales/de.json'
+import bg from './locales/bg.json'
 
 const resources = {
   tr: { translation: tr },
@@ -17,6 +18,7 @@ const resources = {
   es: { translation: es },
   fr: { translation: fr },
   de: { translation: de },
+  bg: { translation: bg },
 }
 
 type Lang = keyof typeof resources
@@ -44,6 +46,7 @@ addCountries('ru', 'RU BY KZ KG')
 addCountries('es', 'ES MX AR CO CL PE VE EC GT CU BO DO HN PY SV NI CR PA UY PR')
 addCountries('fr', 'FR MC SN CI CM ML BF NE TG BJ GA CG CD GN MG')
 addCountries('de', 'DE AT LI')
+addCountries('bg', 'BG')
 // Çok dilli ülkeler: tarayıcı dili bu listedeyse o, değilse ilki
 COUNTRY_LANGS.CH = ['de', 'fr']
 COUNTRY_LANGS.BE = ['fr', 'de']

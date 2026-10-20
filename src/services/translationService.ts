@@ -4,11 +4,11 @@
  * - Çeviriler localStorage'da cache'lenir (runtime fallback senaryosu için).
  * - Admin formları için çoklu alan + çoklu dil batch çevirisi yapar.
  *
- * Kaynak dil daima Türkçe (tr). Hedef diller: en, ar, ru, es, fr, de.
+ * Kaynak dil daima Türkçe (tr). Hedef diller: en, ar, ru, es, fr, de, bg.
  */
 
 const SOURCE_LANG = 'tr'
-export const TARGET_LANGS = ['en', 'ar', 'ru', 'es', 'fr', 'de'] as const
+export const TARGET_LANGS = ['en', 'ar', 'ru', 'es', 'fr', 'de', 'bg'] as const
 export type TargetLang = typeof TARGET_LANGS[number]
 export type SupportedLang = 'tr' | TargetLang
 
@@ -21,6 +21,7 @@ export const SITE_LANGUAGES: { code: SupportedLang; name: string; dir: 'ltr' | '
   { code: 'es', name: 'Español', dir: 'ltr' },
   { code: 'fr', name: 'Français', dir: 'ltr' },
   { code: 'de', name: 'Deutsch', dir: 'ltr' },
+  { code: 'bg', name: 'Български', dir: 'ltr' },
 ]
 
 /** 'en-US', 'de-DE' gibi değerleri desteklenen dil koduna indirger; bilinmeyen → 'tr'. */

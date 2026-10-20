@@ -39,6 +39,7 @@ const LANG_LABELS: Record<TargetLang, { name: string; flag: string; dir: 'ltr' |
   es: { name: 'Español', flag: '🇪🇸', dir: 'ltr' },
   fr: { name: 'Français', flag: '🇫🇷', dir: 'ltr' },
   de: { name: 'Deutsch', flag: '🇩🇪', dir: 'ltr' },
+  bg: { name: 'Български', flag: '🇧🇬', dir: 'ltr' },
 }
 
 const TranslationsPanel = ({
