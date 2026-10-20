@@ -872,8 +872,16 @@ const MessageBubble = ({
           {message.attachment_name && (
             <Attachment message={message} isVisitor={isVisitor} />
           )}
+          {/* Renk ve boyut açıkça verilir: global `p` kuralı (index.css) gri
+              renk ve 16px atayıp lacivert balonda yazıyı silik gösteriyordu */}
           {message.content && (
-            <p className="whitespace-pre-wrap">{message.content}</p>
+            <p
+              className={`whitespace-pre-wrap text-sm leading-relaxed ${
+                isVisitor ? 'text-white' : 'text-text'
+              }`}
+            >
+              {message.content}
+            </p>
           )}
         </div>
         <p

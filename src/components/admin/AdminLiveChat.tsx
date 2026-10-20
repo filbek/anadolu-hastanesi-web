@@ -1214,7 +1214,17 @@ const AgentMessageBubble = ({ message }: { message: ChatMessage }) => {
               </span>
             </a>
           )}
-          {message.content && <p className="whitespace-pre-wrap">{message.content}</p>}
+          {/* Renk ve boyut açıkça verilir: global `p` kuralı (index.css) gri
+              renk ve 16px atayıp lacivert balonda yazıyı silik gösteriyordu */}
+          {message.content && (
+            <p
+              className={`whitespace-pre-wrap text-sm leading-relaxed ${
+                isAgent ? 'text-white' : 'text-slate-800'
+              }`}
+            >
+              {message.content}
+            </p>
+          )}
         </div>
         <p className={`mt-1 text-[10px] text-slate-400 ${isAgent ? 'text-right' : ''}`}>
           {message.sender_name ? `${message.sender_name} · ` : ''}
