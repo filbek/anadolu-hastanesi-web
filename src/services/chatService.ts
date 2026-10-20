@@ -56,6 +56,8 @@ export interface ChatConversation {
   assigned_to: string | null;
   assigned_name: string | null;
   last_message_at: string;
+  /** Son mesajı kim yazdı (sistem mesajları sayılmaz); eski kayıtlarda null olabilir */
+  last_sender_role?: 'visitor' | 'agent' | null;
   visitor_read_at: string;
   agent_read_at: string | null;
   created_at: string;
@@ -1129,6 +1131,16 @@ export function hasUnreadForAgent(conv: ChatConversation): boolean {
   if (conv.status === 'closed') return false;
   if (!conv.agent_read_at) return true;
   return new Date(conv.last_message_at) > new Date(conv.agent_read_at);
+}
+
+/**
+ * Hasta yanıt bekliyor mu: son mesajı hasta yazmış ve görüşme açık.
+ * Okundu bilgisinden farklıdır — operatör okuyup yanıt vermemiş olabilir.
+ */
+export function isAwaitingReply(conv: ChatConversation): boolean {
+  if (conv.status === 'closed') return false;
+  if (conv.last_sender_role == null) return hasUnreadForAgent(conv);
+  return conv.last_sender_role === 'visitor';
 }
 
 /** Listede gösterilecek kısa zaman etiketi: "3 dk", "2 sa", "12 Şub" */

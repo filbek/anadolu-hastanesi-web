@@ -14,6 +14,10 @@ import {
   setVisitorTyping, rateConversation, uploadChatAttachment,
   formatFileSize, ALLOWED_ATTACHMENT_TYPES,
 } from '../../services/chatService';
+import { useHospitals } from '../../hooks/useHospitals';
+
+/** Ön formdaki konu seçenekleri — operatör başlıkta görür, aramada kullanır */
+const CHAT_SUBJECTS = ['Randevu', 'Fiyat Bilgisi', 'Tahlil / Sonuç', 'Şikayet / Öneri', 'Diğer'];
 
 /** Widget açıkken yeni mesaj kontrol aralığı (ms). */
 const POLL_ACTIVE_MS = 3000;
@@ -54,7 +58,10 @@ const ChatWidget = () => {
   const [ratingSent, setRatingSent] = useState(false);
 
   // Ön form
-  const [form, setForm] = useState({ name: '', phone: '', email: '', message: '' });
+  const [form, setForm] = useState({
+    name: '', phone: '', email: '', subject: '', hospital: '', message: '',
+  });
+  const { data: hospitals = [] } = useHospitals({ onlyPublished: true });
   const [consent, setConsent] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -199,13 +206,15 @@ const ChatWidget = () => {
         name: form.name.trim(),
         phone: form.phone.trim(),
         email: form.email.trim(),
+        subject: form.subject,
+        hospitalName: form.hospital,
         message,
       });
       lastIdRef.current = 0;
       setMessages([]);
       setSession(newSession);
       setStatus('open');
-      setForm((f) => ({ ...f, message: '' }));
+      setForm((f) => ({ ...f, subject: '', hospital: '', message: '' }));
       setTimeout(() => inputRef.current?.focus(), 100);
     } catch (err) {
       console.error('Görüşme başlatılamadı:', err);
@@ -326,7 +335,7 @@ const ChatWidget = () => {
     setMessages([]);
     setStatus('open');
     lastIdRef.current = 0;
-    setForm({ name: '', phone: '', email: '', message: '' });
+    setForm({ name: '', phone: '', email: '', subject: '', hospital: '', message: '' });
     setConsent(false);
     setRated(false);
     setRatingValue(0);
@@ -478,6 +487,47 @@ const ChatWidget = () => {
                     onChange={(v) => setForm({ ...form, email: v })}
                     autoComplete="email"
                   />
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label
+                        htmlFor="chat-subject"
+                        className="mb-1 block text-xs font-semibold text-text-light"
+                      >
+                        Konu
+                      </label>
+                      <select
+                        id="chat-subject"
+                        value={form.subject}
+                        onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                        className="w-full rounded-xl border border-border bg-white px-2.5 py-2.5 text-sm outline-none transition-colors focus:border-primary-light focus:ring-2 focus:ring-primary/15"
+                      >
+                        <option value="">Seçiniz</option>
+                        {CHAT_SUBJECTS.map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="chat-hospital"
+                        className="mb-1 block text-xs font-semibold text-text-light"
+                      >
+                        Hastane
+                      </label>
+                      <select
+                        id="chat-hospital"
+                        value={form.hospital}
+                        onChange={(e) => setForm({ ...form, hospital: e.target.value })}
+                        className="w-full rounded-xl border border-border bg-white px-2.5 py-2.5 text-sm outline-none transition-colors focus:border-primary-light focus:ring-2 focus:ring-primary/15"
+                      >
+                        <option value="">Fark etmez</option>
+                        {(hospitals as { id: number; name: string }[]).map((h) => (
+                          <option key={h.id} value={h.name}>{h.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
 
                   <div>
                     <label

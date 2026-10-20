@@ -5,7 +5,7 @@ import {
   FaTag, FaTimes, FaPlus, FaBolt, FaPaperclip, FaFilePdf,
   FaFileCsv, FaPrint, FaStar, FaHandPaper, FaExchangeAlt,
 } from 'react-icons/fa';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { useSupabase } from '../../contexts/SupabaseContext';
 import { isCallCenterOnlyRole } from '../../lib/roles';
 import type { ChatOutletContext } from './ChatAdminLayout';
@@ -13,7 +13,7 @@ import {
   AttachmentPayload, CannedResponse, ChatConversation, ChatMessage, ChatStatus, ChatTag,
   fetchConversations, fetchConversationMessages, sendAgentMessage,
   setConversationStatus, markAgentRead, deleteConversation,
-  subscribeToChatChanges, hasUnreadForAgent, formatChatTime, notifyChatChanged,
+  subscribeToChatChanges, hasUnreadForAgent, isAwaitingReply, formatChatTime, notifyChatChanged,
   fetchChatTags, updateConversationTags,
   fetchCannedResponses, bumpCannedUse, setAgentTyping, fetchVisitorTyping,
   uploadChatAttachment, formatFileSize, ALLOWED_ATTACHMENT_TYPES,
@@ -35,14 +35,35 @@ const TYPING_THROTTLE_MS = 4000;
 /** Seçili görüşmede "ziyaretçi yazıyor" sorgu aralığı */
 const TYPING_POLL_MS = 3000;
 
-type Filter = 'all' | ChatStatus;
+/**
+ * waiting: son mesajı hasta yazmış açık görüşmeler (varsayılan iş kuyruğu)
+ * open: kapanmamış tüm görüşmeler
+ */
+type Filter = 'waiting' | 'open' | 'closed' | 'all';
 
 const FILTERS: { value: Filter; label: string }[] = [
-  { value: 'open', label: 'Bekleyen' },
-  { value: 'active', label: 'Devam Eden' },
-  { value: 'all', label: 'Tümü' },
+  { value: 'waiting', label: 'Yanıt Bekleyen' },
+  { value: 'open', label: 'Açık' },
   { value: 'closed', label: 'Kapalı' },
+  { value: 'all', label: 'Tümü' },
 ];
+
+/** Bekleme süresi rozeti eşikleri (dakika) */
+const WAIT_WARN_MIN = 2;
+const WAIT_ALERT_MIN = 5;
+
+/** Hastanın yanıt beklediği süre için rozet metni ve rengi */
+function waitBadge(lastMessageAt: string, now: number): { label: string; className: string } {
+  const min = Math.max(0, Math.floor((now - new Date(lastMessageAt).getTime()) / 60000));
+  const label = min < 1 ? 'şimdi' : min < 60 ? `${min} dk` : `${Math.floor(min / 60)} sa`;
+  const className =
+    min >= WAIT_ALERT_MIN
+      ? 'bg-red-100 text-red-700'
+      : min >= WAIT_WARN_MIN
+        ? 'bg-amber-100 text-amber-700'
+        : 'bg-slate-100 text-slate-600';
+  return { label, className };
+}
 
 const STATUS_STYLES: Record<ChatStatus, { label: string; className: string }> = {
   open: { label: 'Bekliyor', className: 'bg-amber-100 text-amber-700' },
@@ -58,11 +79,21 @@ const AdminLiveChat = () => {
     isCallCenterSupervisor: false,
   };
   const isPlainOperator = isCallCenterOnlyRole(userProfile) && !isCallCenterSupervisor;
+  // Silme RLS'te süpervizöre ait; çağrı merkezi süpervizörü değilse düğme gizli
+  const canDelete = !isCallCenterOnlyRole(userProfile) || isCallCenterSupervisor;
 
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [filter, setFilter] = useState<Filter>('all');
+  const [filter, setFilter] = useState<Filter>('waiting');
+  // Bekleme süresi rozetleri dakikada bir tazelensin
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(t);
+  }, []);
+  // Bildirim kartından gelindiyse (?c=<id>) o görüşmeyi aç
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const [allTags, setAllTags] = useState<ChatTag[]>([]);
   const [tagFilter, setTagFilter] = useState<string | null>(null);
@@ -98,6 +129,13 @@ const AdminLiveChat = () => {
   // her seçim değişiminde yeniden kurulmasın.
   const selectedIdRef = useRef<string | null>(null);
   selectedIdRef.current = selectedId;
+
+  // Görüşme başına taslak: A hastasına yazılan metin B'ye geçince orada
+  // kalıp yanlış hastaya gönderilmesin
+  const draftsRef = useRef(new Map<string, string>());
+  const draftValueRef = useRef('');
+  draftValueRef.current = draft;
+  const prevSelectedRef = useRef<string | null>(null);
 
   const agentName =
     userProfile?.full_name || user?.user_metadata?.full_name || 'Hasta Danışmanı';
@@ -189,6 +227,26 @@ const AdminLiveChat = () => {
     });
   }, [loadConversations, loadMessages]);
 
+  // Bildirim kartından ?c=<id> ile gelindiyse görüşmeyi seç, parametreyi temizle
+  const linkedId = searchParams.get('c');
+  useEffect(() => {
+    if (!linkedId) return;
+    setSelectedId(linkedId);
+    setFilter('all');
+    setSearchParams({}, { replace: true });
+  }, [linkedId, setSearchParams]);
+
+  // Seçim değişince taslağı ve bekleyen dosyayı görüşmeye göre ayır
+  useEffect(() => {
+    const prev = prevSelectedRef.current;
+    if (prev === selectedId) return;
+    if (prev) draftsRef.current.set(prev, draftValueRef.current);
+    setDraft(selectedId ? draftsRef.current.get(selectedId) || '' : '');
+    setPendingFile(null);
+    setCannedOpen(false);
+    prevSelectedRef.current = selectedId;
+  }, [selectedId]);
+
   // Seçim değişince mesajları çek ve okundu işaretle
   useEffect(() => {
     setTagMenuOpen(false);
@@ -228,16 +286,25 @@ const AdminLiveChat = () => {
 
   const visible = useMemo(() => {
     const term = search.trim().toLocaleLowerCase('tr');
-    return conversations.filter((c) => {
+    const list = conversations.filter((c) => {
       if (scope === 'mine' && c.assigned_to !== user?.id) return false;
       if (scope === 'pool' && c.assigned_to !== null) return false;
-      if (filter !== 'all' && c.status !== filter) return false;
+      if (filter === 'waiting' && !isAwaitingReply(c)) return false;
+      if (filter === 'open' && c.status === 'closed') return false;
+      if (filter === 'closed' && c.status !== 'closed') return false;
       if (tagFilter && !(c.tags || []).includes(tagFilter)) return false;
       if (!term) return true;
       return [c.visitor_name, c.visitor_phone, c.visitor_email, c.subject]
         .filter(Boolean)
         .some((v) => String(v).toLocaleLowerCase('tr').includes(term));
     });
+    // İş kuyruğunda en uzun bekleyen en üstte
+    if (filter === 'waiting') {
+      list.sort(
+        (a, b) => new Date(a.last_message_at).getTime() - new Date(b.last_message_at).getTime(),
+      );
+    }
+    return list;
   }, [conversations, filter, search, tagFilter, scope, user?.id]);
 
   // Sekme rozetleri: bakılmayı bekleyen görüşmeler
@@ -270,9 +337,19 @@ const AdminLiveChat = () => {
 
   const handleTransfer = async (targetUserId: string) => {
     if (!selectedId) return;
-    const note = prompt('Devralacak danışmana not (isteğe bağlı):') ?? undefined;
+    const target = team.find((a) => a.user_id === targetUserId);
+    if (
+      target &&
+      !target.is_available &&
+      !confirm(`${target.display_name} şu an müsait değil. Yine de devredilsin mi?`)
+    ) {
+      return;
+    }
+    const note = prompt('Devralacak danışmana not (isteğe bağlı):');
+    // İptal: devretme
+    if (note === null) return;
     try {
-      await transferConversation(selectedId, targetUserId, note);
+      await transferConversation(selectedId, targetUserId, note.trim() || undefined);
       setTransferOpen(false);
       await Promise.all([loadConversations(), loadMessages(selectedId)]);
     } catch (err) {
@@ -308,9 +385,7 @@ const AdminLiveChat = () => {
     }
   };
 
-  const waitingCount = conversations.filter(
-    (c) => c.status !== 'closed' && hasUnreadForAgent(c),
-  ).length;
+  const waitingCount = conversations.filter(isAwaitingReply).length;
 
   const handleSend = async () => {
     const content = draft.trim();
@@ -435,6 +510,12 @@ const AdminLiveChat = () => {
     if (!selectedId) return;
     try {
       await setConversationStatus(selectedId, status);
+      if (status === 'closed') {
+        // Sıradaki en uzun bekleyen görüşmeye geç
+        const next = visible.find((c) => c.id !== selectedId && isAwaitingReply(c));
+        setSelectedId(next ? next.id : null);
+      }
+      notifyChatChanged();
       await loadConversations();
     } catch (err) {
       console.error('Durum güncellenemedi:', err);
@@ -590,6 +671,7 @@ const AdminLiveChat = () => {
             ) : (
               visible.map((c) => {
                 const unread = hasUnreadForAgent(c);
+                const wait = isAwaitingReply(c) ? waitBadge(c.last_message_at, now) : null;
                 return (
                   <button
                     key={c.id}
@@ -640,6 +722,14 @@ const AdminLiveChat = () => {
                         {(c.tags || []).length > 2 && (
                           <span className="text-[10px] text-slate-400">
                             +{(c.tags || []).length - 2}
+                          </span>
+                        )}
+                        {wait && (
+                          <span
+                            className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${wait.className}`}
+                            title="Hasta yanıt bekliyor"
+                          >
+                            <FaClock size={8} aria-hidden="true" /> {wait.label}
                           </span>
                         )}
                         {unread && (
@@ -697,18 +787,32 @@ const AdminLiveChat = () => {
                       {new Date(selected.created_at).toLocaleString('tr-TR')}
                     </span>
                   </div>
+                  {(selected.subject || selected.hospital_name) && (
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {selected.subject && (
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                          {selected.subject}
+                        </span>
+                      )}
+                      {selected.hospital_name && (
+                        <span className="rounded-full bg-ocean-50 px-2 py-0.5 text-[11px] font-semibold text-ocean-700">
+                          {selected.hospital_name}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2">
                   {/* Atama durumu: havuzdaysa üstlen, değilse kimde olduğu */}
-                  {selected.assigned_to === null ? (
+                  {selected.assigned_to === null && !isPlainOperator ? (
                     <button
                       onClick={handleClaim}
                       className="flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600"
                     >
                       <FaHandPaper size={11} aria-hidden="true" /> Bana Ata
                     </button>
-                  ) : (
+                  ) : selected.assigned_to === null ? null : (
                     <span
                       className={`rounded-lg px-2 py-1 text-xs font-medium ${
                         selected.assigned_to === user?.id
@@ -808,13 +912,15 @@ const AdminLiveChat = () => {
                       <FaCheck size={11} aria-hidden="true" /> Sonlandır
                     </button>
                   )}
-                  <button
-                    onClick={handleDelete}
-                    aria-label="Görüşmeyi sil"
-                    className="rounded-lg p-2 text-red-500 hover:bg-red-50"
-                  >
-                    <FaTrash size={12} aria-hidden="true" />
-                  </button>
+                  {canDelete && (
+                    <button
+                      onClick={handleDelete}
+                      aria-label="Görüşmeyi sil"
+                      className="rounded-lg p-2 text-red-500 hover:bg-red-50"
+                    >
+                      <FaTrash size={12} aria-hidden="true" />
+                    </button>
+                  )}
                 </div>
               </header>
 

@@ -131,7 +131,8 @@ const AdminLayout = () => {
           if (prefs.desktop) {
             const conv = fresh[0];
             const who = conv.visitor_name || 'Ziyaretçi';
-            const openChat = () => navigate(LIVE_CHAT_PATH);
+            // Karta tıklayınca doğrudan o görüşme açılsın
+            const openChat = () => navigate(`${LIVE_CHAT_PATH}?c=${conv.id}`);
             fetchConversationMessages(conv.id)
               .then((msgs) => {
                 const last = [...msgs].reverse().find((m) => m.sender_role === 'visitor');
