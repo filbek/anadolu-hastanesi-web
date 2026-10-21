@@ -126,3 +126,7 @@ CREDENTIALS.md
 # (TC kimlik, telefon, adres) içerir. Asla commit edilmemeli.
 basvuru/
 silivri_hastanesi_aktif_doktorlar.txt
+
+# bg-slide kaynak dosyaları (web için sıkıştırılmış kopyaları assets/ altında)
+public/bg-slide/*.mp4
+public/bg-slide/*.pptx
