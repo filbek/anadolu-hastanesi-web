@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Silivri Anadolu Hospital — Bulgaristan Sunumu</title>
+<link rel="stylesheet" href="assets/deck.css">
+<link rel="icon" href="assets/img/logo-anadolu.png">
+</head>
+<body class="hud-min">
+
+<canvas id="ambient"></canvas>
+<div class="vignette"></div>
+<div class="grain"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="flag-tr" viewBox="0 0 30 20"><rect width="30" height="20" fill="#E30A17"/><circle cx="10.5" cy="10" r="5" fill="#fff"/><circle cx="11.75" cy="10" r="4" fill="#E30A17"/><polygon fill="#fff" points="14.3,10 15.72,9.51 15.75,8 16.66,9.2 18.1,8.77 17.24,10 18.1,11.23 16.66,10.8 15.75,12 15.72,10.49"/></symbol>
+    <symbol id="flag-bg" viewBox="0 0 30 20"><rect width="30" height="6.67" fill="#fff"/><rect y="6.67" width="30" height="6.67" fill="#00966E"/><rect y="13.33" width="30" height="6.67" fill="#D62612"/></symbol>
+  </defs>
+</svg>
+
+<main id="stage">
+
+  <!-- ============ HUD ============ -->
+  <div class="hud hud-top">
+    <img src="assets/img/logo-anadolu.png" alt="Anadolu Hastaneleri">
+    <div class="hud-meta"><span id="hudSection"></span><span class="count"><b id="hudNow">01</b> / <span id="hudTotal">15</span></span></div>
+  </div>
+  <div class="hud hud-bottom">
+    <span class="hot"><i data-lucide="phone-call"></i>444 50 58 &nbsp;·&nbsp; <span data-i18n="hud.247">7/24 KESİNTİSİZ SAĞLIK</span></span>
+    <span class="langs" id="langs"><button data-lang="tr">TR</button><button data-lang="bg">BG</button><button data-lang="en">EN</button></span>
+  </div>
+  <div class="progress"><i id="progress"></i></div>
+  <div class="sweep" id="sweep"></div>
+
+  <!-- ============ 01 COVER ============ -->
+  <section class="slide s-friend" data-section="" data-hud="min">
+    <div class="skyline"></div>
+    <canvas id="flags" width="1920" height="620"></canvas>
+    <div class="beam"></div>
+    <div class="inner">
+      <div class="duo" data-a>
+        <span data-i18n="fr.bg">BULGARİSTAN</span><i></i><span data-i18n="fr.tr">TÜRKİYE</span>
+      </div>
+      <h1 class="h1 split" data-i18n="fr.title">İki komşu, <span class="grad">tek kalp</span></h1>
+      <svg class="heartline" viewBox="0 0 1000 110" data-a="fade">
+        <defs><linearGradient id="hlGrad" x1="0" x2="1"><stop offset="0" stop-color="#00c48c"/><stop offset=".5" stop-color="#fff"/><stop offset="1" stop-color="#ff3b45"/></linearGradient></defs>
+        <path class="hl" pathLength="1" d="M0 56 H300 l14 -30 l16 60 l14 -30 H440 C440 34 472 22 500 48 C528 22 560 34 560 56 C560 76 530 90 500 104 C470 90 440 76 440 56 M560 56 H670 l14 -30 l16 60 l14 -30 H1000"/>
+        <path class="hfill" d="M440 56 C440 34 472 22 500 48 C528 22 560 34 560 56 C560 76 530 90 500 104 C470 90 440 76 440 56Z"/>
+      </svg>
+      <p class="lead" data-a data-i18n="fr.lead">Sağlıkta dostluğun ve iyi komşuluğun köprüsü</p>
+      <div class="welcome" data-a><span>Добре дошли!</span><b></b><span>Hoş geldiniz!</span></div>
+    </div>
+    <span class="city left" data-a data-i18n="fr.sofia">SOFYA</span>
+    <span class="city right" data-a data-i18n="fr.ist">İSTANBUL</span>
+  </section>
+
+  <section class="slide s-cover" data-section="" data-hud="min">
+    <video class="bgvid" src="assets/video/silivri-aerial.mp4" poster="assets/video/silivri-aerial-poster.jpg" muted loop playsinline preload="auto"></video>
+    <div class="shade"></div>
+    <div class="inner">
+      <img class="logo" src="assets/img/logo-silivri.png" alt="Silivri Anadolu Hospital" data-a="left">
+      <div class="flags" data-a>
+        <svg class="flag-bg"><use href="#flag-bg"/></svg><span data-i18n="cover.bg">Bulgaristan</span>
+        <span class="x"></span>
+        <svg class="flag-tr"><use href="#flag-tr"/></svg><span data-i18n="cover.tr">Türkiye</span>
+      </div>
+      <h1 class="h1 split" data-i18n="cover.title">Sağlık Hizmetleri <span class="grad">Sunumu</span></h1>
+      <p class="tag" data-a data-i18n="cover.tag">“Her şey <b>sağlığınız</b> için”</p>
+    </div>
+    <div class="by" data-a>
+      <img src="assets/img/logo-anadolu.png" alt="Anadolu Hastaneleri">
+      <span class="sep"></span>
+      <img src="assets/img/logo-arkaz.png" alt="Arkaz Holding" style="height:74px">
+      <span class="sep"></span>
+      <span data-i18n="cover.by">Anadolu Hastaneleri Grubu<br>Arkaz Holding</span>
+    </div>
+    <div class="live-dot" data-a><i></i><span data-i18n="cover.live">7/24 KESİNTİSİZ</span></div>
+    <svg class="ecg" viewBox="0 0 1920 160" preserveAspectRatio="none">
+      <defs><linearGradient id="ecgGrad" x1="0" x2="1"><stop offset="0" stop-color="#8f0d13"/><stop offset=".6" stop-color="#ff4049"/><stop offset="1" stop-color="#fff"/></linearGradient></defs>
+      <path class="base" d="M0 100 H520 l18 -10 l14 10 H600 l14 32 l22 -120 l24 132 l16 -34 H760 l26 -18 l26 18 H1180 l18 -10 l14 10 H1260 l14 32 l22 -120 l24 132 l16 -34 H1420 l26 -18 l26 18 H1920"/>
+      <path class="live" d="M0 100 H520 l18 -10 l14 10 H600 l14 32 l22 -120 l24 132 l16 -34 H760 l26 -18 l26 18 H1180 l18 -10 l14 10 H1260 l14 32 l22 -120 l24 132 l16 -34 H1420 l26 -18 l26 18 H1920"/>
+    </svg>
+  </section>
+
+  <!-- ============ 02 GROUP ============ -->
+  <section class="slide s-group" data-section="Grup" data-i18n-section="sec.group">
+    <div>
+      <span class="eyebrow" data-a data-i18n="group.eyebrow">Anadolu Hastaneleri Grubu / Arkaz Holding</span>
+      <img class="logo" src="assets/img/logo-anadolu.png" alt="Anadolu Hastaneleri" data-a="scale">
+      <p class="lead" data-a data-i18n="group.lead">“Her şey sağlığınız için” — Bölgenin ilk akıllı hastane binası ve ileri sağlık hizmetleri.</p>
+      <div class="stats">
+        <div class="stat" data-a><span class="num"><span data-count="450">450</span><sup>+</sup></span><span data-i18n="group.s1">Yatak Kapasitesi</span></div>
+        <div class="stat" data-a><span class="num"><span data-count="250">250</span><sup>+</sup></span><span data-i18n="group.s2">Uzman Hekim Kadrosu</span></div>
+        <div class="stat" data-a><span class="num"><span data-count="1981" data-plain>1981</span></span><span data-i18n="group.s3">yılından beri sağlıkta güven</span></div>
+      </div>
+    </div>
+    <div class="reel" data-a="fade">
+      <div class="col">
+        <figure><img src="assets/img/h-silivri.jpg" alt=""><figcaption><small data-i18n="r.flag">Amiral Gemi</small>Silivri</figcaption></figure>
+        <figure><img src="assets/img/h-avcilar.jpg" alt=""><figcaption><small>1991</small>Avcılar</figcaption></figure>
+        <figure><img src="assets/img/h-silivri.jpg" alt=""><figcaption><small data-i18n="r.flag">Amiral Gemi</small>Silivri</figcaption></figure>
+        <figure><img src="assets/img/h-avcilar.jpg" alt=""><figcaption><small>1991</small>Avcılar</figcaption></figure>
+      </div>
+      <div class="col">
+        <figure><img src="assets/img/h-eregli.jpg" alt=""><figcaption><small>2007</small>Ereğli</figcaption></figure>
+        <figure><img src="assets/img/h-canakkale.jpg" alt=""><figcaption><small>2005</small>Çanakkale</figcaption></figure>
+        <figure><img src="assets/img/h-eregli.jpg" alt=""><figcaption><small>2007</small>Ereğli</figcaption></figure>
+        <figure><img src="assets/img/h-canakkale.jpg" alt=""><figcaption><small>2005</small>Çanakkale</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 03 AGENDA ============ -->
+  <section class="slide s-agenda" data-section="Sunum Akışı" data-i18n-section="sec.agenda">
+    <span class="eyebrow" data-a data-i18n="ag.eyebrow">Sunum Akışı</span>
+    <h2 class="h2 split" data-i18n="ag.title">İçerik Başlıkları</h2>
+    <div class="grid">
+      <div class="card item" data-a><span class="ic"><i data-lucide="landmark"></i></span><span class="n">01</span><h4 data-i18n="ag.1t">Arkaz Holding</h4><p data-i18n="ag.1d">Grup tarihi, vizyonu, faaliyet gösterilen 7 temel sektör ve kurucu liderlik.</p></div>
+      <div class="card item" data-a><span class="ic"><i data-lucide="map-pin"></i></span><span class="n">02</span><h4 data-i18n="ag.2t">Anadolu Hastaneleri</h4><p data-i18n="ag.2d">Avcılar, Çanakkale, Ereğli ve Silivri lokasyonlarıyla sağlık ağımız.</p></div>
+      <div class="card item" data-a><span class="ic"><i data-lucide="building-2"></i></span><span class="n">03</span><h4 data-i18n="ag.3t">Grup Şirketlerimiz</h4><p data-i18n="ag.3d">Tarım, hayvancılık, gıda, catering, inşaat ve temizlik sektörlerindeki yatırımlar.</p></div>
+      <div class="card item" data-a><span class="ic"><i data-lucide="hospital"></i></span><span class="n">04</span><h4 data-i18n="ag.4t">Silivri Anadolu Hastanesi</h4><p data-i18n="ag.4d">Teknolojik altyapı, akıllı bina mimarisi, kapasite ve stratejik öncelikler.</p></div>
+      <div class="card item" data-a><span class="ic"><i data-lucide="stethoscope"></i></span><span class="n">05</span><h4 data-i18n="ag.5t">Klinikler ve Branşlar</h4><p data-i18n="ag.5d">38 tıbbi bölüm, 30 poliklinik ve yoğun bakım birimlerinin detaylı hizmet haritası.</p></div>
+      <div class="card item" data-a><span class="ic"><i data-lucide="plane-landing"></i></span><span class="n">06</span><h4 data-i18n="ag.6t">İletişim ve Ulaşım</h4><p data-i18n="ag.6d">Lokasyon avantajı, havalimanı erişimi ve iletişim kanalları.</p></div>
+    </div>
+  </section>
+
+  <!-- ============ 04 HOLDING ============ -->
+  <section class="slide s-holding" data-section="Kurumsal Profil" data-i18n-section="sec.profile">
+    <div class="eagle" data-a="scale">
+      <div class="glow"></div><div class="halo"></div>
+      <img src="assets/img/logo-arkaz.png" alt="Arkaz Holding">
+    </div>
+    <div>
+      <span class="eyebrow" data-a data-i18n="ho.eyebrow">Kurumsal Profil · Arkaz Holding</span>
+      <p class="quote split" data-i18n="ho.quote">“Yıllardır Güvenle <span class="red">Geleceğe</span>”</p>
+      <p class="lead" data-a data-i18n="ho.lead">Sağlık, inşaat, tarım, hayvancılık, ulaşım, gıda, temizlik ve nakliye sektörlerinde hizmet veren; katma değer üretmeye ve istihdam sağlamaya kararlılıkla devam eden köklü şirketler grubu.</p>
+      <div class="sectors">
+        <div class="card sector" data-a><span class="icon"><i data-lucide="heart-pulse"></i></span><div><b data-i18n="ho.s1">Sağlık</b><span data-i18n="ho.s1d">5 Tam Teşekküllü Hastane</span></div></div>
+        <div class="card sector" data-a><span class="icon"><i data-lucide="wheat"></i></span><div><b data-i18n="ho.s2">Tarım &amp; Hayvancılık</b><span data-i18n="ho.s2d">HBA Çiftliği &amp; Üretim Tesisleri</span></div></div>
+        <div class="card sector" data-a><span class="icon"><i data-lucide="utensils-crossed"></i></span><div><b data-i18n="ho.s3">Gıda &amp; Catering</b><span data-i18n="ho.s3d">Z-Catering &amp; Karkas Restaurant</span></div></div>
+        <div class="card sector" data-a><span class="icon"><i data-lucide="building"></i></span><div><b data-i18n="ho.s4">İnşaat &amp; Hizmet</b><span data-i18n="ho.s4d">Gayrimenkul &amp; Clean &amp; Clean</span></div></div>
+      </div>
+      <div class="kpis">
+        <div data-a><span class="num"><span data-count="1981" data-plain>1981</span></span><span data-i18n="ho.k1">İlk Sağlık Yatırımı</span></div>
+        <div data-a><span class="num"><span data-count="7">7</span> <span class="red" data-i18n="ho.k2u">Sektör</span></span><span data-i18n="ho.k2">Çeşitlendirilmiş Yatırım</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 05 CHAIRMAN ============ -->
+  <section class="slide s-chair" data-section="Kurucu Liderlik" data-i18n-section="sec.chair">
+    <div class="portrait" data-a="left">
+      <div class="offset"></div>
+      <div class="frame"><img src="assets/img/chairman.jpg" alt="Dr. Hayati Arkaz"></div>
+      <div class="name"><small data-i18n="ch.role">Yönetim Kurulu Başkanı</small><b>Dr. Hayati Arkaz</b></div>
+    </div>
+    <div>
+      <blockquote class="split" data-i18n="ch.quote">Özel hastanecilik anlayışımızı toplumsal fayda, ileri teknoloji ve <span class="red">insan odaklı hizmet</span> ilkesi üzerine kurduk.</blockquote>
+      <p class="bio" data-a data-i18n="ch.bio">1957 yılında Sivas’ta doğan Dr. Hayati Arkaz, İstanbul Tıp Fakültesi mezunudur. 1991 yılında Avcılar Anadolu Hastanesi’ni kurarak Anadolu Sağlık Grubu’nun temellerini atmıştır. Sağlık sektöründeki köklü deneyimini girişimci vizyonuyla birleştiren Arkaz, TBMM 27. Dönem İstanbul Milletvekili olarak da görev yapmıştır. Arkaz Holding Yönetim Kurulu Başkanlığı görevini sürdürmektedir.</p>
+      <div class="timeline">
+        <div class="track"><i></i></div>
+        <div class="node" data-a><b>1991</b><span><em>AVCILAR</em><span data-i18n="ch.h">Anadolu Hastanesi</span></span></div>
+        <div class="node" data-a><b>2005</b><span><em>ÇANAKKALE</em><span data-i18n="ch.h">Anadolu Hastanesi</span></span></div>
+        <div class="node" data-a><b>2007</b><span><em>EREĞLİ</em><span data-i18n="ch.h">Anadolu Hastanesi</span></span></div>
+        <div class="node" data-a><b>2009</b><span><em>SİLİVRİ</em><span data-i18n="ch.h">Anadolu Hastanesi</span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 06 NETWORK ============ -->
+  <section class="slide s-network" data-section="Sağlık Ağımız" data-i18n-section="sec.network">
+    <div>
+      <span class="eyebrow" data-a data-i18n="nw.eyebrow">Sağlık Ağımız</span>
+      <h2 class="h2 split" data-i18n="nw.title">Anadolu Hastaneleri <span class="red">Grubu</span></h2>
+      <div class="mapwrap" id="map" data-a="fade"></div>
+    </div>
+    <div class="list">
+      <div class="card h hot" data-a="right"><img src="assets/img/h-silivri.jpg" alt=""><div><span class="badge" data-i18n="nw.flag">AMİRAL GEMİ</span><b data-i18n="nw.h1">Silivri Anadolu Hastanesi</b><span data-i18n="nw.h1d">Bölgenin ilk akıllı hastane binası · 7/24 kesintisiz hizmet</span></div><span class="m2">34.000 m²</span></div>
+      <div class="card h" data-a="right"><img src="assets/img/h-avcilar.jpg" alt=""><div><b data-i18n="nw.h2">Avcılar Anadolu Hastanesi</b><span data-i18n="nw.h2d">Bölgenin ilk özel sermayeli hastane yatırımı (1991)</span></div><span class="m2">10.000 m²</span></div>
+      <div class="card h" data-a="right"><img src="assets/img/h-canakkale.jpg" alt=""><div><b data-i18n="nw.h4">Çanakkale Anadolu Hastanesi</b><span data-i18n="nw.h4d">Bölgenin ilk özel hastanesi · yenilenen bina</span></div><span class="m2">15.000 m²</span></div>
+      <div class="card h" data-a="right"><img src="assets/img/h-eregli.jpg" alt=""><div><b data-i18n="nw.h5">Ereğli Anadolu Hastanesi</b><span data-i18n="nw.h5d">2007’den beri Karadeniz Ereğli’de hasta odaklı hizmet</span></div><span class="m2">15.000 m²</span></div>
+    </div>
+  </section>
+
+  <!-- ============ 07 COMPANIES ============ -->
+  <section class="slide s-companies" data-section="Grup Şirketleri" data-i18n-section="sec.companies">
+    <span class="eyebrow" data-a data-i18n="co.eyebrow">Arkaz Holding</span>
+    <h2 class="h2 split" data-i18n="co.title">Grup Şirketlerimiz ve <span class="red">İştirakler</span></h2>
+    <div class="bento">
+      <div class="card co hot" data-a>
+        <span class="icon"><i data-lucide="wheat"></i></span>
+        <h4 data-i18n="co.1t">HBA Tarım &amp; Hayvancılık</h4>
+        <p data-i18n="co.1d">Silivri ve Sivas Yıldızeli çiftliklerinde entegre üretim.</p>
+        <div class="facts">
+          <div class="fact"><span class="num"><span data-count="3000">3.000</span></span><span data-i18n="co.1f1">litre günlük süt üretimi</span></div>
+          <div class="fact"><span class="num"><span data-count="1000">1.000</span></span><span data-i18n="co.1f2">büyükbaş kapasitesi</span></div>
+          <div class="fact"><span class="num"><span data-count="1000">1.000</span></span><span data-i18n="co.1f3">küçükbaş kapasitesi</span></div>
+        </div>
+        <span class="ghost"><i data-lucide="milk"></i></span>
+      </div>
+      <div class="card co" data-a><span class="icon"><i data-lucide="chef-hat"></i></span><h4>Z-Catering</h4><p data-i18n="co.2d">Üniversiteler, kamu hastaneleri ve kurumsal şirketlere toplu yemek hizmeti sunan Türkiye’nin lider gıda üreticilerinden biri.</p><span class="ghost"><i data-lucide="utensils-crossed"></i></span></div>
+      <div class="card co" data-a><span class="icon"><i data-lucide="flame"></i></span><h4 data-i18n="co.3t">Karkas Et &amp; Kebap</h4><p data-i18n="co.3d">Bahçeşehir ve Rumeli Hisarı şubeleriyle premium et ve yenilikçi ocakbaşı konsepti sunan gastronomi markası.</p><span class="ghost"><i data-lucide="beef"></i></span></div>
+      <div class="card co" data-a><span class="icon"><i data-lucide="building-2"></i></span><h4 data-i18n="co.4t">Arkaz Gayrimenkul</h4><p data-i18n="co.4d">Öz Anadolu, Öz Arkaz ve Ereğli Millet şirketleri bünyesinde modern sağlık binaları ve gayrimenkul projeleri.</p><span class="ghost"><i data-lucide="building"></i></span></div>
+      <div class="card co" data-a><span class="icon"><i data-lucide="sparkles"></i></span><h4 data-i18n="co.5t">Clean &amp; Clean Hizmet Grubu</h4><p data-i18n="co.5d">Hastane, AVM, okul ve otellerde uluslararası hijyen standartlarında entegre temizlik operasyonları.</p><span class="ghost"><i data-lucide="spray-can"></i></span></div>
+    </div>
+  </section>
+
+  <!-- ============ 08 SILIVRI ============ -->
+  <section class="slide s-silivri" data-section="Amiral Gemi" data-i18n-section="sec.flagship">
+    <div class="photo" data-a="left">
+      <img src="assets/img/silivri-building.jpg" alt="Silivri Anadolu Hastanesi">
+      <div class="cap"><img src="assets/img/logo-silivri.png" alt=""><p data-i18n="si.cap">Bölgenin ilk akıllı hastane binası — ileri teknolojik altyapı ile 7/24 kesintisiz sağlık hizmeti.</p></div>
+    </div>
+    <div>
+      <span class="eyebrow" data-a data-i18n="si.eyebrow">Amiral Gemi Tesisimiz</span>
+      <h2 class="h2 split" data-i18n="si.title">Rakamlarla <span class="red">Silivri</span> Anadolu Hastanesi</h2>
+      <div class="stats">
+        <div class="card tile hot" data-a><span class="num"><span data-count="34000">34.000</span><small>m²</small></span><div class="bar" style="--w:100%"><i></i></div><b data-i18n="si.1">Kapalı Alan</b><span data-i18n="si.1d">Bölgenin İlk Akıllı Binası</span></div>
+        <div class="card tile" data-a><span class="num"><span data-count="250">250</span></span><div class="bar" style="--w:74%"><i></i></div><b data-i18n="si.2">Yatak Kapasitesi</b><span data-i18n="si.2d">Konforlu Hasta Odaları</span></div>
+        <div class="card tile" data-a><span class="num"><span data-count="125">125</span><small>+</small></span><div class="bar" style="--w:58%"><i></i></div><b data-i18n="si.3">Uzman Hekim</b><span data-i18n="si.3d">Akademik Kadro</span></div>
+        <div class="card tile" data-a><span class="num"><span data-count="430">430</span><small>+</small></span><div class="bar" style="--w:88%"><i></i></div><b data-i18n="si.4">Sağlık Personeli</b><span data-i18n="si.4d">7/24 Kesintisiz Bakım</span></div>
+        <div class="card tile" data-a><span class="num"><span data-count="38">38</span></span><div class="bar" style="--w:66%"><i></i></div><b data-i18n="si.5">Tıbbi Bölüm</b><span data-i18n="si.5d">Geniş Uzmanlık Alanı</span></div>
+        <div class="card tile" data-a><span class="num"><span data-count="30">30</span></span><div class="bar" style="--w:52%"><i></i></div><b data-i18n="si.6">Poliklinik</b><span data-i18n="si.6d">Hızlı Randevu &amp; Muayene</span></div>
+        <div class="card tile" data-a><span class="num"><span data-count="6">6</span></span><div class="bar" style="--w:36%"><i></i></div><b data-i18n="si.7">Ameliyathane</b><span data-i18n="si.7d">Steril Cerrahi Kompleksi</span></div>
+        <div class="card tile" data-a><span class="num"><span data-count="4">4</span></span><div class="bar" style="--w:26%"><i></i></div><b data-i18n="si.8">Doğumhane</b><span data-i18n="si.8d">Tam Donanımlı Salon</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 09 VALUES ============ -->
+  <section class="slide s-values" data-section="Vizyon ve Değerler" data-i18n-section="sec.values">
+    <div>
+      <span class="eyebrow" data-a data-i18n="va.eyebrow">Kalite Politikamız</span>
+      <p class="policy split" data-i18n="va.policy">“Etik ilkelerden ödün vermeksizin, <span class="red">uluslararası kalite</span> standartlarında kesintisiz hasta memnuniyeti.”</p>
+      <p class="lead" data-a data-i18n="va.lead">Güncel tıp teknolojilerini entegre ederek, hasta haklarına saygılı ve çalışan güvenliğini odak noktasına alan sürekli iyileştirme anlayışı.</p>
+    </div>
+    <div>
+      <span class="eyebrow" data-a data-i18n="va.eyebrow2">Stratejik Önceliklerimiz</span>
+      <div class="pillars" style="margin-top:36px">
+        <div class="card pillar" data-a="right"><span class="n">01</span><div><b data-i18n="va.1">Hasta ve Çalışan Memnuniyeti</b><span data-i18n="va.1d">Güvenli, şeffaf ve yüksek konforlu tedavi süreçleri oluşturmak.</span></div></div>
+        <div class="card pillar" data-a="right"><span class="n">02</span><div><b data-i18n="va.2">Hasta Hakları ve Bilgilendirme</b><span data-i18n="va.2d">Tedavinin her aşamasında hasta ve yakınlarını eksiksiz bilgilendirmek.</span></div></div>
+        <div class="card pillar" data-a="right"><span class="n">03</span><div><b data-i18n="va.3">İleri Teknoloji ve Bilimsel Yaklaşım</b><span data-i18n="va.3d">Tıbbi teşhis ve müdahalelerde en son teknolojileri kullanmak.</span></div></div>
+        <div class="card pillar hot" data-a="right"><span class="n">04</span><div><b data-i18n="va.4">Uluslararası Hizmet Standardı</b><span data-i18n="va.4d">Dünyada referans gösterilen sağlık kurumları arasında yer almak.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 10 TOURISM ============ -->
+  <section class="slide s-tourism" data-section="Sağlık Turizmi" data-i18n-section="sec.tourism">
+    <div>
+      <span class="eyebrow" data-a data-i18n="tu.eyebrow">Anadolu Hastaneleri Grubu · Silivri</span>
+      <h2 class="h2 split" style="font-size:60px" data-i18n="tu.title">Uluslararası <span class="red">Sağlık Turizmi</span> ve Hasta Hizmetleri</h2>
+      <div class="hero">
+        <div data-a><span class="num grad"><span data-count="11000">11.000</span>+</span><span data-i18n="tu.h1">Yıllık uluslararası hasta</span></div>
+        <div data-a><span class="num"><span data-count="45">45</span><span class="red">+</span></span><span data-i18n="tu.h2">Farklı ülkeden erişim</span></div>
+        <div class="badge-moh" data-a><i data-lucide="shield-check"></i><span data-i18n="tu.moh">T.C. Sağlık Bakanlığı Yetkili Sağlık Turizmi Merkezi</span></div>
+      </div>
+      <div class="services">
+        <div class="card svc" data-a><span class="icon"><i data-lucide="plane-landing"></i></span><b data-i18n="tu.v1">Uçtan Uca VIP Transfer &amp; Konaklama</b><span data-i18n="tu.v1d">Havalimanı karşılama, VIP transfer ve anlaşmalı konaklamanın profesyonel koordinasyonu.</span></div>
+        <div class="card svc" data-a><span class="icon"><i data-lucide="languages"></i></span><b data-i18n="tu.v2">12 Dilde Medikal Tercümanlık</b><span data-i18n="tu.v2d">Tedavinin her aşamasında, ana dilde kesintisiz hasta danışmanlığı.</span></div>
+        <div class="card svc" data-a><span class="icon"><i data-lucide="clock"></i></span><b data-i18n="tu.v3">24 Saat İçinde Tıbbi Görüş</b><span data-i18n="tu.v3d">Uzman hekim değerlendirmesiyle kişiye özel tedavi planlaması.</span></div>
+      </div>
+      <div class="bnlabel" data-a data-i18n="tu.br">Öne Çıkan Branşlar</div>
+      <div class="branches">
+        <span class="chip top" data-a data-i18n="tu.b1">Obezite Cerrahisi</span>
+        <span class="chip top" data-a data-i18n="tu.b6">Saç Ekimi</span>
+        <span class="chip top" data-a data-i18n="tu.b3">Estetik Plastik Cerrahi</span>
+        <span class="chip" data-a data-i18n="tu.b4">Ortopedi &amp; Travmatoloji</span>
+        <span class="chip" data-a data-i18n="tu.b5">Göz Hastalıkları</span>
+        <span class="chip" data-a data-i18n="tu.b2">Ağız ve Diş Sağlığı</span>
+        <span class="chip" data-a data-i18n="tu.b7">Üroloji</span>
+        <span class="chip" data-a data-i18n="tu.b8">Genital Estetik</span>
+        <span class="chip" data-a data-i18n="tu.b9">Beyin ve Sinir Cerrahisi</span>
+        <span class="chip" data-a data-i18n="tu.b10">Kulak Burun Boğaz</span>
+        <span class="chip" data-a data-i18n="tu.b11">Mikro Cerrahi</span>
+        <span class="chip" data-a data-i18n="tu.b12">Medikal Onkoloji</span>
+        <span class="chip" data-a data-i18n="tu.b13">Pediatrik Cerrahi</span>
+      </div>
+    </div>
+    <div class="globe" data-a="scale"><div class="ring"></div><canvas id="globe" width="1520" height="1520"></canvas></div>
+  </section>
+
+  <!-- ============ 11 SURGICAL ============ -->
+  <section class="slide s-clinic" data-section="Tıbbi Mükemmeliyet" data-i18n-section="sec.excellence">
+    <div class="side">
+      <span class="eyebrow" data-a data-i18n="cl.eyebrow">Tıbbi Mükemmeliyet</span>
+      <h2 class="h2 split" data-i18n="cl1.title">Cerrahi Tıp <span class="red">Birimleri</span></h2>
+      <p class="lead" data-a data-i18n="cl1.lead">Gelişmiş ameliyathane altyapısı &amp; laparoskopik cerrahi teknolojileri.</p>
+      <div class="big" data-a><span class="num grad"><span data-count="15">15</span></span><span data-i18n="cl.units">cerrahi<br>uzmanlık birimi</span></div>
+      <div class="orbit" data-a><i></i></div>
+    </div>
+    <div class="units">
+      <div class="card unit hot" data-a><span class="icon"><i data-lucide="brain"></i></span><b data-i18n="u.s1">Beyin ve Sinir Cerrahisi</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="baby"></i></span><b data-i18n="u.s2">Çocuk Cerrahisi</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="scissors"></i></span><b data-i18n="u.s3">Genel Cerrahi</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="hand"></i></span><b data-i18n="u.s4">El Cerrahisi ve Mikrocerrahi</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="heart-handshake"></i></span><b data-i18n="u.s5">Kadın Hastalıkları ve Doğum</b></div>
+      <div class="card unit hot" data-a><span class="icon"><i data-lucide="heart-pulse"></i></span><b data-i18n="u.s6">Kalp ve Damar Cerrahisi</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="ear"></i></span><b data-i18n="u.s7">Kulak Burun Boğaz (KBB)</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="eye"></i></span><b data-i18n="u.s8">Göz Sağlığı ve Hastalıkları</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="bone"></i></span><b data-i18n="u.s9">Ortopedi ve Travmatoloji</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="sparkles"></i></span><b data-i18n="u.s10">Plastik, Rekonstrüktif ve Estetik</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="syringe"></i></span><b data-i18n="u.s11">Anestezi ve Reanimasyon</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="smile"></i></span><b data-i18n="u.s12">Ağız ve Diş Sağlığı</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="smile-plus"></i></span><b data-i18n="u.s13">Ortodonti</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="droplets"></i></span><b data-i18n="u.s14">Üroloji</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="scan-eye"></i></span><b data-i18n="u.s15">Göz Hastalıkları &amp; Lazer Cerrahisi</b></div>
+    </div>
+  </section>
+
+  <!-- ============ 12 INTERNAL ============ -->
+  <section class="slide s-clinic" data-section="Tıbbi Mükemmeliyet" data-i18n-section="sec.excellence">
+    <div class="side">
+      <span class="eyebrow" data-a data-i18n="cl.eyebrow">Tıbbi Mükemmeliyet</span>
+      <h2 class="h2 split" data-i18n="cl2.title">Dahili Tıp <span class="red">Birimleri</span></h2>
+      <p class="lead" data-a data-i18n="cl2.lead">Kişiselleştirilmiş bütüncül tedavi &amp; multidisipliner yaklaşım.</p>
+      <div class="big" data-a><span class="num grad"><span data-count="16">16</span></span><span data-i18n="cl2.units">dahili<br>uzmanlık birimi</span></div>
+      <div class="orbit" data-a><i></i></div>
+    </div>
+    <div class="units c16">
+      <div class="card unit hot" data-a><span class="icon"><i data-lucide="heart-pulse"></i></span><b data-i18n="u.i1">Kardiyoloji</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="stethoscope"></i></span><b data-i18n="u.i2">İç Hastalıkları (Dahiliye)</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="baby"></i></span><b data-i18n="u.i3">Çocuk Sağlığı ve Hastalıkları</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="heart"></i></span><b data-i18n="u.i4">Çocuk Kardiyolojisi</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="brain-circuit"></i></span><b data-i18n="u.i5">Nöroloji</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="wind"></i></span><b data-i18n="u.i6">Göğüs Hastalıkları</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="hand"></i></span><b data-i18n="u.i7">Dermatoloji (Cildiye)</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="shield-plus"></i></span><b data-i18n="u.i8">Enfeksiyon Hastalıkları</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="activity"></i></span><b data-i18n="u.i9">Endokrinoloji &amp; Metabolizma</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="pill"></i></span><b data-i18n="u.i10">Gastroenteroloji</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="droplet"></i></span><b data-i18n="u.i11">Nefroloji</b></div>
+      <div class="card unit hot" data-a><span class="icon"><i data-lucide="ribbon"></i></span><b data-i18n="u.i12">Medikal Onkoloji</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="zap"></i></span><b data-i18n="u.i13">Algoloji (Ağrı Tedavisi)</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="users"></i></span><b data-i18n="u.i14">Çocuk &amp; Ergen Ruh Sağlığı</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="brain-cog"></i></span><b data-i18n="u.i15">Psikiyatri</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="gauge"></i></span><b data-i18n="u.i16">Diyabet Polikliniği</b></div>
+    </div>
+  </section>
+
+  <!-- ============ 13 DIAGNOSTIC ============ -->
+  <section class="slide s-clinic" data-section="Tıbbi Mükemmeliyet" data-i18n-section="sec.excellence">
+    <div class="side">
+      <span class="eyebrow" data-a data-i18n="cl.eyebrow">Tıbbi Mükemmeliyet</span>
+      <h2 class="h2 split" data-i18n="cl3.title">Tanı, Yoğun Bakım &amp; <span class="red">Destek</span></h2>
+      <p class="lead" data-a data-i18n="cl3.lead">7/24 kesintisiz sağlık hizmeti &amp; ileri seviye tanı teknolojileri.</p>
+      <div class="big stack" data-a><span class="num grad sm">7/24</span><span data-i18n="cl3.units">acil servis<br>kesintisiz</span></div>
+      <div class="orbit" data-a><i></i></div>
+    </div>
+    <div class="units">
+      <div class="card unit hot" data-a><span class="icon"><i data-lucide="siren"></i></span><b data-i18n="u.d1">Acil Servis (7/24 Kesintisiz)</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="scan-line"></i></span><b data-i18n="u.d2">Radyoloji (MR / BT / USG)</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="target"></i></span><b data-i18n="u.d3">Girişimsel Radyoloji</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="flask-conical"></i></span><b data-i18n="u.d4">Biyokimya Laboratuvarı</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="test-tube"></i></span><b data-i18n="u.d5">Klinik Laboratuvar</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="microscope"></i></span><b data-i18n="u.d6">Patoloji Laboratuvarı</b></div>
+      <div class="card unit hot" data-a><span class="icon"><i data-lucide="bed-double"></i></span><b data-i18n="u.d7">Genel Yoğun Bakım</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="baby"></i></span><b data-i18n="u.d8">Yenidoğan Yoğun Bakım (Neonatoloji)</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="heart-pulse"></i></span><b data-i18n="u.d9">KVC Yoğun Bakım Birimi</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="dumbbell"></i></span><b data-i18n="u.d10">Fizik Tedavi &amp; Rehabilitasyon</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="clipboard-check"></i></span><b data-i18n="u.d11">Kapsamlı Check-Up Merkezi</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="salad"></i></span><b data-i18n="u.d12">Beslenme ve Diyetetik</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="message-circle-heart"></i></span><b data-i18n="u.d13">Klinik Psikoloji</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="flower-2"></i></span><b data-i18n="u.d14">Medikal Estetik</b></div>
+      <div class="card unit" data-a><span class="icon"><i data-lucide="hand-heart"></i></span><b data-i18n="u.d15">Yenidoğan Bakım Birimi</b></div>
+    </div>
+  </section>
+
+  <!-- ============ 14 LOCATION ============ -->
+  <section class="slide s-location" data-section="Stratejik Konum" data-i18n-section="sec.location">
+    <video src="assets/video/silivri-aerial.mp4" poster="assets/video/silivri-aerial-poster.jpg" muted loop playsinline preload="auto"></video>
+    <div class="shade"></div>
+    <div class="inner">
+      <span class="eyebrow" data-a data-i18n="lo.eyebrow">Stratejik Konum</span>
+      <h2 class="h2 split" data-i18n="lo.title">Ulaşım ve <span class="red">Erişim</span> Kolaylığı</h2>
+      <div class="card metric" data-a="left"><span class="icon"><i data-lucide="plane"></i></span><span class="num"><span data-count="25">25</span><small data-i18n="lo.min">dk</small></span><span data-i18n="lo.m1">İstanbul Havalimanı’na doğrudan ulaşım</span></div>
+      <div class="card metric" data-a="left"><span class="icon"><i data-lucide="route"></i></span><span class="num"><span data-count="30">30</span><small data-i18n="lo.min">dk</small></span><span data-i18n="lo.m2">İstanbul şehir merkezine otoyol bağlantısı</span></div>
+    </div>
+    <div class="route-tag" data-a><span data-i18n="lo.tek">TEKİRDAĞ</span><i></i><span data-i18n="lo.ist">İSTANBUL</span></div>
+  </section>
+
+  <!-- ============ 15 CLOSING ============ -->
+  <section class="slide s-close" data-section="" data-hud="min">
+    <div class="art"></div>
+    <div class="inner">
+      <img src="assets/img/logo-silivri.png" alt="Silivri Anadolu Hospital" style="height:100px" data-a="scale">
+      <div class="thanks" data-a="fade" id="thanks"><span class="on">Благодаря!</span><span>Teşekkür ederiz!</span><span>Thank you!</span></div>
+      <h2 class="h1 split" data-i18n="cl.title">“Her şey <span class="grad">sağlığınız</span> için”</h2>
+      <div class="sub" data-a data-i18n="cl.sub">7 gün 24 saat kesintisiz sağlık hizmeti</div>
+      <div class="phone" data-a="scale"><span class="ic"><i data-lucide="phone-call"></i></span><b>444 50 58</b></div>
+      <div class="contacts">
+        <div data-a><i data-lucide="globe"></i><span><small data-i18n="cl.web">Web Adresi</small><b>www.anadoluhastaneleri.com</b></span></div>
+        <div data-a><i data-lucide="map-pin"></i><span><small data-i18n="cl.hq">Genel Merkez</small><b>Skyport Residence, Beylikdüzü / İstanbul</b></span></div>
+        <div data-a><i data-lucide="mail"></i><span><small data-i18n="cl.mail">E-Posta</small><b>info@arkazholding.com.tr</b></span></div>
+      </div>
+    </div>
+    <div class="logos" data-a>
+      <img src="assets/img/logo-anadolu.png" alt="Anadolu Hastaneleri"><span class="sep"></span><img src="assets/img/logo-arkaz.png" alt="Arkaz Holding" style="height:84px">
+    </div>
+  </section>
+
+</main>
+
+<div class="blackout"></div>
+<div class="help" id="help">
+  <div><kbd>→</kbd><span data-i18n="help.next">İleri (Boşluk, PageDown)</span></div>
+  <div><kbd>←</kbd><span data-i18n="help.prev">Geri (PageUp)</span></div>
+  <div><kbd>F</kbd><span data-i18n="help.full">Tam ekran</span></div>
+  <div><kbd>O</kbd><span data-i18n="help.over">Genel bakış</span></div>
+  <div><kbd>L</kbd><span data-i18n="help.lang">Dil: TR / BG / EN</span></div>
+  <div><kbd>B</kbd><span data-i18n="help.black">Ekranı karart</span></div>
+  <div><kbd>H</kbd><span data-i18n="help.help">Bu yardım</span></div>
+</div>
+
+<script src="assets/vendor/lucide.min.js"></script>
+<script src="assets/map-data.js"></script>
+<script src="assets/globe-data.js"></script>
+<script src="assets/i18n.js"></script>
+<script src="assets/deck.js"></script>
+</body>
+</html>
