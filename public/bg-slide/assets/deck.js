@@ -3,10 +3,6 @@
 
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-  const store = {
-    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
-    set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } }
-  };
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const stage = $("#stage");
@@ -16,8 +12,14 @@
   let lang = "tr";
 
   /* ---------------- stage scaling ---------------- */
+  // portrait screens (phones) get a 440px-wide portrait stage with its own layout (body.m in deck.css)
+  const MW = 440;
+  const isMobile = () => document.body.classList.contains("m");
   function fit() {
-    const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+    const m = innerWidth / innerHeight < .8;
+    document.body.classList.toggle("m", m);
+    const s = m ? innerWidth / MW : Math.min(innerWidth / 1920, innerHeight / 1080);
+    if (m) stage.style.setProperty("--mh", (innerHeight / s) + "px");
     document.documentElement.style.setProperty("--s", s);
     stage.style.setProperty("--s", s);
   }
@@ -112,7 +114,6 @@
     $$("#langs button").forEach(b => b.classList.toggle("on", b.dataset.lang === l));
     $$("[data-map-label]").forEach(t => { t.textContent = T(t.dataset.mapLabel, t.textContent); });
     if (cur >= 0) $("#hudSection").textContent = slides[cur]._section;
-    store.set("deck-lang", l);
   }
 
   /* ---------------- navigation ---------------- */
@@ -161,6 +162,7 @@
     });
   }
   function toggleOverview(on) {
+    if (isMobile()) return;
     const want = on ?? !document.body.classList.contains("overview");
     layoutOverview();
     document.body.classList.toggle("overview", want);
@@ -213,12 +215,13 @@
     (e.deltaY > 0 ? next : prevS)();
   }, { passive: true });
 
-  let tx = null;
-  addEventListener("touchstart", e => { tx = e.touches[0].clientX; }, { passive: true });
+  // horizontal swipes only, so scrolling a tall slide on a phone doesn't change slides
+  let tx = null, ty = null;
+  addEventListener("touchstart", e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
   addEventListener("touchend", e => {
     if (tx === null) return;
-    const dx = e.changedTouches[0].clientX - tx; tx = null;
-    if (Math.abs(dx) > 50) (dx < 0 ? next : prevS)();
+    const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty; tx = ty = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) (dx < 0 ? next : prevS)();
   });
 
   let idle;
@@ -519,8 +522,9 @@
   /* ---------------- boot ---------------- */
   slides.forEach(indexSlide);
   $("#hudTotal").textContent = pad(N);
-  const savedLang = store.get("deck-lang");
-  applyLang(["tr", "bg", "en"].includes(savedLang) ? savedLang : "tr");
+  // always opens in Bulgarian; ?lang=tr / ?lang=en overrides
+  const urlLang = new URLSearchParams(location.search).get("lang");
+  applyLang(["tr", "bg", "en"].includes(urlLang) ? urlLang : "bg");
   slides.forEach(indexSlide);
   const start = Math.max(0, Math.min(N - 1, (parseInt(location.hash.slice(1), 10) || 1) - 1));
   requestAnimationFrame(() => go(start, { force: true }));
