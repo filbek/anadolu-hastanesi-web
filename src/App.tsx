@@ -83,6 +83,7 @@ const AdminVideoContent = lazy(() => import('./components/admin/AdminVideoConten
 const AdminQualityCertificates = lazy(() => import('./components/admin/AdminQualityCertificates'))
 const AdminQualityCommittees = lazy(() => import('./components/admin/AdminQualityCommittees'))
 const AdminOrganizationChart = lazy(() => import('./components/admin/AdminOrganizationChart'))
+const AdminPresentations = lazy(() => import('./components/admin/AdminPresentations'))
 const AdminPatientInfo = lazy(() => import('./components/admin/AdminPatientInfo'))
 const AdminContractedInstitutions = lazy(() => import('./components/admin/AdminContractedInstitutions'))
 const AdminSettings = lazy(() => import('./components/admin/AdminSettings'))
@@ -228,6 +229,7 @@ function App() {
               <Route path="users" element={<AdminUsers />} />
               <Route path="pages" element={<AdminPages />} />
               <Route path="media" element={<AdminMedia />} />
+              <Route path="presentations" element={<AdminPresentations />} />
               <Route path="contact-info" element={<AdminContactInfo />} />
               <Route path="seo" element={<AdminSEO />} />
               <Route path="video-content" element={<AdminVideoContent />} />

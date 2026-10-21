@@ -1,6 +1,13 @@
 {
   "rewrites": [
     { "source": "/api/translate-google", "destination": "https://translate.googleapis.com/translate_a/single" },
+    { "source": "/sunum/:slug([a-z0-9-]+)", "destination": "https://cfwwcxqpyxktikizjjxx.supabase.co/storage/v1/object/public/presentations/:slug.pdf" },
     { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/sunum/(.*)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    }
   ]
 }

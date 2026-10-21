@@ -257,6 +257,7 @@ ${waiting.length} görüşme yanıt bekliyor.` : ''),
       items: [
         { path: '/admin/pages', icon: FaFileAlt, label: 'Tüm Sayfalar' },
         { path: '/admin/media', icon: FaImages, label: 'Medya Galerisi' },
+        { path: '/admin/presentations', icon: FaFilePdf, label: 'Sunumlar' },
         { path: '/admin/video-content', icon: FaVideo, label: 'Video İçerikler' },
       ]
     },
