@@ -98,7 +98,7 @@ const DepartmentsPage = () => {
     'girisimsel-radyoloji': t('deptDesc.girisimselRadyoloji', 'Görüntüleme eşliğinde minimal invaziv girişimsel işlemler.'),
     'gogus-hastaliklari': t('deptDesc.gogus', 'Astım, KOAH, akciğer kanseri ve uyku apnesi tanı ve tedavisi.'),
     'goz-sagligi-ve-hastaliklari': t('deptDesc.goz', 'Katarakt, glokom, lazer ve retina cerrahisi hizmetleri.'),
-    'ic-hastaliklari-dahiliye': t('deptDesc.icHastaliklari', 'İç hastalıkları tanı ve tedavisinde deneyimli kadro.'),
+    'dahiliye': t('deptDesc.icHastaliklari', 'İç hastalıkları tanı ve tedavisinde deneyimli kadro.'),
     'kadin-hastaliklari-ve-dogum': t('deptDesc.kadinHastaliklari', 'Jinekolojik cerrahi, doğum ve tüp bebek hizmetleri.'),
     'kalp-ve-damar-cerrahisi': t('deptDesc.kalpDamarCerrahi', 'Koroner bypass, kapak cerrahisi ve vasküler (dama) girişimler.'),
     'kardiyoloji': t('deptDesc.kardiyoloji', 'Ekokardiyografi, anjiyografi ve stent uygulamaları.'),

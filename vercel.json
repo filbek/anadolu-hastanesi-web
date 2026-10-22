@@ -1,4 +1,7 @@
 {
+  "redirects": [
+    { "source": "/bolumlerimiz/ic-hastaliklari-dahiliye", "destination": "/bolumlerimiz/dahiliye", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/api/translate-google", "destination": "https://translate.googleapis.com/translate_a/single" },
     { "source": "/sunum/:slug([a-z0-9-]+)", "destination": "https://cfwwcxqpyxktikizjjxx.supabase.co/storage/v1/object/public/presentations/:slug.pdf" },

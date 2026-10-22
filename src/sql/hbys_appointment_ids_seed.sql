@@ -58,7 +58,7 @@ INSERT INTO public.hospital_department_hbys (hospital_id, department_id, hbys_de
   (4, 33, '3372'),  -- Silivri (SLV) / Girişimsel Radyoloji
   (4, 34, '1171'),  -- Silivri (SLV) / Göğüs Hastalıkları
   (4, 35, '2900'),  -- Silivri (SLV) / Göz Sağlığı ve Hastalıkları
-  (4, 36, '1000'),  -- Silivri (SLV) / İç Hastalıkları (Dahiliye)
+  (4, 5, '1000'),   -- Silivri (SLV) / Dahiliye (İç Hastalıkları)
   (4, 37, '2300'),  -- Silivri (SLV) / Kalp ve Damar Cerrahisi
   (4, 39, '1053'),  -- Silivri (SLV) / Medikal Onkoloji
   (4, 40, '1062'),  -- Silivri (SLV) / Nefroloji
@@ -82,7 +82,7 @@ INSERT INTO public.hospital_department_hbys (hospital_id, department_id, hbys_de
   (5, 26, '1500'),  -- Avcılar (AVC) / Çocuk Sağlığı ve Hastalıkları
   (5, 34, '1171'),  -- Avcılar (AVC) / Göğüs Hastalıkları
   (5, 35, '2900'),  -- Avcılar (AVC) / Göz Sağlığı ve Hastalıkları
-  (5, 36, '1000'),  -- Avcılar (AVC) / İç Hastalıkları (Dahiliye)
+  (5, 5, '1000'),   -- Avcılar (AVC) / Dahiliye (İç Hastalıkları)
   (6, 1, '1100'),  -- Ereğli (ERG) / Kardiyoloji
   (6, 2, '1300'),  -- Ereğli (ERG) / Nöroloji
   (6, 3, '2600'),  -- Ereğli (ERG) / Ortopedi ve Travmatoloji
@@ -102,7 +102,7 @@ INSERT INTO public.hospital_department_hbys (hospital_id, department_id, hbys_de
   (6, 31, '1200'),  -- Ereğli (ERG) / Enfeksiyon Hastalıkları ve Mikrobiyoloji
   (6, 34, '1171'),  -- Ereğli (ERG) / Göğüs Hastalıkları
   (6, 35, '2900'),  -- Ereğli (ERG) / Göz Sağlığı ve Hastalıkları
-  (6, 36, '1000'),  -- Ereğli (ERG) / İç Hastalıkları (Dahiliye)
+  (6, 5, '1000'),   -- Ereğli (ERG) / Dahiliye (İç Hastalıkları)
   (6, 39, '1053'),  -- Ereğli (ERG) / Medikal Onkoloji
   (6, 44, '7000')  -- Ereğli (ERG) / Psikoloji
 ON CONFLICT (hospital_id, department_id) DO UPDATE
