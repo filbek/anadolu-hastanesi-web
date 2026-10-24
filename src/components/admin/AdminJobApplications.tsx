@@ -760,7 +760,23 @@ const AdminJobApplications = () => {
   /** Detayda vesikalık yükleniyor mu / hata verdi mi */
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoUploadError, setPhotoUploadError] = useState('');
+  /**
+   * Detay kartından tek adayın PDF'i istendiğinde dolar; doluyken yazdırma
+   * kökü işaretli adaylar yerine yalnızca bu adayı basar.
+   */
+  const [singlePrint, setSinglePrint] = useState<JobApplication | null>(null);
   const { user } = useSupabase();
+
+  /*
+   * Yazdırma kökü singlePrint'e göre yeniden çizildikten SONRA print
+   * çağrılmalı; aksi hâlde pencerede işaretli adaylar görünür.
+   * window.print() senkron bloklar, dönünce kök eski hâline alınır.
+   */
+  useEffect(() => {
+    if (!singlePrint) return;
+    window.print();
+    setSinglePrint(null);
+  }, [singlePrint]);
 
   useEffect(() => {
     fetchApplications();
@@ -1546,6 +1562,14 @@ const AdminJobApplications = () => {
                     <FaIdCard /> Fotoğraf
                   </button>
                 )}
+                <button
+                  type="button"
+                  onClick={() => setSinglePrint(selected)}
+                  title='Açılan pencerede hedef olarak "PDF olarak kaydet"i seçin'
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-sm font-semibold hover:border-primary"
+                >
+                  <FaFilePdf aria-hidden="true" /> PDF İndir
+                </button>
               </div>
 
                 <figure className="shrink-0 self-start">
@@ -1825,7 +1849,7 @@ const AdminJobApplications = () => {
       */}
       <style>{PRINT_CSS}</style>
       <div id="job-print-root" className="hidden">
-        {checkedApplications.map((a) => (
+        {(singlePrint ? [singlePrint] : checkedApplications).map((a) => (
           <ApplicationPrintSheet
             key={a.id}
             app={a}
