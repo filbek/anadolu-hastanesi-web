@@ -8,6 +8,7 @@
 // ============================================================
 
 import { useState, useEffect, useMemo, Fragment } from 'react';
+import { createPortal } from 'react-dom';
 import {
   FaSearch,
   FaTrash,
@@ -426,15 +427,17 @@ const DetailSection = ({ title, children }: { title: string; children: React.Rea
  */
 const PRINT_CSS = `
 @media print {
-  /* Ekrandaki her şey gizlenir, yalnızca yazdırma kökü görünür.
-     visibility kullanılır; display:none ata elemanları da gizlerdi. */
-  body * { visibility: hidden; }
-  #job-print-root, #job-print-root * { visibility: visible; }
+  /* Yazdırma kökü portal ile doğrudan body altına konur; böylece geri
+     kalan her şey display:none ile akıştan tamamen çıkarılabilir.
+     (visibility:hidden gizlenen liste/pencere kadar boş sayfa üretiyordu.) */
+  body > *:not(#job-print-root) { display: none !important; }
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
   #job-print-root {
     display: block !important;
-    position: absolute;
-    left: 0;
-    top: 0;
     width: 100%;
   }
   .job-print-page { page-break-after: always; }
@@ -1848,16 +1851,19 @@ const AdminJobApplications = () => {
         window.print() ek bir bekleme gerektirmez.
       */}
       <style>{PRINT_CSS}</style>
-      <div id="job-print-root" className="hidden">
-        {(singlePrint ? [singlePrint] : checkedApplications).map((a) => (
-          <ApplicationPrintSheet
-            key={a.id}
-            app={a}
-            photoUrl={photoUrls[a.id]}
-            notes={notes[a.id] ?? []}
-          />
-        ))}
-      </div>
+      {createPortal(
+        <div id="job-print-root" className="hidden">
+          {(singlePrint ? [singlePrint] : checkedApplications).map((a) => (
+            <ApplicationPrintSheet
+              key={a.id}
+              app={a}
+              photoUrl={photoUrls[a.id]}
+              notes={notes[a.id] ?? []}
+            />
+          ))}
+        </div>,
+        document.body
+      )}
 
       {photoPreview && photoUrls[photoPreview.id] && (
         <PhotoLightbox
