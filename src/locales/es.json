@@ -188,7 +188,9 @@
     "noHospitals": "Todavía no hay información de hospitales.",
     "submitSuccess": "Hemos recibido su mensaje. Nos pondremos en contacto con usted lo antes posible.",
     "whatsappPrompt": "Pulse el botón de abajo para que su mensaje llegue al instante al departamento correspondiente. Se abrirá WhatsApp con su mensaje listo.",
-    "whatsappSend": "Enviar por WhatsApp"
+    "whatsappSend": "Enviar por WhatsApp",
+    "hospitalLabel": "Hospital",
+    "hospitalPlaceholder": "Seleccione un hospital..."
   },
   "doctorsPage": {
     "title": "Nuestros médicos",
@@ -238,7 +240,9 @@
     "treatment4": "Cirugía plástica",
     "treatment5": "Tratamientos dentales",
     "treatment6": "Trasplante capilar",
-    "treatment7": "Otro"
+    "treatment7": "Otro",
+    "submitSuccess": "Hemos recibido su mensaje. Nuestro equipo de pacientes internacionales se pondrá en contacto con usted lo antes posible.",
+    "submitError": "Se produjo un error al enviar su mensaje. Inténtelo de nuevo."
   },
   "admin": {
     "confirmDeleteAccreditation": "Bu akreditasyonu silmek istediğinizden emin misiniz?",

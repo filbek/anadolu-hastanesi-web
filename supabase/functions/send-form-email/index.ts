@@ -1,6 +1,7 @@
 // ============================================================
 // Supabase Edge Function: send-form-email
-// Form başvurularını (ikinci görüş, iletişim, hasta geri bildirim)
+// Form başvurularını (ikinci görüş, iletişim, hasta geri bildirim,
+// iş başvurusu, sağlık turizmi)
 // admin panelinde site_settings tablosunda belirlenen e-posta
 // adresine Resend üzerinden gönderir.
 //
@@ -33,7 +34,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-type FormType = 'second_opinion' | 'contact' | 'feedback' | 'job_application';
+type FormType = 'second_opinion' | 'contact' | 'feedback' | 'job_application' | 'health_tourism';
 
 // Hangi formun alıcısı hangi site_settings kolonunda
 const RECIPIENT_COLUMN: Record<FormType, string> = {
@@ -41,6 +42,16 @@ const RECIPIENT_COLUMN: Record<FormType, string> = {
   contact: 'contact_form_email',
   feedback: 'feedback_form_email',
   job_application: 'career_form_email',
+  health_tourism: 'health_tourism_email',
+};
+
+// Şube bazlı alıcı eşlemesi tutan site_settings kolonu ({ "<hospital id>": "e-posta" }).
+// Formda seçilen hastanenin eşlemesi varsa RECIPIENT_COLUMN'daki genel adresin önüne geçer.
+// Bkz. src/sql/form_hospital_routing_migration.sql
+const HOSPITAL_RECIPIENT_COLUMN: Partial<Record<FormType, string>> = {
+  second_opinion: 'second_opinion_hospital_emails',
+  contact: 'contact_hospital_emails',
+  feedback: 'feedback_hospital_emails',
 };
 
 // site_settings okunamazsa / boşsa kullanılacak varsayılan alıcılar
@@ -49,6 +60,7 @@ const FALLBACK_RECIPIENT: Record<FormType, string> = {
   contact: 'info@anadoluhastaneleri.com',
   feedback: 'hastahaklari@anadoluhastaneleri.com',
   job_application: 'isbasvuru@anadoluhastaneleri.com',
+  health_tourism: 'bekir.filizdag@anadoluhastaneleri.com',
 };
 
 const FORM_TITLE: Record<FormType, string> = {
@@ -56,6 +68,7 @@ const FORM_TITLE: Record<FormType, string> = {
   contact: 'İletişim Formu Mesajı',
   feedback: 'Hasta Geri Bildirimi',
   job_application: 'Yeni İş Başvurusu',
+  health_tourism: 'Sağlık Turizmi Talebi',
 };
 
 function escapeHtml(value: unknown): string {
@@ -77,6 +90,9 @@ const FIELD_LABELS: Record<string, string> = {
   message: 'Mesaj',
   file_url: 'Ekli Dosya',
   type: 'Bildirim Türü',
+  source: 'Başvuran',
+  country: 'Ülke',
+  treatment: 'İlgilenilen Tedavi',
 };
 
 function buildHtml(formType: FormType, data: Record<string, unknown>): string {
@@ -405,6 +421,42 @@ function buildJobApplicationHtml(data: Record<string, any>, links: DocLinks): st
   </div>`;
 }
 
+/**
+ * Formda seçilen hastanenin şube bazlı alıcısını döner; yoksa null.
+ *
+ * Form hastaneyi adıyla gönderir, eşleme ise id ile tutulur — hastane adı
+ * admin panelinden değiştirilse bile eşleme bozulmasın diye.
+ */
+async function findHospitalRecipient(
+  // Şema tipleri üretilmediği için gevşek istemci tipi
+  // deno-lint-ignore no-explicit-any
+  supabase: SupabaseClient<any>,
+  formType: FormType,
+  settings: unknown,
+  hospitalName: unknown,
+): Promise<string | null> {
+  const mapColumn = HOSPITAL_RECIPIENT_COLUMN[formType];
+  if (!mapColumn || typeof hospitalName !== 'string' || !hospitalName.trim()) return null;
+
+  const map = (settings as Record<string, unknown> | null)?.[mapColumn];
+  if (!map || typeof map !== 'object') return null;
+
+  const { data: hospital, error } = await supabase
+    .from('hospitals')
+    .select('id')
+    .eq('name', hospitalName.trim())
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !hospital) {
+    if (error) console.error('Hastane okunamadı:', error);
+    return null;
+  }
+
+  const email = (map as Record<string, unknown>)[String(hospital.id)];
+  return typeof email === 'string' && email.includes('@') ? email.trim() : null;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -432,11 +484,12 @@ Deno.serve(async (req: Request) => {
     const column = RECIPIENT_COLUMN[formType];
     const { data: settings } = await supabase
       .from('site_settings')
-      .select(column)
+      .select('*')
       .limit(1)
       .single();
 
     const recipient =
+      (await findHospitalRecipient(supabase, formType, settings, data.hospital)) ||
       (settings as Record<string, string> | null)?.[column] ||
       FALLBACK_RECIPIENT[formType];
 

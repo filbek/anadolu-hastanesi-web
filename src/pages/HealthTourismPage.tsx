@@ -6,18 +6,92 @@ import AutoTranslate from '../components/common/AutoTranslate'
 import {
   FaCheck, FaGlobeAmericas, FaHotel, FaAmbulance, FaUserMd, FaMicrochip, FaUserFriends,
   FaHeartbeat, FaBone, FaEye, FaUserEdit, FaTooth, FaCut,
-  FaPhone, FaEnvelope, FaWhatsapp, FaFacebookF, FaTwitter, FaInstagram, FaYoutube, FaSearchPlus
+  FaPhone, FaEnvelope, FaWhatsapp, FaFacebookF, FaTwitter, FaInstagram, FaYoutube, FaSearchPlus,
+  FaCheckCircle
 } from 'react-icons/fa'
 import {
   DEFAULT_HEALTH_TOURISM_CERTIFICATES,
   fetchHealthTourismCertificates,
   type HealthTourismCertificate,
 } from '../services/healthTourismCertificates'
+import { supabase } from '../lib/supabase'
+import { sendFormEmail } from '../services/emailService'
+import TurnstileWidget from '../components/common/TurnstileWidget'
+import { verifyTurnstile, turnstileEnabled } from '../services/turnstileService'
+
+// Formdaki tedavi seçenekleri. Değer Türkçe tutulur ki bildirim e-postası
+// ziyaretçinin dilinden bağımsız olarak ekipçe okunabilsin.
+const TREATMENT_OPTIONS: { key: string; value: string }[] = [
+  { key: 'healthTourismPage.treatment1', value: 'Kardiyoloji' },
+  { key: 'healthTourismPage.treatment2', value: 'Ortopedi' },
+  { key: 'healthTourismPage.treatment3', value: 'Göz Hastalıkları' },
+  { key: 'healthTourismPage.treatment4', value: 'Plastik Cerrahi' },
+  { key: 'healthTourismPage.treatment5', value: 'Diş Tedavileri' },
+  { key: 'healthTourismPage.treatment6', value: 'Saç Ekimi' },
+  { key: 'healthTourismPage.treatment7', value: 'Diğer' },
+]
 
 const HealthTourismPage = () => {
   const { t } = useTranslation()
   const [lightboxCert, setLightboxCert] = useState<HealthTourismCertificate | null>(null)
   const [certificates, setCertificates] = useState<HealthTourismCertificate[]>(DEFAULT_HEALTH_TOURISM_CERTIFICATES)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const form = e.currentTarget
+    const fd = new FormData(form)
+    const name = String(fd.get('name') || '').trim()
+    const email = String(fd.get('email') || '').trim()
+    const phone = String(fd.get('phone') || '').trim()
+    const country = String(fd.get('country') || '').trim()
+    const treatment = String(fd.get('treatment') || '').trim()
+    const message = String(fd.get('message') || '').trim()
+
+    if (turnstileEnabled) {
+      if (!captchaToken) {
+        alert(t('common.captchaRequired', 'Lütfen "robot değilim" doğrulamasını tamamlayın.'))
+        return
+      }
+      setSubmitting(true)
+      const captchaOk = await verifyTurnstile(captchaToken)
+      if (!captchaOk) {
+        setSubmitting(false)
+        setCaptchaToken(null)
+        alert(t('common.captchaFailed', 'Doğrulama başarısız oldu. Lütfen tekrar deneyin.'))
+        return
+      }
+    }
+
+    setSubmitting(true)
+    try {
+      // Önce kaydet: e-posta gitmese bile talep kaybolmasın
+      const { error } = await supabase.from('health_tourism_submissions').insert([
+        {
+          name,
+          email,
+          phone: phone || null,
+          country: country || null,
+          treatment: treatment || null,
+          message,
+          consent: true,
+        },
+      ])
+      if (error) throw error
+
+      await sendFormEmail('health_tourism', { name, email, phone, country, treatment, message })
+
+      setSubmitted(true)
+      form.reset()
+    } catch (err) {
+      console.error('Health tourism form error:', err)
+      alert(t('healthTourismPage.submitError', 'Mesajınız gönderilirken bir hata oluştu. Lütfen tekrar deneyin.'))
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -450,52 +524,69 @@ const HealthTourismPage = () => {
             {/* Contact Form */}
             <div>
               <h3 className="text-xl font-bold text-primary mb-6">{t('common.contactForm', 'İletişim Formu')}</h3>
-              <form className="space-y-6">
+              {submitted && (
+                <div role="status" className="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800">
+                  <div className="flex items-start gap-3">
+                    <FaCheckCircle className="mt-0.5 flex-shrink-0 text-green-600" aria-hidden="true" />
+                    <p className="text-sm font-medium">
+                      {t('healthTourismPage.submitSuccess', 'Mesajınız bize ulaştı. Uluslararası hasta ekibimiz en kısa sürede sizinle iletişime geçecek.')}
+                    </p>
+                  </div>
+                </div>
+              )}
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-2">{t('common.name', 'Ad Soyad')}</label>
-                    <input type="text" placeholder={t('contactPage.placeholderName', 'Adınız Soyadınız')} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
+                    <label htmlFor="ht-name" className="block text-sm font-medium text-slate-600 mb-2">
+                      {t('common.name', 'Ad Soyad')} <span className="text-coral-500" aria-hidden="true">*</span>
+                    </label>
+                    <input id="ht-name" name="name" type="text" required aria-required="true" placeholder={t('contactPage.placeholderName', 'Adınız Soyadınız')} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-2">{t('common.email', 'E-posta')}</label>
-                    <input type="email" placeholder={t('contactPage.placeholderEmail', 'ornek@email.com')} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
+                    <label htmlFor="ht-email" className="block text-sm font-medium text-slate-600 mb-2">
+                      {t('common.email', 'E-posta')} <span className="text-coral-500" aria-hidden="true">*</span>
+                    </label>
+                    <input id="ht-email" name="email" type="email" required aria-required="true" placeholder={t('contactPage.placeholderEmail', 'ornek@email.com')} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-2">{t('common.phone', 'Telefon')}</label>
-                    <input type="tel" placeholder={t('contactPage.placeholderPhone', '0555 123 45 67')} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
+                    <label htmlFor="ht-phone" className="block text-sm font-medium text-slate-600 mb-2">{t('common.phone', 'Telefon')}</label>
+                    <input id="ht-phone" name="phone" type="tel" placeholder={t('contactPage.placeholderPhone', '0555 123 45 67')} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-2">{t('healthTourismPage.countryLabel', 'Ülke')}</label>
-                    <input type="text" placeholder={t('healthTourismPage.countryLabel', 'Ülke')} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
+                    <label htmlFor="ht-country" className="block text-sm font-medium text-slate-600 mb-2">{t('healthTourismPage.countryLabel', 'Ülke')}</label>
+                    <input id="ht-country" name="country" type="text" placeholder={t('healthTourismPage.countryLabel', 'Ülke')} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-2">{t('healthTourismPage.treatmentLabel', 'İlgilendiğiniz Tedavi')}</label>
-                  <select className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary bg-white">
-                    <option>{t('healthTourismPage.selectTreatment', 'Tedavi Seçiniz')}</option>
-                    <option>{t('healthTourismPage.treatment1', 'Kardiyoloji')}</option>
-                    <option>{t('healthTourismPage.treatment2', 'Ortopedi')}</option>
-                    <option>{t('healthTourismPage.treatment3', 'Göz Hastalıkları')}</option>
-                    <option>{t('healthTourismPage.treatment4', 'Plastik Cerrahi')}</option>
-                    <option>{t('healthTourismPage.treatment5', 'Diş Tedavileri')}</option>
-                    <option>{t('healthTourismPage.treatment6', 'Saç Ekimi')}</option>
-                    <option>{t('healthTourismPage.treatment7', 'Diğer')}</option>
+                  <label htmlFor="ht-treatment" className="block text-sm font-medium text-slate-600 mb-2">{t('healthTourismPage.treatmentLabel', 'İlgilendiğiniz Tedavi')}</label>
+                  <select id="ht-treatment" name="treatment" defaultValue="" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary bg-white">
+                    <option value="">{t('healthTourismPage.selectTreatment', 'Tedavi Seçiniz')}</option>
+                    {TREATMENT_OPTIONS.map((o) => (
+                      <option key={o.key} value={o.value}>{t(o.key, o.value)}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-2">{t('common.message', 'Mesajınız')}</label>
-                  <textarea rows={4} placeholder={t('contactPage.placeholderMessage', 'Mesajınızı buraya yazınız...')} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary resize-none" />
+                  <label htmlFor="ht-message" className="block text-sm font-medium text-slate-600 mb-2">
+                    {t('common.message', 'Mesajınız')} <span className="text-coral-500" aria-hidden="true">*</span>
+                  </label>
+                  <textarea id="ht-message" name="message" rows={4} required aria-required="true" placeholder={t('contactPage.placeholderMessage', 'Mesajınızı buraya yazınız...')} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary resize-none" />
                 </div>
                 <div className="flex items-start gap-2">
-                  <input type="checkbox" id="consent" className="mt-1" />
-                  <label htmlFor="consent" className="text-sm text-slate-500">
-                    {t('common.consentText', 'Kişisel verilerimin, tarafıma dönüş yapılması amacıyla işlenmesine izin veriyorum.')}
+                  <input type="checkbox" id="ht-consent" name="consent" required aria-required="true" className="mt-1" />
+                  <label htmlFor="ht-consent" className="text-sm text-slate-500">
+                    {t('common.consentText', 'Kişisel verilerimin, tarafıma dönüş yapılması amacıyla işlenmesine izin veriyorum.')} <span className="text-coral-500" aria-hidden="true">*</span>
                   </label>
                 </div>
-                <button type="submit" className="w-full py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors">
-                  {t('common.send', 'Gönder')}
+                <TurnstileWidget onVerify={setCaptchaToken} />
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full py-4 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-60"
+                >
+                  {submitting ? t('common.sending', 'Gönderiliyor...') : t('common.send', 'Gönder')}
                 </button>
               </form>
             </div>

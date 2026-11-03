@@ -188,7 +188,9 @@
     "noHospitals": "لا تتوفر معلومات عن المستشفيات بعد.",
     "submitSuccess": "وصلتنا رسالتك. سنتواصل معك في أقرب وقت ممكن.",
     "whatsappPrompt": "اضغط على الزر أدناه لتصل رسالتك فورًا إلى القسم المعني. سيُفتح واتساب ورسالتك جاهزة.",
-    "whatsappSend": "إرسال عبر واتساب"
+    "whatsappSend": "إرسال عبر واتساب",
+    "hospitalLabel": "المستشفى",
+    "hospitalPlaceholder": "اختر المستشفى..."
   },
   "doctorsPage": {
     "title": "أطباؤنا",
@@ -238,7 +240,9 @@
     "treatment4": "الجراحة التجميلية",
     "treatment5": "علاجات الأسنان",
     "treatment6": "زراعة الشعر",
-    "treatment7": "أخرى"
+    "treatment7": "أخرى",
+    "submitSuccess": "وصلتنا رسالتك. سيتواصل معك فريق المرضى الدوليين في أقرب وقت ممكن.",
+    "submitError": "حدث خطأ أثناء إرسال رسالتك. يرجى المحاولة مرة أخرى."
   },
   "admin": {
     "confirmDeleteAccreditation": "Bu akreditasyonu silmek istediğinizden emin misiniz?",

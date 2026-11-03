@@ -188,7 +188,9 @@
     "noHospitals": "Henüz hastane bilgisi bulunmamaktadır.",
     "submitSuccess": "Mesajınız bize ulaştı. En kısa sürede sizinle iletişime geçeceğiz.",
     "whatsappPrompt": "Mesajınızın ilgili birimimize anında ulaşması için aşağıdaki butona dokunun. WhatsApp açılacak ve mesajınız hazır olarak gelecektir.",
-    "whatsappSend": "WhatsApp'tan Gönder"
+    "whatsappSend": "WhatsApp'tan Gönder",
+    "hospitalLabel": "Hastane",
+    "hospitalPlaceholder": "Hastane seçiniz..."
   },
   "doctorsPage": {
     "title": "Doktorlarımız",
@@ -238,7 +240,9 @@
     "treatment4": "Plastik Cerrahi",
     "treatment5": "Diş Tedavileri",
     "treatment6": "Saç Ekimi",
-    "treatment7": "Diğer"
+    "treatment7": "Diğer",
+    "submitSuccess": "Mesajınız bize ulaştı. Uluslararası hasta ekibimiz en kısa sürede sizinle iletişime geçecek.",
+    "submitError": "Mesajınız gönderilirken bir hata oluştu. Lütfen tekrar deneyin."
   },
   "admin": {
     "confirmDeleteAccreditation": "Bu akreditasyonu silmek istediğinizden emin misiniz?",

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaSave, FaEye, FaEyeSlash, FaImage, FaCalendarAlt } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaSave, FaEye, FaEyeSlash, FaImage, FaCalendarAlt, FaTimes, FaChevronLeft, FaChevronRight, FaImages } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
 import type { Hospital } from '../../lib/supabase';
 
@@ -9,6 +9,8 @@ type CsrActivity = {
   title: string;
   description: string;
   image?: string | null;
+  // Banner dışındaki ek görseller; migration çalışmadıysa sütun gelmez (undefined)
+  gallery_images?: string[];
   event_date?: string | null;
   hospital_id?: number | null;
   is_active: boolean;
@@ -21,6 +23,7 @@ const emptyForm = {
   title: '',
   description: '',
   image: '',
+  gallery_images: [] as string[],
   event_date: '',
   hospital_id: '' as number | string,
   display_order: 1,
@@ -35,6 +38,7 @@ const AdminSocialResponsibility = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingActivity, setEditingActivity] = useState<CsrActivity | null>(null);
@@ -78,28 +82,67 @@ const AdminSocialResponsibility = () => {
   const hospitalName = (id?: number | string | null) =>
     hospitals.find((h) => String(h.id) === String(id))?.name || '';
 
+  const uploadImage = async (file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).slice(2)}-${Date.now()}.${fileExt}`;
+    const filePath = `csr-images/${fileName}`;
+    const { error: uploadError } = await supabase.storage
+      .from('article-images')
+      .upload(filePath, file);
+    if (uploadError) throw uploadError;
+    return supabase.storage.from('article-images').getPublicUrl(filePath).data.publicUrl;
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingImage(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).slice(2)}-${Date.now()}.${fileExt}`;
-      const filePath = `csr-images/${fileName}`;
-      const { error: uploadError } = await supabase.storage
-        .from('article-images')
-        .upload(filePath, file);
-      if (uploadError) {
-        alert(t('admin.csr.imageUploadError', 'Resim yüklenirken hata oluştu: ') + uploadError.message);
-        return;
-      }
-      const { data } = supabase.storage.from('article-images').getPublicUrl(filePath);
-      setFormData((prev) => ({ ...prev, image: data.publicUrl }));
+      const url = await uploadImage(file);
+      setFormData((prev) => ({ ...prev, image: url }));
     } catch (error: any) {
       alert(t('admin.csr.imageUploadError', 'Resim yüklenirken hata oluştu: ') + (error?.message || ''));
     } finally {
       setUploadingImage(false);
     }
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    // Aynı dosya tekrar seçilebilsin
+    e.target.value = '';
+    if (files.length === 0) return;
+    setUploadingGallery(true);
+    const failed: string[] = [];
+    for (const file of files) {
+      try {
+        const url = await uploadImage(file);
+        setFormData((prev) => ({ ...prev, gallery_images: [...prev.gallery_images, url] }));
+      } catch (error: any) {
+        failed.push(`${file.name}: ${error?.message || ''}`);
+      }
+    }
+    setUploadingGallery(false);
+    if (failed.length > 0) {
+      alert(t('admin.csr.imageUploadError', 'Resim yüklenirken hata oluştu: ') + '\n' + failed.join('\n'));
+    }
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      gallery_images: prev.gallery_images.filter((_, i) => i !== index),
+    }));
+  };
+
+  const moveGalleryImage = (index: number, direction: -1 | 1) => {
+    setFormData((prev) => {
+      const target = index + direction;
+      if (target < 0 || target >= prev.gallery_images.length) return prev;
+      const next = [...prev.gallery_images];
+      [next[index], next[target]] = [next[target], next[index]];
+      return { ...prev, gallery_images: next };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,17 +161,23 @@ const AdminSocialResponsibility = () => {
         is_active: formData.is_active,
         updated_at: new Date().toISOString(),
       };
+      // gallery_images sütunu ayrı migration ile eklenir; çalıştırılmadıysa ek görsel
+      // girilmeyen kayıtlar eskisi gibi kaydedilebilsin diye yalnızca gerektiğinde gönderilir
+      const galleryPayload =
+        formData.gallery_images.length > 0 || editingActivity?.gallery_images !== undefined
+          ? { gallery_images: formData.gallery_images }
+          : {};
 
       if (editingActivity) {
         const { error } = await supabase
           .from('social_responsibility_activities')
-          .update(payload)
+          .update({ ...payload, ...galleryPayload })
           .eq('id', editingActivity.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('social_responsibility_activities')
-          .insert([payload]);
+          .insert([{ ...payload, ...galleryPayload }]);
         if (error) throw error;
       }
 
@@ -183,6 +232,7 @@ const AdminSocialResponsibility = () => {
       title: activity.title,
       description: activity.description,
       image: activity.image || '',
+      gallery_images: activity.gallery_images || [],
       event_date: activity.event_date || '',
       hospital_id: activity.hospital_id ?? '',
       display_order: activity.display_order,
@@ -318,6 +368,12 @@ const AdminSocialResponsibility = () => {
               <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-1">{activity.description}</p>
 
               <div className="flex flex-wrap gap-2 mb-2">
+                {(activity.gallery_images?.length ?? 0) > 0 && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700">
+                    <FaImages className="text-[10px]" />
+                    {t('admin.csr.galleryCount', '{{count}} ek görsel', { count: activity.gallery_images?.length })}
+                  </span>
+                )}
                 <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
                   {hospitalName(activity.hospital_id) || t('admin.csr.allBranches', 'Tüm Şubeler')}
                 </span>
@@ -464,6 +520,81 @@ const AdminSocialResponsibility = () => {
                 )}
               </div>
 
+              {/* Ek Görseller */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('admin.csr.gallery', 'Ek Görseller (isteğe bağlı)')}
+                </label>
+                <p className="text-xs text-gray-500 mb-2">
+                  {t('admin.csr.galleryHint', 'Banner görseli dışında, yazının altında galeri olarak gösterilir. Birden fazla resim seçebilirsiniz.')}
+                </p>
+                <label
+                  htmlFor="csr-gallery-upload"
+                  className={`flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary transition-colors ${uploadingGallery ? 'opacity-60 pointer-events-none' : ''}`}
+                >
+                  <FaImages className="text-xl text-gray-400 mb-1" />
+                  <span className="text-sm text-gray-500">
+                    {uploadingGallery
+                      ? t('admin.uploading', 'Yükleniyor...')
+                      : t('admin.csr.selectGallery', 'Bilgisayardan resim(ler) seç')}
+                  </span>
+                  <input
+                    id="csr-gallery-upload"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleGalleryUpload}
+                    disabled={uploadingGallery}
+                    className="hidden"
+                  />
+                </label>
+                {formData.gallery_images.length > 0 && (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-2">
+                    {formData.gallery_images.map((url, i) => (
+                      <div key={`${url}-${i}`} className="relative rounded-lg overflow-hidden border border-gray-200">
+                        <img
+                          src={url}
+                          alt={`${t('admin.csr.galleryImage', 'Ek görsel')} ${i + 1}`}
+                          className="w-full h-20 object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryImage(i)}
+                          className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center hover:bg-red-700"
+                          title={t('admin.csr.removeImage', 'Görseli kaldır')}
+                          aria-label={t('admin.csr.removeImage', 'Görseli kaldır')}
+                        >
+                          <FaTimes />
+                        </button>
+                        <div className="absolute bottom-0 inset-x-0 flex justify-between bg-black/40 px-1 py-0.5">
+                          <button
+                            type="button"
+                            onClick={() => moveGalleryImage(i, -1)}
+                            disabled={i === 0}
+                            className="text-white text-xs p-0.5 disabled:opacity-30"
+                            title={t('admin.csr.moveLeft', 'Öne al')}
+                            aria-label={t('admin.csr.moveLeft', 'Öne al')}
+                          >
+                            <FaChevronLeft />
+                          </button>
+                          <span className="text-white text-[10px] leading-5">{i + 1}</span>
+                          <button
+                            type="button"
+                            onClick={() => moveGalleryImage(i, 1)}
+                            disabled={i === formData.gallery_images.length - 1}
+                            className="text-white text-xs p-0.5 disabled:opacity-30"
+                            title={t('admin.csr.moveRight', 'Sona al')}
+                            aria-label={t('admin.csr.moveRight', 'Sona al')}
+                          >
+                            <FaChevronRight />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -503,7 +634,7 @@ const AdminSocialResponsibility = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || uploadingImage || uploadingGallery}
                   className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark flex items-center disabled:opacity-60"
                 >
                   <FaSave className="mr-2" />

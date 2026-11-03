@@ -4,9 +4,10 @@ import type { FormType } from './emailService';
 /**
  * WhatsApp yönlendirmesi yalnizca kısa formlar icin anlamlıdır; iş başvurusu
  * gibi çoklu bölümden oluşan formlar wa.me bağlantısına sığmadığından
- * kapsam dışıdır ve admin panelindeki listede görünmez.
+ * kapsam dışıdır ve admin panelindeki listede görünmez. Sağlık turizmi
+ * talepleri yurt dışından geldiği için yalnızca e-posta ile iletilir.
  */
-export type WhatsAppFormType = Exclude<FormType, 'job_application'>;
+export type WhatsAppFormType = Exclude<FormType, 'job_application' | 'health_tourism'>;
 
 /**
  * Form başvurularının şube bazında hangi WhatsApp numarasına

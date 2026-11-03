@@ -363,11 +363,13 @@ const SecondOpinionSection = () => {
                   </div>
                   <div>
                     <label htmlFor="so-hospital" className="block text-sm font-bold text-secondary mb-2">
-                      {t('secondOpinion.labelHospital', 'Hastane Seçin')}
+                      {t('secondOpinion.labelHospital', 'Hastane Seçin')} *
                     </label>
+                    {/* Zorunlu: başvuru seçilen şubenin sorumlusuna e-postayla gider */}
                     <select
                       id="so-hospital"
                       name="hospital"
+                      required
                       value={formData.hospital}
                       onChange={handleChange}
                       disabled={hospitalsLoading}

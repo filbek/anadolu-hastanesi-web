@@ -32,6 +32,7 @@ const ContactPage = () => {
     const subjectRaw = String(fd.get('subject') || '').trim();
     const subject = subjectRaw === t('common.selectSubject') ? '' : subjectRaw;
     const message = String(fd.get('message') || '').trim();
+    const hospital = String(fd.get('hospital') || '').trim();
 
     if (turnstileEnabled) {
       if (!captchaToken) {
@@ -52,15 +53,14 @@ const ContactPage = () => {
     try {
       // Başvuruyu veritabanına kaydet (e-posta gitmese bile kaybolmasın)
       const { error } = await supabase.from('contact_submissions').insert([
-        { name, email, phone: phone || null, subject: subject || null, message, consent: true },
+        { name, email, phone: phone || null, subject: subject || null, hospital: hospital || null, message, consent: true },
       ]);
       if (error) throw error;
 
       // WhatsApp yönlendirme kuralı tanımlıysa mesaj WhatsApp ile iletilir;
-      // kural yoksa eski e-posta akışı devrede kalır.
-      // Not: İletişim formunda şube seçimi olmadığı için "Tüm Şubeler" kuralı eşleşir.
-      const payload = { name, email, phone, subject, message };
-      const route = await findWhatsAppRoute('contact');
+      // kural yoksa e-posta seçilen şubenin hasta hakları adresine gider.
+      const payload = { name, email, phone, hospital, subject, message };
+      const route = await findWhatsAppRoute('contact', hospital);
       if (route) {
         setWhatsappUrl(buildWhatsAppUrl(route.whatsapp_number, 'contact', payload));
       } else {
@@ -359,6 +359,28 @@ const ContactPage = () => {
                       <option>{t('common.complaint')}</option>
                     </select>
                   </div>
+                </div>
+                <div>
+                  <label htmlFor="contact-hospital" className="block text-sm font-medium text-slate-600 mb-2">
+                    {t('contactPage.hospitalLabel', 'Hastane')} <span className="text-coral-500" aria-hidden="true">*</span>
+                  </label>
+                  {/* Zorunlu: mesaj seçilen şubenin hasta hakları birimine gider */}
+                  <select
+                    id="contact-hospital"
+                    name="hospital"
+                    required
+                    aria-required="true"
+                    defaultValue=""
+                    disabled={hospitalsLoading}
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option value="">
+                      {hospitalsLoading ? t('common.loading', 'Yükleniyor...') : t('contactPage.hospitalPlaceholder', 'Hastane seçiniz...')}
+                    </option>
+                    {hospitals.map((h) => (
+                      <option key={h.id} value={h.name}>{h.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label htmlFor="contact-message" className="block text-sm font-medium text-slate-600 mb-2">

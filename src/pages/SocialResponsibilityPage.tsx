@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import {
@@ -8,6 +8,8 @@ import {
   FaCalendarAlt,
   FaHospital,
   FaHandHoldingMedical,
+  FaChevronLeft,
+  FaTimes,
 } from 'react-icons/fa';
 import { supabase } from '../lib/supabase';
 import type { Hospital } from '../lib/supabase';
@@ -18,6 +20,7 @@ type CsrActivity = {
   title: string;
   description: string;
   image?: string | null;
+  gallery_images?: string[] | null;
   event_date?: string | null;
   hospital_id?: number | null;
   is_active: boolean;
@@ -25,12 +28,30 @@ type CsrActivity = {
   hospitals?: { id: number; name: string; slug: string } | null;
 };
 
+// Kartta gösterilecek ek görsel küçük resim sayısı; fazlası "+N" ile belirtilir
+const GALLERY_PREVIEW_COUNT = 4;
+
 const SocialResponsibilityPage = () => {
   const { t } = useTranslation();
   const [activities, setActivities] = useState<CsrActivity[]>([]);
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [selectedHospitalId, setSelectedHospitalId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lightbox, setLightbox] = useState<{ activity: CsrActivity; index: number } | null>(null);
+
+  const lightboxImages = lightbox?.activity.gallery_images || [];
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const count = lightboxImages.length;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightbox(null);
+      if (e.key === 'ArrowRight') setLightbox((lb) => lb && { ...lb, index: (lb.index + 1) % count });
+      if (e.key === 'ArrowLeft') setLightbox((lb) => lb && { ...lb, index: (lb.index - 1 + count) % count });
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [lightbox, lightboxImages.length]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -245,6 +266,35 @@ const SocialResponsibilityPage = () => {
                         <AutoTranslate text={activity.description} />
                       </p>
                     )}
+                    {(activity.gallery_images?.length ?? 0) > 0 && (
+                      <div className="grid grid-cols-4 gap-2 mt-5">
+                        {activity.gallery_images!.slice(0, GALLERY_PREVIEW_COUNT).map((url, idx) => {
+                          const remaining = activity.gallery_images!.length - GALLERY_PREVIEW_COUNT;
+                          const showMore = idx === GALLERY_PREVIEW_COUNT - 1 && remaining > 0;
+                          return (
+                            <button
+                              key={`${url}-${idx}`}
+                              type="button"
+                              onClick={() => setLightbox({ activity, index: idx })}
+                              className="relative aspect-square rounded-lg overflow-hidden group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              aria-label={t('csr.openImage', '{{title}} - görsel {{n}}', { title: activity.title, n: idx + 1 })}
+                            >
+                              <img
+                                src={url}
+                                alt=""
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                loading="lazy"
+                              />
+                              {showMore && (
+                                <span className="absolute inset-0 bg-black/55 text-white font-bold text-sm flex items-center justify-center">
+                                  +{remaining + 1}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </motion.article>
               ))}
@@ -252,6 +302,74 @@ const SocialResponsibilityPage = () => {
           )}
         </div>
       </section>
+
+      {/* ─── Ek Görsel Lightbox ─── */}
+      <AnimatePresence>
+        {lightbox && lightboxImages[lightbox.index] && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 md:p-10"
+            onClick={() => setLightbox(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={lightbox.activity.title}
+          >
+            <button
+              type="button"
+              onClick={() => setLightbox(null)}
+              className="absolute top-4 right-4 md:top-6 md:right-6 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white text-xl flex items-center justify-center transition-colors z-10"
+              aria-label={t('common.close', 'Kapat')}
+            >
+              <FaTimes />
+            </button>
+
+            {lightboxImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLightbox({ ...lightbox, index: (lightbox.index - 1 + lightboxImages.length) % lightboxImages.length });
+                  }}
+                  className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white text-xl flex items-center justify-center transition-colors z-10"
+                  aria-label={t('common.previous', 'Önceki')}
+                >
+                  <FaChevronLeft />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLightbox({ ...lightbox, index: (lightbox.index + 1) % lightboxImages.length });
+                  }}
+                  className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white text-xl flex items-center justify-center transition-colors z-10"
+                  aria-label={t('common.next', 'Sonraki')}
+                >
+                  <FaChevronRight />
+                </button>
+              </>
+            )}
+
+            <motion.img
+              key={lightbox.index}
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.2 }}
+              src={lightboxImages[lightbox.index]}
+              alt={`${lightbox.activity.title} ${lightbox.index + 1}`}
+              className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/70 text-sm font-medium bg-black/40 px-4 py-1.5 rounded-full">
+              {lightbox.index + 1} / {lightboxImages.length}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ─── CTA ─── */}
       <section className="bg-primary py-14">

@@ -106,6 +106,7 @@ const AdminPatientFeedback = lazy(() => import('./components/admin/AdminPatientF
 const AdminAuditLogs = lazy(() => import('./components/admin/AdminAuditLogs'))
 const AdminManagementTeam = lazy(() => import('./components/admin/AdminManagementTeam'))
 const AdminSecondOpinion = lazy(() => import('./components/admin/AdminSecondOpinion'))
+const AdminHealthTourismRequests = lazy(() => import('./components/admin/AdminHealthTourismRequests'))
 const AdminJobApplications = lazy(() => import('./components/admin/AdminJobApplications'))
 const JobApplicationSharePage = lazy(() => import('./pages/JobApplicationSharePage'))
 const ManagementTeamForm = lazy(() => import('./components/admin/ManagementTeamForm'))
@@ -270,6 +271,9 @@ function App() {
               <Route path="management-team/new" element={<ManagementTeamForm />} />
               <Route path="management-team/edit/:id" element={<ManagementTeamForm />} />
               <Route path="second-opinion" element={<AdminSecondOpinion />} />
+              {/* "health-tourism" önekinden bilerek ayrı: editör rolü /admin/health-tourism*
+                  yollarına erişebiliyor, bu sayfa ise hasta verisi içeriyor */}
+              <Route path="international-requests" element={<AdminHealthTourismRequests />} />
               <Route path="job-applications" element={<AdminJobApplications />} />
               <Route path="gebe-okulu" element={<AdminGebeOkulu />} />
               <Route path="social-responsibility" element={<AdminSocialResponsibility />} />

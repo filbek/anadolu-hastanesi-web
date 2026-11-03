@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 
-export type FormType = 'second_opinion' | 'contact' | 'feedback' | 'job_application';
+export type FormType = 'second_opinion' | 'contact' | 'feedback' | 'job_application' | 'health_tourism';
 
 /**
  * Form başvurusunu admin panelinde belirlenen alıcı e-posta adresine gönderir.

@@ -188,7 +188,9 @@
     "noHospitals": "Все още няма налична информация за болниците.",
     "submitSuccess": "Съобщението ви бе получено. Ще се свържем с вас възможно най-скоро.",
     "whatsappPrompt": "Натиснете бутона по-долу, за да достигне съобщението ви веднага до съответното звено. WhatsApp ще се отвори с готовото съобщение.",
-    "whatsappSend": "Изпращане чрез WhatsApp"
+    "whatsappSend": "Изпращане чрез WhatsApp",
+    "hospitalLabel": "Болница",
+    "hospitalPlaceholder": "Изберете болница..."
   },
   "doctorsPage": {
     "title": "Нашите лекари",
@@ -238,7 +240,9 @@
     "treatment4": "Пластична хирургия",
     "treatment5": "Дентално лечение",
     "treatment6": "Трансплантация на коса",
-    "treatment7": "Друго"
+    "treatment7": "Друго",
+    "submitSuccess": "Съобщението ви е получено. Нашият екип за международни пациенти ще се свърже с вас възможно най-скоро.",
+    "submitError": "Възникна грешка при изпращането на съобщението. Моля, опитайте отново."
   },
   "admin": {
     "confirmDeleteAccreditation": "Bu akreditasyonu silmek istediğinizden emin misiniz?",

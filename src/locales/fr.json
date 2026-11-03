@@ -188,7 +188,9 @@
     "noHospitals": "Aucune information sur les hôpitaux n'est encore disponible.",
     "submitSuccess": "Votre message nous est bien parvenu. Nous vous contacterons dans les plus brefs délais.",
     "whatsappPrompt": "Appuyez sur le bouton ci-dessous pour que votre message parvienne immédiatement au service concerné. WhatsApp s'ouvrira avec votre message prêt.",
-    "whatsappSend": "Envoyer via WhatsApp"
+    "whatsappSend": "Envoyer via WhatsApp",
+    "hospitalLabel": "Hôpital",
+    "hospitalPlaceholder": "Sélectionnez un hôpital..."
   },
   "doctorsPage": {
     "title": "Nos médecins",
@@ -238,7 +240,9 @@
     "treatment4": "Chirurgie plastique",
     "treatment5": "Soins dentaires",
     "treatment6": "Greffe de cheveux",
-    "treatment7": "Autre"
+    "treatment7": "Autre",
+    "submitSuccess": "Votre message nous est parvenu. Notre équipe dédiée aux patients internationaux vous contactera dans les plus brefs délais.",
+    "submitError": "Une erreur est survenue lors de l’envoi de votre message. Veuillez réessayer."
   },
   "admin": {
     "confirmDeleteAccreditation": "Bu akreditasyonu silmek istediğinizden emin misiniz?",

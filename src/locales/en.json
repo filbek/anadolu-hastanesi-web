@@ -188,7 +188,9 @@
     "noHospitals": "No hospital information is available yet.",
     "submitSuccess": "Your message has reached us. We will contact you as soon as possible.",
     "whatsappPrompt": "Tap the button below so your message reaches the relevant unit instantly. WhatsApp will open with your message ready.",
-    "whatsappSend": "Send via WhatsApp"
+    "whatsappSend": "Send via WhatsApp",
+    "hospitalLabel": "Hospital",
+    "hospitalPlaceholder": "Select a hospital..."
   },
   "doctorsPage": {
     "title": "Our Doctors",
@@ -238,7 +240,9 @@
     "treatment4": "Plastic Surgery",
     "treatment5": "Dental Treatments",
     "treatment6": "Hair Transplant",
-    "treatment7": "Other"
+    "treatment7": "Other",
+    "submitSuccess": "Your message has reached us. Our international patient team will contact you as soon as possible.",
+    "submitError": "An error occurred while sending your message. Please try again."
   },
   "admin": {
     "confirmDeleteAccreditation": "Bu akreditasyonu silmek istediğinizden emin misiniz?",

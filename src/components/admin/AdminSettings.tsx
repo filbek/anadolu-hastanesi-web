@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FaSave, FaGlobe, FaPhone, FaExternalLinkAlt, FaUpload, FaImage, FaTrash, FaEye, FaEnvelope } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
+import { useHospitals } from '../../hooks/useHospitals';
 
 interface SiteSettings {
   id?: number;
@@ -27,8 +28,19 @@ interface SiteSettings {
   contact_form_email: string;
   feedback_form_email: string;
   career_form_email: string;
+  health_tourism_email?: string;
+  // Şube bazlı alıcılar: { "<hospital id>": "e-posta" }.
+  // Bkz. src/sql/form_hospital_routing_migration.sql
+  second_opinion_hospital_emails?: Record<string, string>;
+  contact_hospital_emails?: Record<string, string>;
+  feedback_hospital_emails?: Record<string, string>;
   updated_at?: string;
 }
+
+type HospitalEmailField =
+  | 'second_opinion_hospital_emails'
+  | 'contact_hospital_emails'
+  | 'feedback_hospital_emails';
 
 const AdminSettings = () => {
   const { t } = useTranslation();
@@ -55,7 +67,9 @@ const AdminSettings = () => {
     contact_form_email: 'info@anadoluhastaneleri.com',
     feedback_form_email: 'hastahaklari@anadoluhastaneleri.com',
     career_form_email: 'isbasvuru@anadoluhastaneleri.com',
+    health_tourism_email: 'bekir.filizdag@anadoluhastaneleri.com',
   });
+  const { data: hospitals = [] } = useHospitals();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string>('');
@@ -265,6 +279,43 @@ const AdminSettings = () => {
     }));
   };
 
+  // Boş bırakılan şube eşlemeden çıkarılır; o şubenin başvuruları genel adrese gider
+  const handleHospitalEmailChange = (
+    field: HospitalEmailField,
+    hospitalId: string | number,
+    value: string,
+  ) => {
+    setSettings(prev => {
+      const next = { ...(prev[field] || {}) };
+      if (value.trim()) next[String(hospitalId)] = value;
+      else delete next[String(hospitalId)];
+      return { ...prev, [field]: next };
+    });
+  };
+
+  const renderHospitalEmails = (field: HospitalEmailField, title: string, fallback: string) =>
+    hospitals.length > 0 && (
+      <div className="mt-3 pl-4 border-l-2 border-gray-200 space-y-3">
+        <p className="text-sm font-medium text-gray-700">{title}</p>
+        {hospitals.map((h) => (
+          <div key={h.id}>
+            <label htmlFor={`${field}-${h.id}`} className="block text-sm text-gray-600 mb-1">
+              {h.name}
+            </label>
+            <input
+              id={`${field}-${h.id}`}
+              type="email"
+              value={settings[field]?.[String(h.id)] || ''}
+              onChange={(e) => handleHospitalEmailChange(field, h.id, e.target.value)}
+              placeholder={fallback || 'ornek@mail.com'}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
+          </div>
+        ))}
+        <p className="text-xs text-gray-500">Boş bırakılan şubenin başvuruları yukarıdaki genel adrese gider.</p>
+      </div>
+    );
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -425,7 +476,13 @@ const AdminSettings = () => {
               />
               <p className="text-sm text-gray-500 mt-1">
                 Anasayfadaki / "İkinci Görüş" sayfasındaki başvuru formu doldurulduğunda başvurunun gönderileceği e-posta adresi.
+                Aşağıda şubeye özel adres girilmişse o şubenin başvuruları oraya gider.
               </p>
+              {renderHospitalEmails(
+                'second_opinion_hospital_emails',
+                'Şubeye Göre İkinci Görüş Adresleri',
+                settings.second_opinion_email,
+              )}
             </div>
 
             <div>
@@ -441,7 +498,13 @@ const AdminSettings = () => {
               />
               <p className="text-sm text-gray-500 mt-1">
                 "İletişim" sayfasındaki "Bize Yazın" formu gönderildiğinde mesajın iletileceği e-posta adresi.
+                Aşağıda şubeye özel adres girilmişse o şubenin mesajları oraya gider.
               </p>
+              {renderHospitalEmails(
+                'contact_hospital_emails',
+                'Şubeye Göre Bize Yazın Adresleri',
+                settings.contact_form_email,
+              )}
             </div>
 
             <div>
@@ -457,7 +520,13 @@ const AdminSettings = () => {
               />
               <p className="text-sm text-gray-500 mt-1">
                 "Sizi Dinliyoruz" (öneri / şikayet / teşekkür) formu gönderildiğinde bildirimin iletileceği e-posta adresi.
+                Aşağıda şubeye özel adres girilmişse o şubenin bildirimleri oraya gider.
               </p>
+              {renderHospitalEmails(
+                'feedback_hospital_emails',
+                'Şubeye Göre Sizi Dinliyoruz Adresleri',
+                settings.feedback_form_email,
+              )}
             </div>
 
             <div>
@@ -474,6 +543,22 @@ const AdminSettings = () => {
               <p className="text-sm text-gray-500 mt-1">
                 "Kariyer" sayfasındaki iş başvuru formu gönderildiğinde bildirimin iletileceği e-posta adresi.
                 Başvurunun tamamı ayrıca <strong>İş Başvuruları</strong> bölümünde saklanır.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Sağlık Turizmi Formu Email Adresi
+              </label>
+              <input
+                type="email"
+                value={settings.health_tourism_email || ''}
+                onChange={(e) => handleInputChange('health_tourism_email', e.target.value)}
+                placeholder="ornek@mail.com"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                "Sağlık Turizmi" sayfasındaki iletişim formu gönderildiğinde talebin iletileceği e-posta adresi.
               </p>
             </div>
 
