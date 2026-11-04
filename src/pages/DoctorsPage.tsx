@@ -40,11 +40,9 @@ const DoctorsPage = () => {
   const { t } = useTranslation()
   const { data: doctorsRaw = [], isLoading } = useDoctors()
   const doctors = useLocalizedList(doctorsRaw, ['title', 'departments.name', 'hospitals.name'])
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '')
   const [selectedDepartment, setSelectedDepartment] = useState('')
-  // Hastane profilindeki "Tüm Doktorları Gör" linki ?hastane=<ad> ile gelir
-  const [selectedHospital, setSelectedHospital] = useState(searchParams.get('hastane') || '')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const appointmentUrl = useAppointmentUrl()
 
@@ -52,10 +50,45 @@ const DoctorsPage = () => {
     () => [...new Set(doctors.map((d: any) => d.departments?.name).filter(Boolean))].sort(),
     [doctors]
   )
-  const hospitals = useMemo(
-    () => [...new Set(doctors.map((d: any) => d.hospitals?.name).filter(Boolean))].sort(),
-    [doctors]
-  )
+  // Şube seçenekleri: değer çevrilmemiş (TR) ad — menü linkleriyle aynı —, etiket dile göre ad
+  const hospitals = useMemo(() => {
+    const rawNames = new Map(doctorsRaw.map((d: any) => [d.hospital_id, d.hospitals?.name]))
+    const options = new Map<string, { value: string; label: string; id: number }>()
+    doctors.forEach((d: any) => {
+      const value = rawNames.get(d.hospital_id)
+      if (value && !options.has(value)) {
+        options.set(value, { value, label: d.hospitals?.name || value, id: d.hospital_id })
+      }
+    })
+    return [...options.values()].sort((a, b) => a.label.localeCompare(b.label, 'tr'))
+  }, [doctors, doctorsRaw])
+
+  // Seçili şube URL'de tutulur (?hastane=<ad>). Menüden ya da hastane profilinden gelinir;
+  // sayfa zaten açıkken menüden başka şube seçilince bileşen yeniden oluşmadığı için
+  // state yerine doğrudan URL'den okunur. Ad küçük farklarla gelebilir ("Özel" eksik vb.).
+  const hospitalParam = searchParams.get('hastane') || ''
+  const selectedHospitalOption = useMemo(() => {
+    if (!hospitalParam) return null
+    const target = normalizeSearch(hospitalParam)
+    return (
+      hospitals.find((h) => normalizeSearch(h.value) === target) ||
+      hospitals.find((h) => normalizeSearch(h.value).includes(target)) ||
+      null
+    )
+  }, [hospitalParam, hospitals])
+  const selectedHospital = selectedHospitalOption?.value || ''
+
+  const setSelectedHospital = (value: string) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        if (value) next.set('hastane', value)
+        else next.delete('hastane')
+        return next
+      },
+      { replace: true }
+    )
+  }
 
 
 
@@ -137,12 +170,12 @@ const DoctorsPage = () => {
         const matchesDepartment =
           selectedDepartment === '' || doctor.departments?.name === selectedDepartment
         const matchesHospital =
-          selectedHospital === '' || doctor.hospitals?.name === selectedHospital
+          !selectedHospitalOption || doctor.hospital_id === selectedHospitalOption.id
         return matchesSearch && matchesDepartment && matchesHospital
       })
       return sortDoctors(filtered)
     },
-    [doctors, searchTerm, selectedDepartment, selectedHospital]
+    [doctors, searchTerm, selectedDepartment, selectedHospitalOption]
   )
 
   const resetFilters = () => {
@@ -220,7 +253,7 @@ const DoctorsPage = () => {
               >
                 <option value="">{t('doctorsPage.allHospitals')}</option>
                 {hospitals.map((hosp) => (
-                  <option key={hosp} value={hosp}>{hosp}</option>
+                  <option key={hosp.value} value={hosp.value}>{hosp.label}</option>
                 ))}
               </select>
 
@@ -261,7 +294,7 @@ const DoctorsPage = () => {
                   >
                     <option value="">{t('doctorsPage.allHospitals')}</option>
                     {hospitals.map((hosp) => (
-                      <option key={hosp} value={hosp}>{hosp}</option>
+                      <option key={hosp.value} value={hosp.value}>{hosp.label}</option>
                     ))}
                   </select>
                 </div>

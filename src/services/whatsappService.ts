@@ -7,7 +7,8 @@ import type { FormType } from './emailService';
  * kapsam dışıdır ve admin panelindeki listede görünmez. Sağlık turizmi
  * talepleri yurt dışından geldiği için yalnızca e-posta ile iletilir.
  */
-export type WhatsAppFormType = Exclude<FormType, 'job_application' | 'health_tourism'>;
+// Çalışan geri bildirimleri WhatsApp kurallarında hasta bildirimiyle ('feedback') aynı kuralı kullanır
+export type WhatsAppFormType = Exclude<FormType, 'job_application' | 'health_tourism' | 'employee_feedback'>;
 
 /**
  * Form başvurularının şube bazında hangi WhatsApp numarasına

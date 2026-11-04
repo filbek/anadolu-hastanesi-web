@@ -34,13 +34,17 @@ interface SiteSettings {
   second_opinion_hospital_emails?: Record<string, string>;
   contact_hospital_emails?: Record<string, string>;
   feedback_hospital_emails?: Record<string, string>;
+  // Sizi Dinliyoruz formunun "Çalışan" bildirimleri. Bkz. src/sql/feedback_employee_routing_migration.sql
+  feedback_employee_email?: string | null;
+  feedback_employee_hospital_emails?: Record<string, string>;
   updated_at?: string;
 }
 
 type HospitalEmailField =
   | 'second_opinion_hospital_emails'
   | 'contact_hospital_emails'
-  | 'feedback_hospital_emails';
+  | 'feedback_hospital_emails'
+  | 'feedback_employee_hospital_emails';
 
 const AdminSettings = () => {
   const { t } = useTranslation();
@@ -509,7 +513,7 @@ const AdminSettings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Hasta Geri Bildirim / Şikayet Formu Email Adresi
+                Sizi Dinliyoruz — Hasta Bildirimleri Email Adresi
               </label>
               <input
                 type="email"
@@ -519,13 +523,36 @@ const AdminSettings = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
               <p className="text-sm text-gray-500 mt-1">
-                "Sizi Dinliyoruz" (öneri / şikayet / teşekkür) formu gönderildiğinde bildirimin iletileceği e-posta adresi.
+                "Sizi Dinliyoruz" (öneri / şikayet / teşekkür) formunda <strong>Hasta</strong> seçilerek gönderilen bildirimlerin iletileceği e-posta adresi.
                 Aşağıda şubeye özel adres girilmişse o şubenin bildirimleri oraya gider.
               </p>
               {renderHospitalEmails(
                 'feedback_hospital_emails',
-                'Şubeye Göre Sizi Dinliyoruz Adresleri',
+                'Şubeye Göre Hasta Bildirimi Adresleri',
                 settings.feedback_form_email,
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Sizi Dinliyoruz — Çalışan Bildirimleri Email Adresi
+              </label>
+              <input
+                type="email"
+                value={settings.feedback_employee_email || ''}
+                onChange={(e) => handleInputChange('feedback_employee_email', e.target.value)}
+                placeholder="ornek@mail.com"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                "Sizi Dinliyoruz" formunda <strong>Çalışan</strong> seçilerek (anonim dahil) gönderilen bildirimlerin iletileceği e-posta adresi.
+                Aşağıda şubeye özel adres girilmişse o şubenin bildirimleri oraya gider.
+                Hiç adres girilmezse çalışan bildirimleri de hasta bildirimleri adreslerine gider.
+              </p>
+              {renderHospitalEmails(
+                'feedback_employee_hospital_emails',
+                'Şubeye Göre Çalışan Bildirimi Adresleri',
+                settings.feedback_employee_email || '',
               )}
             </div>
 

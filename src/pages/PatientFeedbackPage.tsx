@@ -114,7 +114,8 @@ const PatientFeedbackPage = () => {
     if (route) {
       setWhatsappUrl(buildWhatsAppUrl(route.whatsapp_number, 'feedback', payload));
     } else {
-      await sendFormEmail('feedback', payload);
+      // Çalışan bildirimleri hasta bildirimlerinden ayrı adrese gider (Site Ayarları)
+      await sendFormEmail(audience === 'personel' ? 'employee_feedback' : 'feedback', payload);
     }
     setSubmitting(false);
 

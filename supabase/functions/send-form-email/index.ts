@@ -34,13 +34,20 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-type FormType = 'second_opinion' | 'contact' | 'feedback' | 'job_application' | 'health_tourism';
+type FormType =
+  | 'second_opinion'
+  | 'contact'
+  | 'feedback'
+  | 'employee_feedback'
+  | 'job_application'
+  | 'health_tourism';
 
 // Hangi formun alıcısı hangi site_settings kolonunda
 const RECIPIENT_COLUMN: Record<FormType, string> = {
   second_opinion: 'second_opinion_email',
   contact: 'contact_form_email',
   feedback: 'feedback_form_email',
+  employee_feedback: 'feedback_employee_email',
   job_application: 'career_form_email',
   health_tourism: 'health_tourism_email',
 };
@@ -52,6 +59,13 @@ const HOSPITAL_RECIPIENT_COLUMN: Partial<Record<FormType, string>> = {
   second_opinion: 'second_opinion_hospital_emails',
   contact: 'contact_hospital_emails',
   feedback: 'feedback_hospital_emails',
+  employee_feedback: 'feedback_employee_hospital_emails',
+};
+
+// Kendi adresi tanımlanmamış formun düşeceği form: çalışan bildirimleri için adres
+// girilmemişse hasta bildirimlerinin (şube / genel) adresine gider.
+const FALLBACK_FORM: Partial<Record<FormType, FormType>> = {
+  employee_feedback: 'feedback',
 };
 
 // site_settings okunamazsa / boşsa kullanılacak varsayılan alıcılar
@@ -59,6 +73,7 @@ const FALLBACK_RECIPIENT: Record<FormType, string> = {
   second_opinion: 'info@anadoluhastaneleri.com',
   contact: 'info@anadoluhastaneleri.com',
   feedback: 'hastahaklari@anadoluhastaneleri.com',
+  employee_feedback: 'hastahaklari@anadoluhastaneleri.com',
   job_application: 'isbasvuru@anadoluhastaneleri.com',
   health_tourism: 'bekir.filizdag@anadoluhastaneleri.com',
 };
@@ -67,6 +82,7 @@ const FORM_TITLE: Record<FormType, string> = {
   second_opinion: 'İkinci Görüş Başvurusu',
   contact: 'İletişim Formu Mesajı',
   feedback: 'Hasta Geri Bildirimi',
+  employee_feedback: 'Çalışan Geri Bildirimi',
   job_application: 'Yeni İş Başvurusu',
   health_tourism: 'Sağlık Turizmi Talebi',
 };
@@ -481,17 +497,23 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    const column = RECIPIENT_COLUMN[formType];
     const { data: settings } = await supabase
       .from('site_settings')
       .select('*')
       .limit(1)
       .single();
 
-    const recipient =
-      (await findHospitalRecipient(supabase, formType, settings, data.hospital)) ||
-      (settings as Record<string, string> | null)?.[column] ||
-      FALLBACK_RECIPIENT[formType];
+    // Sıra: şube adresi > formun genel adresi > (varsa) yedek formun adresleri > sabit varsayılan
+    const resolveRecipient = async (type: FormType): Promise<string> => {
+      const general = (settings as Record<string, unknown> | null)?.[RECIPIENT_COLUMN[type]];
+      const fromSettings =
+        (await findHospitalRecipient(supabase, type, settings, data.hospital)) ||
+        (typeof general === 'string' && general.includes('@') ? general.trim() : null);
+      if (fromSettings) return fromSettings;
+      const fallbackForm = FALLBACK_FORM[type];
+      return fallbackForm ? resolveRecipient(fallbackForm) : FALLBACK_RECIPIENT[type];
+    };
+    const recipient = await resolveRecipient(formType);
 
     // Ziyaretçi e-postası varsa yanıtla (reply-to) kolaylığı için ekle
     const replyTo =
