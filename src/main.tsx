@@ -6,6 +6,7 @@ import App from './App'
 import './index.css'
 import './i18n'
 import { SupabaseProvider } from './contexts/SupabaseContext'
+import { installPreloadErrorReload } from './utils/lazyWithReload'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,6 +24,8 @@ const queryClient = new QueryClient({
     },
   },
 })
+
+installPreloadErrorReload()
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <HelmetProvider>

@@ -1,4 +1,5 @@
-import { useEffect, Suspense, lazy } from 'react'
+import { useEffect, Suspense } from 'react'
+import { lazyWithReload as lazy } from './utils/lazyWithReload'
 import { Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import AdminLayout from './components/admin/AdminLayout'
