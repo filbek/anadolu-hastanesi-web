@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaSave, FaEye, FaEyeSlash, FaImage, FaCalendarAlt, FaTimes, FaChevronLeft, FaChevronRight, FaImages } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaSave, FaEye, FaEyeSlash, FaImage, FaCalendarAlt, FaTimes, FaChevronLeft, FaChevronRight, FaImages, FaFilePdf } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
 import type { Hospital } from '../../lib/supabase';
 
@@ -11,6 +11,8 @@ type CsrActivity = {
   image?: string | null;
   // Banner dışındaki ek görseller; migration çalışmadıysa sütun gelmez (undefined)
   gallery_images?: string[];
+  // Bakanlığa sunulan faaliyet raporu (PDF); migration çalışmadıysa sütun gelmez (undefined)
+  report_url?: string | null;
   event_date?: string | null;
   hospital_id?: number | null;
   is_active: boolean;
@@ -24,6 +26,7 @@ const emptyForm = {
   description: '',
   image: '',
   gallery_images: [] as string[],
+  report_url: '',
   event_date: '',
   hospital_id: '' as number | string,
   display_order: 1,
@@ -39,6 +42,7 @@ const AdminSocialResponsibility = () => {
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [uploadingReport, setUploadingReport] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingActivity, setEditingActivity] = useState<CsrActivity | null>(null);
@@ -128,6 +132,25 @@ const AdminSocialResponsibility = () => {
     }
   };
 
+  const handleReportUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      alert(t('admin.csr.reportPdfOnly', 'Faaliyet raporu PDF formatında olmalıdır.'));
+      return;
+    }
+    setUploadingReport(true);
+    try {
+      const url = await uploadImage(file);
+      setFormData((prev) => ({ ...prev, report_url: url }));
+    } catch (error: any) {
+      alert(t('admin.csr.reportUploadError', 'Rapor yüklenirken hata oluştu: ') + (error?.message || ''));
+    } finally {
+      setUploadingReport(false);
+    }
+  };
+
   const removeGalleryImage = (index: number) => {
     setFormData((prev) => ({
       ...prev,
@@ -167,6 +190,10 @@ const AdminSocialResponsibility = () => {
         formData.gallery_images.length > 0 || editingActivity?.gallery_images !== undefined
           ? { gallery_images: formData.gallery_images }
           : {};
+      // report_url de ayrı migration ile eklenir (social_responsibility_report_migration.sql)
+      if (formData.report_url.trim() || editingActivity?.report_url !== undefined) {
+        Object.assign(galleryPayload, { report_url: formData.report_url.trim() || null });
+      }
 
       if (editingActivity) {
         const { error } = await supabase
@@ -233,6 +260,7 @@ const AdminSocialResponsibility = () => {
       description: activity.description,
       image: activity.image || '',
       gallery_images: activity.gallery_images || [],
+      report_url: activity.report_url || '',
       event_date: activity.event_date || '',
       hospital_id: activity.hospital_id ?? '',
       display_order: activity.display_order,
@@ -595,6 +623,41 @@ const AdminSocialResponsibility = () => {
                 )}
               </div>
 
+              {/* Faaliyet Raporu (PDF) */}
+              <div>
+                <label htmlFor="csr-report-url" className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('admin.csr.report', 'Faaliyet Raporu (PDF, isteğe bağlı)')}
+                </label>
+                <p className="text-xs text-gray-500 mb-2">
+                  {t('admin.csr.reportHint', 'Sitede etkinlik kartında "Faaliyet Raporu" indirme butonu olarak gösterilir.')}
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    id="csr-report-url"
+                    type="text"
+                    value={formData.report_url}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, report_url: e.target.value }))}
+                    placeholder="https://.../rapor.pdf"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <label
+                    htmlFor="csr-report-upload"
+                    className={`inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer text-sm text-gray-700 hover:border-primary ${uploadingReport ? 'opacity-60 pointer-events-none' : ''}`}
+                  >
+                    <FaFilePdf className="text-red-600" />
+                    {uploadingReport ? t('admin.uploading', 'Yükleniyor...') : t('admin.csr.uploadReport', 'PDF Yükle')}
+                    <input
+                      id="csr-report-upload"
+                      type="file"
+                      accept="application/pdf"
+                      onChange={handleReportUpload}
+                      disabled={uploadingReport}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -634,7 +697,7 @@ const AdminSocialResponsibility = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={saving || uploadingImage || uploadingGallery}
+                  disabled={saving || uploadingImage || uploadingGallery || uploadingReport}
                   className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark flex items-center disabled:opacity-60"
                 >
                   <FaSave className="mr-2" />

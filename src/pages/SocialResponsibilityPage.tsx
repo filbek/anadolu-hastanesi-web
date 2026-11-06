@@ -10,6 +10,7 @@ import {
   FaHandHoldingMedical,
   FaChevronLeft,
   FaTimes,
+  FaFilePdf,
 } from 'react-icons/fa';
 import { supabase } from '../lib/supabase';
 import type { Hospital } from '../lib/supabase';
@@ -21,6 +22,7 @@ type CsrActivity = {
   description: string;
   image?: string | null;
   gallery_images?: string[] | null;
+  report_url?: string | null;
   event_date?: string | null;
   hospital_id?: number | null;
   is_active: boolean;
@@ -294,6 +296,17 @@ const SocialResponsibilityPage = () => {
                           );
                         })}
                       </div>
+                    )}
+                    {activity.report_url && (
+                      <a
+                        href={activity.report_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 mt-5 px-4 py-2 rounded-lg border border-primary/30 text-primary text-sm font-semibold hover:bg-primary/5 transition-colors"
+                      >
+                        <FaFilePdf aria-hidden="true" />
+                        {t('csr.report', 'Faaliyet Raporu (PDF)')}
+                      </a>
                     )}
                   </div>
                 </motion.article>
