@@ -248,6 +248,7 @@ ${waiting.length} görüşme yanıt bekliyor.` : ''),
         { path: '/admin/health-tourism', icon: FaGlobe, label: 'Sağlık Turizmi' },
         { path: '/admin/contact-info', icon: FaPhone, label: 'İletişim' },
         { path: '/admin/management-team', icon: FaUserTie, label: 'Yönetim Ekibi' },
+        { path: '/admin/management-organization-chart', icon: FaSitemap, label: 'Yönetim Org. Şeması' },
         { path: '/admin/gebe-okulu', icon: FaBaby, label: 'Gebe Okulu' },
         { path: '/admin/social-responsibility', icon: FaHandHoldingHeart, label: 'Sosyal Sorumluluk' },
       ]

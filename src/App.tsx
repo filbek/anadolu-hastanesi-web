@@ -237,7 +237,8 @@ function App() {
               <Route path="video-content" element={<AdminVideoContent />} />
               <Route path="quality-certificates" element={<AdminQualityCertificates />} />
               <Route path="quality-committees" element={<AdminQualityCommittees />} />
-              <Route path="organization-chart" element={<AdminOrganizationChart />} />
+              <Route path="organization-chart" element={<AdminOrganizationChart key="quality" />} />
+              <Route path="management-organization-chart" element={<AdminOrganizationChart key="management" variant="management" />} />
               <Route path="patient-info" element={<AdminPatientInfo />} />
               <Route path="contracted-institutions" element={<AdminContractedInstitutions />} />
               <Route path="test-connection" element={<AdminTestConnection />} />

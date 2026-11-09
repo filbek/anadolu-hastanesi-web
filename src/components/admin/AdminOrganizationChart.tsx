@@ -12,10 +12,38 @@ import { supabase } from '../../lib/supabase';
 import type { Hospital } from '../../lib/supabase';
 
 const STORAGE_BUCKET = 'quality-documents';
-const STORAGE_PATH = 'organization-chart';
 
-const AdminOrganizationChart = () => {
+/** Grup geneli (hastaneye bağlı olmayan) şema için kullanılan anahtar */
+export const GROUP_SCOPE_KEY = 'group';
+
+type OrgChartVariant = 'quality' | 'management';
+
+const VARIANTS: Record<OrgChartVariant, {
+  table: string;
+  keyColumn: 'hospital_id' | 'scope_key';
+  storagePath: string;
+  includeGroup: boolean;
+}> = {
+  // Kalite Yönetimi sayfası: hastane başına bir şema (quality_org_charts.hospital_id)
+  quality: {
+    table: 'quality_org_charts',
+    keyColumn: 'hospital_id',
+    storagePath: 'organization-chart',
+    includeGroup: false,
+  },
+  // Yönetim Kadromuz sayfası: grup geneli + hastane başına (management_org_charts.scope_key)
+  management: {
+    table: 'management_org_charts',
+    keyColumn: 'scope_key',
+    storagePath: 'management-organization-chart',
+    includeGroup: true,
+  },
+};
+
+const AdminOrganizationChart = ({ variant = 'quality' }: { variant?: OrgChartVariant }) => {
   const { t } = useTranslation();
+  const config = VARIANTS[variant];
+  const isManagement = variant === 'management';
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [selectedHospitalId, setSelectedHospitalId] = useState<string | number | null>(null);
   const [chartRowId, setChartRowId] = useState<number | null>(null);
@@ -45,7 +73,7 @@ const AdminOrganizationChart = () => {
       if (error) throw error;
       const list = (data || []) as Hospital[];
       setHospitals(list);
-      setSelectedHospitalId(list[0]?.id ?? null);
+      setSelectedHospitalId(config.includeGroup ? GROUP_SCOPE_KEY : (list[0]?.id ?? null));
     } catch (error) {
       console.error('Error fetching hospitals:', error);
       setLoading(false);
@@ -56,9 +84,9 @@ const AdminOrganizationChart = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('quality_org_charts')
+        .from(config.table)
         .select('id, pdf_url')
-        .eq('hospital_id', hospitalId)
+        .eq(config.keyColumn, config.keyColumn === 'scope_key' ? String(hospitalId) : hospitalId)
         .maybeSingle();
 
       if (error) throw error;
@@ -113,7 +141,7 @@ const AdminOrganizationChart = () => {
       const previousUrl = pdfUrl; // yükleme öncesi eski dosya (varsa)
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'pdf';
       const fileName = `org-chart-${Date.now()}.${fileExt}`;
-      const filePath = `${STORAGE_PATH}/${fileName}`;
+      const filePath = `${config.storagePath}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from(STORAGE_BUCKET)
@@ -150,21 +178,21 @@ const AdminOrganizationChart = () => {
     try {
       setSaving(true);
       const payload = {
-        hospital_id: selectedHospitalId,
+        [config.keyColumn]: config.keyColumn === 'scope_key' ? String(selectedHospitalId) : selectedHospitalId,
         pdf_url: pdfUrl || null,
         updated_at: new Date().toISOString(),
       };
 
       if (chartRowId) {
         const { error } = await supabase
-          .from('quality_org_charts')
+          .from(config.table)
           .update(payload)
           .eq('id', chartRowId);
         if (error) throw error;
       } else {
         const { data, error } = await supabase
-          .from('quality_org_charts')
-          .upsert([payload], { onConflict: 'hospital_id' })
+          .from(config.table)
+          .upsert([payload], { onConflict: config.keyColumn })
           .select('id')
           .single();
         if (error) throw error;
@@ -192,7 +220,9 @@ const AdminOrganizationChart = () => {
     <div>
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-semibold text-primary">
-          {t('admin.orgChart.title', 'Organizasyon Şeması')}
+          {isManagement
+            ? 'Yönetim Organizasyon Şeması'
+            : t('admin.orgChart.title', 'Organizasyon Şeması')}
         </h1>
         <div className="flex items-center gap-3">
           <select
@@ -200,6 +230,9 @@ const AdminOrganizationChart = () => {
             onChange={(e) => setSelectedHospitalId(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
           >
+            {config.includeGroup && (
+              <option value={GROUP_SCOPE_KEY}>Grup Geneli (Tüm Hastaneler)</option>
+            )}
             {hospitals.map((h) => (
               <option key={h.id} value={h.id}>{h.name}</option>
             ))}
@@ -239,7 +272,9 @@ const AdminOrganizationChart = () => {
       </div>
 
       <p className="text-gray-600 mb-6">
-        {t(
+        {isManagement
+          ? 'Yönetim Kadromuz sayfasında gösterilecek organizasyon şeması PDF olarak yüklenir. "Grup Geneli" seçimi Grup Yönetimi sekmesinde, hastane seçimi ilgili hastanenin sekmesinde görünür.'
+          : t(
           'admin.orgChart.description',
           'Kalite Yönetim Birimi organizasyon şeması PDF olarak yüklenir. Ziyaretçiler şemaya tıklayarak PDF\'i görüntüler.'
         )}
@@ -316,7 +351,9 @@ const AdminOrganizationChart = () => {
 
       <div className="mt-4 rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800">
         <strong>{t('admin.orgChart.noteTitle', 'Not:')} </strong>
-        {t(
+        {isManagement
+          ? 'Yükleme sonrası "Kaydet" butonuna basmayı unutmayın. Değişiklik Yönetim Kadromuz sayfasına yansıyacaktır.'
+          : t(
           'admin.orgChart.note',
           'Yükleme sonrası "Kaydet" butonuna basmayı unutmayın. Değişiklik Kalite Yönetimi sayfasına yansıyacaktır.'
         )}

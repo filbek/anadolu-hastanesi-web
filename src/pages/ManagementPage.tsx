@@ -9,6 +9,9 @@ import {
   FaChevronRight,
   FaCrown,
   FaSpinner,
+  FaSitemap,
+  FaFilePdf,
+  FaExternalLinkAlt,
 } from 'react-icons/fa';
 import { supabase } from '../lib/supabase';
 import type { ManagementTeamMember, Doctor, Hospital } from '../lib/supabase';
@@ -105,10 +108,30 @@ const ManagementPage = () => {
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // scope_key ('group' | hospital id) → PDF URL
+  const [orgCharts, setOrgCharts] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchManagementTeam();
+    fetchOrgCharts();
   }, []);
+
+  // Şema tablosu henüz yoksa / hata verirse sayfa etkilenmesin; bölüm gizli kalır.
+  const fetchOrgCharts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('management_org_charts')
+        .select('scope_key, pdf_url');
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      (data || []).forEach((row: { scope_key: string; pdf_url: string | null }) => {
+        if (row.pdf_url) map[row.scope_key] = row.pdf_url;
+      });
+      setOrgCharts(map);
+    } catch (err) {
+      console.error('Error fetching management org charts:', err);
+    }
+  };
 
   const fetchManagementTeam = async () => {
     try {
@@ -202,6 +225,8 @@ const ManagementPage = () => {
     'quality_management_manager',
   ];
   const adminMembers = visibleMembers.filter(m => adminRoles.includes(m.role));
+
+  const activeOrgChartUrl = activeTab ? orgCharts[activeTab] || null : null;
 
   const hasMedical = chiefPhysicians.length > 0 || assistantChiefs.length > 0;
   const hasAdmin = adminMembers.length > 0;
@@ -541,6 +566,68 @@ const ManagementPage = () => {
                 );
               })}
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* ─── ORGANİZASYON ŞEMASI ─── */}
+      {!loading && !error && activeOrgChartUrl && (
+        <section className="bg-white py-20 lg:py-28">
+          <div className="container-custom">
+            <motion.div {...fadeUp} className="flex items-center gap-3 mb-6">
+              <span className="block h-px flex-1 bg-gray-200 max-w-[60px]" />
+              <span className="text-xs uppercase tracking-[0.25em] text-primary font-bold">
+                {t('management.orgChartLabel', 'Kurumsal Yapı')}
+              </span>
+            </motion.div>
+
+            <motion.h2 {...fadeUp} className="text-3xl md:text-4xl font-black text-secondary mb-12 flex items-center gap-3">
+              <FaSitemap className="text-primary" aria-hidden="true" />
+              <span>
+                {t('management.orgChartTitle', 'Organizasyon')}{' '}
+                <span className="text-primary">{t('management.orgChartHighlight', 'Şeması')}</span>
+              </span>
+            </motion.h2>
+
+            <motion.div {...fadeUp} className="flex justify-center">
+              <a
+                href={activeOrgChartUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block max-w-4xl w-full rounded-2xl overflow-hidden border border-gray-200 shadow-md bg-slate-50 group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <div className="relative w-full h-[420px] md:h-[600px] bg-white pointer-events-none">
+                  <object
+                    data={`${activeOrgChartUrl}#toolbar=0&navpanes=0&view=FitH`}
+                    type="application/pdf"
+                    className="w-full h-full"
+                    aria-label={t('management.orgChartFull', 'Organizasyon Şeması')}
+                  >
+                    <iframe
+                      src={activeOrgChartUrl}
+                      title={t('management.orgChartFull', 'Organizasyon Şeması')}
+                      className="w-full h-full"
+                    />
+                  </object>
+                  <div className="absolute inset-0 bg-[#0a1628]/0 group-hover:bg-[#0a1628]/40 transition-colors duration-300 flex items-center justify-center">
+                    <div className="bg-white/95 text-primary font-bold px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg scale-90 group-hover:scale-100 transition-transform duration-300">
+                      <FaExternalLinkAlt />
+                      {t('quality.openPdf', 'Tıklayın, PDF Açılsın')}
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <FaFilePdf className="text-red-500 text-xl" aria-hidden="true" />
+                    <span>{t('quality.orgFileName', 'Organizasyon Şeması (PDF)')}</span>
+                  </div>
+                  <span className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-bold rounded-xl group-hover:brightness-110 transition-all text-sm">
+                    <FaExternalLinkAlt className="text-xs" aria-hidden="true" />
+                    {t('quality.openPdfButton', 'PDF Olarak Aç')}
+                  </span>
+                </div>
+              </a>
+            </motion.div>
           </div>
         </section>
       )}
