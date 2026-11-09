@@ -14,6 +14,7 @@ import {
   FaShieldAlt,
 } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
+import SectionNav from '../components/common/SectionNav';
 
 const triageLevels = (t: any) => [
   {
@@ -158,6 +159,8 @@ const EmergencyServicesPage = () => {
           </svg>
         </div>
       </section>
+
+      <SectionNav />
 
       {/* ─── TRIAGE ─── */}
       <section className="bg-gray-50 py-20 lg:py-28">

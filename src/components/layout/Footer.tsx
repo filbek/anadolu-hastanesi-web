@@ -12,6 +12,15 @@ import {
   FaCalendarCheck,
 } from 'react-icons/fa'
 import Logo from '../ui/Logo'
+import { SECTION_NAV_GROUPS } from '../../data/sectionNav'
+import type { TFunction } from 'i18next'
+
+/** Kurumsal / Hasta Hizmetleri bağlantıları — SectionNav ile ortak kaynak */
+const getSectionLinks = (id: 'corporate' | 'patientServices', t: TFunction) =>
+  (SECTION_NAV_GROUPS.find((g) => g.id === id)?.links || []).map((l) => ({
+    name: t(l.key, l.fallback),
+    path: l.path,
+  }))
 
 const Footer = () => {
   const { t } = useTranslation()
@@ -104,16 +113,7 @@ const Footer = () => {
               {t('footer.corporate')}
             </h4>
             <ul className="space-y-3">
-              {[
-                { name: t('footerLinks.about'), path: '/hakkimizda' },
-                { name: t('footerLinks.presidentMessage'), path: '/baskanin-mesaji' },
-                { name: t('footerLinks.missionVision'), path: '/misyon-vizyon-ve-degerlerimiz' },
-                { name: t('footerLinks.management'), path: '/yonetim' },
-                { name: t('footerLinks.qualityManagement'), path: '/kalite-yonetimi' },
-                { name: t('footerLinks.socialResponsibility', 'Sosyal Sorumluluk Projeleri'), path: '/sosyal-sorumluluk-projeleri' },
-                // { name: t('footerLinks.news'), path: '/bizden-haberler' },
-                { name: t('footerLinks.career', 'Kariyer'), path: '/kariyer' },
-              ].map((link) => (
+              {getSectionLinks('corporate', t).map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.path}
@@ -132,18 +132,7 @@ const Footer = () => {
               {t('footer.patientServices')}
             </h4>
             <ul className="space-y-3">
-              {[
-                { name: t('footerLinks.patientRights'), path: '/hasta-haklari' },
-                { name: t('footerLinks.emergency', 'Acil Servis'), path: '/acil-servis' },
-                { name: t('footerLinks.companionRules'), path: '/refakat-politikasi-ve-refakatci-kurallari' },
-                { name: t('footerLinks.visitHours'), path: '/ziyaret-kurallari-ve-saatleri' },
-                { name: t('footerLinks.complaintPolicy'), path: '/sikayet-politikasi' },
-                { name: t('footerLinks.feedback'), path: '/sizi-dinliyoruz' },
-                { name: t('footerLinks.hospitalGuide', 'Hastane İçi Rehber'), path: '/hastane-ici-rehber' },
-                { name: t('footerLinks.contractedInstitutions', 'Anlaşmalı Kurumlar'), path: '/anlasmali-kurumlar' },
-                { name: t('footerLinks.transport', 'Ulaşım'), path: '/ulasim' },
-                { name: t('footerLinks.prenatalSchool'), path: '/gebe-okulu' },
-              ].map((link) => (
+              {getSectionLinks('patientServices', t).map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.path}

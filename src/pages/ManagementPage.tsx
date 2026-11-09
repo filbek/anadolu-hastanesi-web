@@ -16,6 +16,7 @@ import {
 import { supabase } from '../lib/supabase';
 import type { ManagementTeamMember, Doctor, Hospital } from '../lib/supabase';
 import LastUpdated from '../components/ui/LastUpdated';
+import SectionNav from '../components/common/SectionNav';
 
 /* ─── Avatar helper ─── */
 const avatar = (name: string) =>
@@ -285,6 +286,8 @@ const ManagementPage = () => {
           </svg>
         </div>
       </section>
+
+      <SectionNav />
 
       {/* ─── LOADING / ERROR ─── */}
       {loading && (

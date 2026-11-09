@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { FaQuoteLeft, FaChevronRight, FaHospital } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
 import chairmanImg from '../assests/Hayati_Arkaz-1.png';
+import SectionNav from '../components/common/SectionNav';
 
 const milestones = (t: any) => [
   { year: '1988', event: t('chairman.milestone1988', "Anadolu Hastaneleri Grubu'nun temeli atıldı.") },
@@ -69,6 +70,8 @@ const ChairmanMessagePage = () => {
           </svg>
         </div>
       </section>
+
+      <SectionNav />
 
       {/* ─── MAIN CONTENT ─── */}
       <section className="bg-white py-20 lg:py-28">

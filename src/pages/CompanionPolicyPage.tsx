@@ -3,6 +3,7 @@ import LastUpdated from '../components/ui/LastUpdated';
 import { useTranslation } from 'react-i18next';
 import { FaUserPlus, FaSmokingBan, FaVolumeMute, FaHandSparkles, FaUtensils, FaBan, FaBed } from 'react-icons/fa';
 import PageBanner from '../components/common/PageBanner';
+import SectionNav from '../components/common/SectionNav';
 
 const CompanionPolicyPage = () => {
   const { t } = useTranslation();
@@ -13,6 +14,8 @@ const CompanionPolicyPage = () => {
         subtitle={t('companion.pageSubtitle', 'Hastanelerimizde yatan hastalarımızın ve yakınlarının güvenliği için')}
         image="https://images.unsplash.com/photo-1538108149393-fbbd81895907?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
       />
+
+      <SectionNav />
 
       <div className="container-custom py-16 lg:py-24">
         {/* Policy Info Box */}

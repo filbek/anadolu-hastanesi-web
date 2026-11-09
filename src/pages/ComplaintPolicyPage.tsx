@@ -12,6 +12,7 @@ import {
   FaClipboardList,
 } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
+import SectionNav from '../components/common/SectionNav';
 
 const ComplaintPolicyPage = () => {
   const { t } = useTranslation();
@@ -133,6 +134,8 @@ const ComplaintPolicyPage = () => {
           </svg>
         </div>
       </section>
+
+      <SectionNav />
 
       {/* ─── POLICY TEXT ─── */}
       <section className="bg-white py-20 lg:py-28">

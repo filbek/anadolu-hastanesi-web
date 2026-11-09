@@ -14,6 +14,7 @@ import {
 } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
 import FloorPlansSection from '../components/guide/FloorPlansSection';
+import SectionNav from '../components/common/SectionNav';
 
 const guideItems = (t: any) => [
   {
@@ -122,6 +123,8 @@ const HospitalGuidePage = () => {
           </svg>
         </div>
       </section>
+
+      <SectionNav />
 
       {/* ─── GUIDE ITEMS ─── */}
       <section className="bg-gray-50 py-20 lg:py-28">

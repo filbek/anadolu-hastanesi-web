@@ -15,6 +15,7 @@ import {
 import { supabase } from '../lib/supabase';
 import type { Hospital } from '../lib/supabase';
 import AutoTranslate from '../components/common/AutoTranslate';
+import SectionNav from '../components/common/SectionNav';
 
 type CsrActivity = {
   id: number;
@@ -155,6 +156,8 @@ const SocialResponsibilityPage = () => {
           </svg>
         </div>
       </section>
+
+      <SectionNav />
 
       {/* ─── ETKİNLİKLER ─── */}
       <section className="bg-gray-50 py-20 lg:py-28">

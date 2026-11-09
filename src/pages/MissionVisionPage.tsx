@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import { FaUserMd, FaHeart, FaStar, FaGlobe, FaChevronRight, FaHandshake, FaUsers, FaBalanceScale, FaFilePdf } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
+import SectionNav from '../components/common/SectionNav';
 
 const values = (t: any) => [
   {
@@ -99,6 +100,8 @@ const MissionVisionPage = () => {
           </svg>
         </div>
       </section>
+
+      <SectionNav />
 
       {/* ─── MİSYON / VİZYON ─── */}
       <section className="bg-gray-50 py-20 lg:py-28">

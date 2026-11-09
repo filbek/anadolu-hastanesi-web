@@ -10,6 +10,7 @@ import { sendFormEmail } from '../services/emailService';
 import { findWhatsAppRoute, buildWhatsAppUrl, openWhatsApp } from '../services/whatsappService';
 import TurnstileWidget from '../components/common/TurnstileWidget';
 import { verifyTurnstile, turnstileEnabled } from '../services/turnstileService';
+import SectionNav from '../components/common/SectionNav';
 
 const getFeedbackTypes = (t: any) => [
   { value: 'oneri', label: t('feedback.typeSuggestion', 'Öneri'), icon: '💡', color: 'bg-blue-50 border-blue-200 text-blue-700' },
@@ -230,6 +231,8 @@ const PatientFeedbackPage = () => {
           </svg>
         </div>
       </section>
+
+      <SectionNav />
 
       {/* ─── MAIN ─── */}
       <section className="bg-gray-50 py-20 lg:py-28">

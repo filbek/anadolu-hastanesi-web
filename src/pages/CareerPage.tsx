@@ -17,6 +17,7 @@ import {
   FaFileSignature,
 } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
+import SectionNav from '../components/common/SectionNav';
 
 const benefits = (t: any) => [
   {
@@ -146,6 +147,8 @@ const CareerPage = () => {
           </svg>
         </div>
       </section>
+
+      <SectionNav />
 
       {/* ─── OPEN POSITIONS LINK ─── */}
       <section className="bg-gray-50 py-20 lg:py-28">

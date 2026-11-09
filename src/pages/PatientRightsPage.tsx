@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { FaShieldAlt, FaInfoCircle, FaHospitalUser, FaBalanceScale, FaUserSecret, FaHandPaper } from 'react-icons/fa';
 import PageBanner from '../components/common/PageBanner';
 import LastUpdated from '../components/ui/LastUpdated';
+import SectionNav from '../components/common/SectionNav';
 
 const PatientRightsPage = () => {
   const { t } = useTranslation();
@@ -46,6 +47,8 @@ const PatientRightsPage = () => {
         subtitle={t('patientRights.pageSubtitle', 'Sizin sağlığınız, sizin haklarınız. Güvenli tedavi süreciniz için buradayız.')}
         image="https://images.unsplash.com/photo-1551076805-e1869033e561?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
       />
+
+      <SectionNav />
 
       <div className="container-custom py-16 lg:py-24">
         {/* Intro */}

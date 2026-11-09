@@ -40,6 +40,7 @@ import { supabase } from '../lib/supabase';
 import type { ManagementTeamMember, Doctor, Hospital } from '../lib/supabase';
 import { COMMITTEE_ICONS, DEFAULT_COMMITTEE_ICON } from '../lib/qualityCommittees';
 import type { QualityCommittee } from '../lib/qualityCommittees';
+import SectionNav from '../components/common/SectionNav';
 
 /* ─── Avatar helper (yönetim sayfasıyla aynı) ─── */
 const avatar = (name: string) =>
@@ -258,6 +259,8 @@ const QualityManagementPage = () => {
           </svg>
         </div>
       </section>
+
+      <SectionNav />
 
       {/* ─── ŞUBE SEÇİCİ ─── */}
       {hospitals.length > 1 && (

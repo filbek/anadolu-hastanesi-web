@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { FaClock, FaExclamationTriangle, FaUserAltSlash, FaInfoCircle, FaHeartbeat } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
 import PageBanner from '../components/common/PageBanner';
+import SectionNav from '../components/common/SectionNav';
 
 const VisitingRulesPage = () => {
   const { t } = useTranslation();
@@ -13,6 +14,8 @@ const VisitingRulesPage = () => {
         subtitle={t('visiting.pageSubtitle', 'Hastanelerimizdeki ziyaret işleyişi ve uymanız gereken kurallar')}
         image="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
       />
+
+      <SectionNav />
 
       <div className="container-custom py-16 lg:py-24">
         {/* Intro */}

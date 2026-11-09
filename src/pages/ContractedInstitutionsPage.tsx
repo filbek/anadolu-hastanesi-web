@@ -12,6 +12,7 @@ import { useHospitals } from '../hooks/useHospitals'
 import { useLocalizedList } from '../hooks/useLocalizedList'
 import { useContractedInstitutions } from '../hooks/useContractedInstitutions'
 import { type ContractedCategory } from '../data/contractedInstitutions'
+import SectionNav from '../components/common/SectionNav';
 
 // Kategori başlığına göre ikon eşlemesi (Türkçe küçük harfe duyarsız anahtar kelimeler)
 const getCategoryIcon = (category: string) => {
@@ -121,6 +122,8 @@ const ContractedInstitutionsPage = () => {
         subtitle={t('contracted.pageSubtitle', 'Şubelerimizin anlaşmalı olduğu kurum ve kuruluşlar. Kurumunuzu seçerek avantajlı sağlık hizmetlerimizden yararlanın.')}
         image="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
       />
+
+      <SectionNav />
 
       <div className="container-custom py-16 lg:py-20">
         {/* Şube sekmeleri */}

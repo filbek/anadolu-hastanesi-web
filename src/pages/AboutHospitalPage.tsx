@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import { FaHospital, FaUserMd, FaHeartbeat, FaBaby, FaMicroscope, FaXRay, FaAmbulance, FaChevronRight } from 'react-icons/fa';
 import { MdMedicalServices, MdBed } from 'react-icons/md';
+import SectionNav from '../components/common/SectionNav';
 
 const units = (t: any) => [
   { icon: <FaAmbulance />, title: t('aboutHospital.unitEmergency', 'Acil Servis') },
@@ -77,6 +78,8 @@ const AboutHospitalPage = () => {
           </svg>
         </div>
       </section>
+
+      <SectionNav />
 
       {/* ─── STATS ─── */}
       <section className="bg-gray-50 py-12">

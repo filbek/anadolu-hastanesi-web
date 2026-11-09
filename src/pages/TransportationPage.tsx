@@ -15,6 +15,7 @@ import {
 } from 'react-icons/fa';
 import LastUpdated from '../components/ui/LastUpdated';
 import { getDirectionsUrl } from '../utils/mapUtils';
+import SectionNav from '../components/common/SectionNav';
 
 const transportOptions = (t: any) => [
   {
@@ -142,6 +143,8 @@ const TransportationPage = () => {
           </svg>
         </div>
       </section>
+
+      <SectionNav />
 
       {/* ─── TRANSPORT OPTIONS ─── */}
       <section className="bg-gray-50 py-20 lg:py-28">

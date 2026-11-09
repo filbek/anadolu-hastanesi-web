@@ -7,6 +7,7 @@ import { getActiveSeminars, GebeOkuluSeminar } from '../services/gebeOkuluServic
 import { defaultSeminars } from '../data/gebeOkuluSeminars'
 import { supabase } from '../lib/supabase'
 import type { Hospital } from '../lib/supabase'
+import SectionNav from '../components/common/SectionNav';
 
 const features = (t: any) => [
   { icon: <FaUserMd />, title: t('gebe.featureExpert', 'Uzman Kadro'), desc: t('gebe.featureExpertDesc', 'Jinekolog, ebe ve diyetisyenlerden oluşan deneyimli ekibimizle bilgilendirme.') },
@@ -112,6 +113,8 @@ const GebeOkuluPage = () => {
           </motion.div>
         </div>
       </section>
+
+      <SectionNav />
 
       {/* Features */}
       <section className="py-16">
