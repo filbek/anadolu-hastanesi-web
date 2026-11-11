@@ -40,7 +40,8 @@ export const SECTION_NAV_GROUPS: SectionNavGroup[] = [
     titleFallback: 'Hasta Hizmetleri',
     links: [
       { key: 'footerLinks.patientRights', fallback: 'Hasta Hakları', path: '/hasta-haklari' },
-      { key: 'footerLinks.emergency', fallback: 'Acil Servis', path: '/acil-servis' },
+      // Acil Servis sayfası şimdilik pasif (2026-11-11) — tekrar açılınca bu satırı geri alın.
+      // { key: 'footerLinks.emergency', fallback: 'Acil Servis', path: '/acil-servis' },
       { key: 'footerLinks.companionRules', fallback: 'Refakatçi Kuralları', path: '/refakat-politikasi-ve-refakatci-kurallari' },
       { key: 'footerLinks.visitHours', fallback: 'Ziyaret Saatleri', path: '/ziyaret-kurallari-ve-saatleri' },
       { key: 'footerLinks.complaintPolicy', fallback: 'Şikayet Politikası', path: '/sikayet-politikasi' },

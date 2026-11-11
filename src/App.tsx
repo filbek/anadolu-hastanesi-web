@@ -52,7 +52,8 @@ const QualityManagementPage = lazy(() => import('./pages/QualityManagementPage')
 const PatientFeedbackPage = lazy(() => import('./pages/PatientFeedbackPage'))
 const ComplaintPolicyPage = lazy(() => import('./pages/ComplaintPolicyPage'))
 const GebeOkuluPage = lazy(() => import('./pages/GebeOkuluPage'))
-const EmergencyServicesPage = lazy(() => import('./pages/EmergencyServicesPage'))
+// Acil Servis sayfası şimdilik pasif (2026-11-11). Tekrar açmak için bu satırı ve aşağıdaki rotayı geri alın.
+// const EmergencyServicesPage = lazy(() => import('./pages/EmergencyServicesPage'))
 const SocialResponsibilityPage = lazy(() => import('./pages/SocialResponsibilityPage'))
 const CareerPage = lazy(() => import('./pages/CareerPage'))
 const JobApplicationPage = lazy(() => import('./pages/JobApplicationPage'))
@@ -182,7 +183,9 @@ function App() {
             <Route path="sizi-dinliyoruz" element={<PatientFeedbackPage />} />
             <Route path="sikayet-politikasi" element={<ComplaintPolicyPage />} />
             <Route path="gebe-okulu" element={<GebeOkuluPage />} />
-            <Route path="acil-servis" element={<EmergencyServicesPage />} />
+            {/* Acil Servis sayfası pasif — eski bağlantılar ana sayfaya yönlenir */}
+            <Route path="acil-servis" element={<Navigate to="/" replace />} />
+            {/* <Route path="acil-servis" element={<EmergencyServicesPage />} /> */}
             <Route path="sosyal-sorumluluk-projeleri" element={<SocialResponsibilityPage />} />
             <Route path="sosyal-sorumluluk" element={<Navigate to="/sosyal-sorumluluk-projeleri" replace />} />
             <Route path="kariyer" element={<CareerPage />} />
