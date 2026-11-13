@@ -9,5 +9,9 @@ Allow: /
 # çalıştırmayan tarayıcılar için ikinci katmandır.
 Disallow: /basvuru-paylasim/
 
+# Banko görselindeki QR kodun açtığı tercüman listesi: yalnızca QR ile
+# ulaşılır, aramada çıkmamalı (sayfa ayrıca noindex basar).
+Disallow: /tercumanlar
+
 # Yönetim paneli
 Disallow: /admin/

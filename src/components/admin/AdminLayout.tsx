@@ -22,7 +22,7 @@ import {
   FaDatabase, FaVideo, FaAward, FaFilePdf, FaChevronRight,
   FaSlideshare, FaComments, FaChartBar, FaCertificate, FaClipboardList, FaHistory, FaUserTie,
   FaBaby, FaHandshake, FaSitemap, FaHandHoldingHeart, FaWhatsapp, FaHeadset,
-  FaBell, FaVolumeUp, FaVolumeMute, FaBriefcase
+  FaBell, FaVolumeUp, FaVolumeMute, FaBriefcase, FaLanguage
 } from 'react-icons/fa';
 
 /** Sidebar'da rozet gösterilen menü öğesi */
@@ -270,6 +270,7 @@ ${waiting.length} görüşme yanıt bekliyor.` : ''),
         { path: LIVE_CHAT_PATH, icon: FaHeadset, label: 'Canlı Destek' },
         { path: '/admin/patient-info', icon: FaFilePdf, label: 'Hasta Bilgilendirme' },
         { path: '/admin/contracted-institutions', icon: FaHandshake, label: 'Anlaşmalı Kurumlar' },
+        { path: '/admin/interpreters', icon: FaLanguage, label: 'Tercümanlar' },
         { path: '/admin/patient-feedback', icon: FaClipboardList, label: 'Geri Bildirimler' },
         { path: '/admin/second-opinion', icon: FaEnvelope, label: 'İkinci Görüş Başvuruları' },
         { path: '/admin/international-requests', icon: FaGlobe, label: 'Sağlık Turizmi Talepleri' },

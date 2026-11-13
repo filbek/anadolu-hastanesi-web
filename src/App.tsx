@@ -54,6 +54,8 @@ const ComplaintPolicyPage = lazy(() => import('./pages/ComplaintPolicyPage'))
 const GebeOkuluPage = lazy(() => import('./pages/GebeOkuluPage'))
 // Acil Servis sayfası şimdilik pasif (2026-11-11). Tekrar açmak için bu satırı ve aşağıdaki rotayı geri alın.
 // const EmergencyServicesPage = lazy(() => import('./pages/EmergencyServicesPage'))
+// Banko görselindeki QR kodun açtığı sayfa — sitede bağlantısı yok, noindex
+const InterpretersPage = lazy(() => import('./pages/InterpretersPage'))
 const SocialResponsibilityPage = lazy(() => import('./pages/SocialResponsibilityPage'))
 const CareerPage = lazy(() => import('./pages/CareerPage'))
 const JobApplicationPage = lazy(() => import('./pages/JobApplicationPage'))
@@ -85,6 +87,7 @@ const AdminVideoContent = lazy(() => import('./components/admin/AdminVideoConten
 const AdminQualityCertificates = lazy(() => import('./components/admin/AdminQualityCertificates'))
 const AdminQualityCommittees = lazy(() => import('./components/admin/AdminQualityCommittees'))
 const AdminOrganizationChart = lazy(() => import('./components/admin/AdminOrganizationChart'))
+const AdminInterpreters = lazy(() => import('./components/admin/AdminInterpreters'))
 const AdminPresentations = lazy(() => import('./components/admin/AdminPresentations'))
 const AdminPatientInfo = lazy(() => import('./components/admin/AdminPatientInfo'))
 const AdminContractedInstitutions = lazy(() => import('./components/admin/AdminContractedInstitutions'))
@@ -183,6 +186,7 @@ function App() {
             <Route path="sizi-dinliyoruz" element={<PatientFeedbackPage />} />
             <Route path="sikayet-politikasi" element={<ComplaintPolicyPage />} />
             <Route path="gebe-okulu" element={<GebeOkuluPage />} />
+            <Route path="tercumanlar" element={<InterpretersPage />} />
             {/* Acil Servis sayfası pasif — eski bağlantılar ana sayfaya yönlenir */}
             <Route path="acil-servis" element={<Navigate to="/" replace />} />
             {/* <Route path="acil-servis" element={<EmergencyServicesPage />} /> */}
@@ -241,6 +245,7 @@ function App() {
               <Route path="quality-certificates" element={<AdminQualityCertificates />} />
               <Route path="quality-committees" element={<AdminQualityCommittees />} />
               <Route path="organization-chart" element={<AdminOrganizationChart key="quality" />} />
+              <Route path="interpreters" element={<AdminInterpreters />} />
               <Route path="management-organization-chart" element={<AdminOrganizationChart key="management" variant="management" />} />
               <Route path="patient-info" element={<AdminPatientInfo />} />
               <Route path="contracted-institutions" element={<AdminContractedInstitutions />} />
