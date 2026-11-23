@@ -51,7 +51,10 @@
     "copyright": "Anadolu Hastaneleri Grubu. Tüm hakları saklıdır.",
     "followUs": "Bizi Takip Edin",
     "followDesc": "Sosyal medya hesaplarımızı takip ederek en güncel sağlık bilgilerine ve hastanemiz hakkındaki gelişmelere ulaşabilirsiniz.",
-    "accessibility": "Erişilebilirlik"
+    "accessibility": "Erişilebilirlik",
+    "appTitle": "Mobil Uygulamamız",
+    "appDesc": "Randevularınızı ve sağlık kayıtlarınızı cebinizden yönetin.",
+    "appDownload": "Hemen indirin"
   },
   "footerLinks": {
     "hospitals": "Hastanelerimiz",

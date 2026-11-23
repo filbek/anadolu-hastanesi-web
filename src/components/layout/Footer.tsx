@@ -10,10 +10,37 @@ import {
   FaPhone,
   FaEnvelope,
   FaCalendarCheck,
+  FaApple,
+  FaGooglePlay,
 } from 'react-icons/fa'
 import Logo from '../ui/Logo'
 import { SECTION_NAV_GROUPS } from '../../data/sectionNav'
 import type { TFunction } from 'i18next'
+import { SOCIAL_LINKS, SocialPlatform } from '../../data/socialLinks'
+
+const SOCIAL_ICONS: Record<SocialPlatform, JSX.Element> = {
+  facebook: <FaFacebookF size={14} />,
+  twitter: <FaTwitter size={14} />,
+  instagram: <FaInstagram size={14} />,
+  youtube: <FaYoutube size={14} />,
+  linkedin: <FaLinkedinIn size={14} />,
+}
+
+/** Mobil uygulama mağaza bağlantıları */
+const APP_LINKS = [
+  {
+    id: 'ios',
+    store: 'App Store',
+    href: 'https://apps.apple.com/us/app/anadolu-hastaneleri/id6830258281',
+    icon: <FaApple size={26} aria-hidden="true" />,
+  },
+  {
+    id: 'android',
+    store: 'Google Play',
+    href: 'https://play.google.com/store/apps/details?id=com.pusula.hbys.hbys_app.special&hl=tr',
+    icon: <FaGooglePlay size={21} aria-hidden="true" />,
+  },
+]
 
 /** Kurumsal / Hasta Hizmetleri bağlantıları — SectionNav ile ortak kaynak */
 const getSectionLinks = (id: 'corporate' | 'patientServices', t: TFunction) =>
@@ -40,13 +67,7 @@ const Footer = () => {
               {t('footer.manifesto')}
             </p>
             <div className="flex gap-3">
-              {[
-                { icon: <FaFacebookF size={14} />, href: 'https://www.facebook.com/anadoluhastanelergrubu', label: 'Facebook' },
-                { icon: <FaTwitter size={14} />, href: 'https://x.com/AnadoluHast', label: 'Twitter' },
-                { icon: <FaInstagram size={14} />, href: 'https://www.instagram.com/anadoluhastanelergrubu/', label: 'Instagram' },
-                { icon: <FaYoutube size={14} />, href: 'https://www.youtube.com/channel/UCCTPl8oKtJ0IeEeCEBvcXHw', label: 'YouTube' },
-                { icon: <FaLinkedinIn size={14} />, href: 'https://www.linkedin.com/company/anadolu-hastaneleri-grubu', label: 'LinkedIn' },
-              ].map((social) => (
+              {SOCIAL_LINKS.map((social) => (
                 <a
                   key={social.label}
                   href={social.href}
@@ -55,7 +76,40 @@ const Footer = () => {
                   className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-ocean-500 hover:text-white transition-all duration-300 text-white/60"
                   aria-label={social.label}
                 >
-                  {social.icon}
+                  {SOCIAL_ICONS[social.id]}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Mobil Uygulama */}
+          <div className="max-w-xs w-full">
+            <h3 className="font-display font-bold text-lg mb-2">
+              {t('footer.appTitle', 'Mobil Uygulamamız')}
+            </h3>
+            <p className="text-white/50 text-sm mb-5">
+              {t(
+                'footer.appDesc',
+                'Randevularınızı ve sağlık kayıtlarınızı cebinizden yönetin.'
+              )}
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {APP_LINKS.map((app) => (
+                <a
+                  key={app.id}
+                  href={app.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${t('footer.appDownload', 'Hemen indirin')} — ${app.store}`}
+                  className="inline-flex items-center gap-3 min-w-[148px] px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white hover:text-[#0A1628] transition-all duration-300"
+                >
+                  <span className="flex-shrink-0 w-7 flex justify-center">{app.icon}</span>
+                  <span className="flex flex-col leading-tight text-start">
+                    <span className="text-[10px] uppercase tracking-wide opacity-70">
+                      {t('footer.appDownload', 'Hemen indirin')}
+                    </span>
+                    <span className="font-display font-semibold text-sm">{app.store}</span>
+                  </span>
                 </a>
               ))}
             </div>

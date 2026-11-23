@@ -51,7 +51,10 @@
     "copyright": "Anadolu Hospitals Group. All rights reserved.",
     "followUs": "Follow Us",
     "followDesc": "Follow our social media accounts to get the latest health information and developments about our hospital.",
-    "accessibility": "Accessibility"
+    "accessibility": "Accessibility",
+    "appTitle": "Our Mobile App",
+    "appDesc": "Manage your appointments and health records from your pocket.",
+    "appDownload": "Download on"
   },
   "footerLinks": {
     "hospitals": "Our Hospitals",
